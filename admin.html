@@ -195,7 +195,6 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .group-del:hover { color:var(--danger); }
 .group-body { padding:10px 14px; display:flex; flex-direction:column; gap:6px; }
 .group-item-row { display:flex; align-items:center; gap:6px; }
-.group-item-drag { color:var(--text-tertiary); font-size:13px; cursor:grab; flex-shrink:0; }
 .group-item-input { flex:1; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:6px 10px; font-size:13px; color:var(--text); font-family:inherit; outline:none; }
 .group-item-input:focus { border-color:var(--border-strong); }
 .group-item-del { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:16px; line-height:1; padding:0 2px; flex-shrink:0; }
@@ -714,25 +713,12 @@ function renderGroupEditor(containerId) {
     sec.items.forEach((item, ii) => {
       const row = document.createElement('div');
       row.className = 'group-item-row';
-      row.draggable = true;
       row.dataset.ii = ii;
       row.innerHTML = `
-        <span class="group-item-drag">⠿</span>
         <input class="group-item-input" value="${item.replace(/"/g,'&quot;')}" placeholder="輸入描述"
           oninput="_groupSections[${gi}].items[${ii}]=this.value" />
         <button class="group-item-del" onclick="removeGroupItem(${gi},${ii})">×</button>
       `;
-      // item drag
-      row.addEventListener('dragstart', e => { e.stopPropagation(); e.dataTransfer.effectAllowed='move'; window._dragGi=gi; window._dragIi=ii; });
-      row.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); row.style.opacity='.5'; });
-      row.addEventListener('dragleave', () => row.style.opacity='1');
-      row.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); row.style.opacity='1';
-        if (window._dragGi===gi && window._dragIi!==ii) {
-          const moved = _groupSections[gi].items.splice(window._dragIi,1)[0];
-          _groupSections[gi].items.splice(ii,0,moved);
-          renderGroupEditor(containerId);
-        }
-      });
       body.appendChild(row);
     });
 
