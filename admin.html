@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後台管理 — 林艾奭作品集</title>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Quill Editor -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ffffff;
+  --bg-secondary: #f8f8f7;
+  --bg-tertiary: #f1f0ed;
+  --text: #1a1917;
+  --text-secondary: #5c5b58;
+  --text-tertiary: #9b9a97;
+  --border: rgba(0,0,0,0.1);
+  --border-strong: rgba(0,0,0,0.2);
+  --accent: #18181b;
+  --accent-text: #ffffff;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --sidebar-w: 220px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111110;
+    --bg-secondary: #1a1917;
+    --bg-tertiary: #222120;
+    --text: #eeece9;
+    --text-secondary: #a09e9b;
+    --text-tertiary: #6b6966;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    --accent: #eeece9;
+    --accent-text: #111110;
+  }
+}
+body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-secondary); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+/* ── Login ── */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-secondary);
+}
+.login-card {
+  width: 100%; max-width: 380px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 36px 32px;
+}
+.login-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+.login-card p { font-size: 13px; color: var(--text-tertiary); margin-bottom: 28px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.field input {
+  width: 100%; padding: 9px 12px; font-size: 14px; font-family: inherit;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text);
+  transition: border-color 0.15s; outline: none;
+}
+.field input:focus { border-color: var(--border-strong); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 18px; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 500; font-family: inherit;
+  cursor: pointer; transition: opacity 0.15s, background 0.15s;
+  border: 1px solid transparent;
+}
+.btn-primary { background: var(--accent); color: var(--accent-text); width: 100%; margin-top: 4px; }
+.btn-primary:hover { opacity: 0.85; }
+.btn-secondary {
+  background: var(--bg); color: var(--text-secondary);
+  border-color: var(--border);
+}
+.btn-secondary:hover { background: var(--bg-secondary); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { opacity: 0.85; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.error-msg { font-size: 12px; color: var(--danger); margin-top: 10px; text-align: center; min-height: 18px; }
+.success-msg { font-size: 12px; color: var(--success); margin-top: 10px; text-align: center; min-height: 18px; }
+
+/* ── Setup banner ── */
+#setup-banner {
+  background: #fef3c7; border: 1px solid #fcd34d; border-radius: var(--radius-md);
+  padding: 14px 18px; font-size: 13px; color: #92400e;
+  margin-bottom: 20px; display: none;
+}
+#setup-banner strong { display: block; margin-bottom: 4px; }
+#setup-banner code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+
+/* ── App Shell ── */
+#app { display: none; height: 100vh; }
+.layout { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo { font-size: 14px; font-weight: 500; }
+.sidebar-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.nav-section { padding: 12px 8px 4px; }
+.nav-section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-tertiary); padding: 0 8px 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: var(--radius-md);
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; transition: background 0.1s, color 0.1s;
+  border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+}
+.nav-item:hover { background: var(--bg-secondary); color: var(--text); }
+.nav-item.active { background: var(--bg-tertiary); color: var(--text); font-weight: 500; }
+.nav-item svg { opacity: 0.5; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.sidebar-footer {
+  margin-top: auto; padding: 12px 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Main area ── */
+.main { flex: 1; overflow-y: auto; background: var(--bg-secondary); }
+.main-inner { max-width: 860px; margin: 0 auto; padding: 28px 28px 60px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.page-title { font-size: 18px; font-weight: 500; }
+.page-desc { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px;
+  margin-bottom: 16px;
+}
+.card-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.card-desc { font-size: 12px; color: var(--text-tertiary); margin-bottom: 20px; }
+
+/* ── Form elements ── */
+.form-row { margin-bottom: 18px; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 9px 12px; font-size: 13px; font-family: inherit;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text);
+  transition: border-color 0.15s; outline: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--border-strong); }
+.form-textarea { resize: vertical; min-height: 80px; line-height: 1.7; }
+.form-select option { background: var(--bg); }
+.form-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-actions { display: flex; gap: 8px; margin-top: 20px; }
+
+/* ── Quill override ── */
+.ql-container { font-family: 'Noto Sans TC', sans-serif; font-size: 13px; border-radius: 0 0 var(--radius-md) var(--radius-md); }
+.ql-toolbar { border-radius: var(--radius-md) var(--radius-md) 0 0; border-color: var(--border) !important; background: var(--bg-secondary); }
+.ql-container { border-color: var(--border) !important; }
+.ql-editor { min-height: 140px; color: var(--text); }
+.ql-editor.ql-blank::before { color: var(--text-tertiary); font-style: normal; }
+
+/* ── Image upload ── */
+.img-upload-area {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-md); padding: 24px;
+  text-align: center; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.img-upload-area:hover { border-color: var(--accent); background: var(--bg-secondary); }
+.img-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.img-upload-icon { font-size: 24px; margin-bottom: 8px; opacity: 0.4; }
+.img-upload-text { font-size: 13px; color: var(--text-secondary); }
+.img-upload-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.img-preview-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.img-preview-item {
+  position: relative; width: 100px; height: 80px;
+  border-radius: var(--radius-md); overflow: hidden;
+  border: 1px solid var(--border);
+}
+.img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview-item .img-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0,0,0,0.6); color: white;
+  font-size: 11px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none;
+}
+.uploading-bar {
+  height: 3px; background: var(--bg-tertiary);
+  border-radius: 2px; overflow: hidden; margin-top: 8px; display: none;
+}
+.uploading-bar .fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+
+/* ── Project list ── */
+.project-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.project-item:last-child { border-bottom: none; }
+.project-item:hover { background: var(--bg-secondary); }
+.project-item-left { flex: 1; }
+.project-item-title { font-size: 14px; font-weight: 500; }
+.project-item-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+.project-item-actions { display: flex; gap: 6px; }
+.tag-badge {
+  display: inline-block; font-size: 10px; padding: 2px 7px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 100px; color: var(--text-secondary); margin-right: 4px;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--accent); color: var(--accent-text);
+  padding: 10px 18px; border-radius: var(--radius-md);
+  font-size: 13px; z-index: 9999;
+  transform: translateY(12px); opacity: 0;
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── Config screen ── */
+#config-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-secondary); display: none;
+}
+.config-card {
+  width: 100%; max-width: 480px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 36px 32px;
+}
+.config-card h1 { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
+.config-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7; }
+.config-steps { margin-bottom: 24px; }
+.config-step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.config-step:last-child { border-bottom: none; }
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 1px;
+}
+.step-text { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+.step-text code { background: var(--bg-tertiary); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--text); }
+
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .form-row-2 { grid-template-columns: 1fr; }
+  .main-inner { padding: 20px 16px 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- CONFIG SCREEN -->
+<div id="config-screen">
+  <div class="config-card">
+    <h1>⚙️ 設定 Supabase 連線</h1>
+    <p>在開始使用後台之前，請先完成 Supabase 設定。這是免費的雲端資料庫，用來儲存您的作品集內容與圖片。</p>
+    <div class="config-steps">
+      <div class="config-step"><div class="step-num">1</div><div class="step-text">前往 <a href="https://supabase.com" target="_blank" style="color:inherit">supabase.com</a> 免費註冊並建立新專案</div></div>
+      <div class="config-step"><div class="step-num">2</div><div class="step-text">在 <strong>Project Settings → API</strong> 找到 <code>Project URL</code> 和 <code>anon public key</code></div></div>
+      <div class="config-step"><div class="step-num">3</div><div class="step-text">在 <strong>SQL Editor</strong> 執行下方的建表語法</div></div>
+      <div class="config-step"><div class="step-num">4</div><div class="step-text">在 <strong>Storage</strong> 建立名為 <code>portfolio-images</code> 的 bucket，設定為 Public</div></div>
+    </div>
+    <div class="field">
+      <label class="form-label">Supabase Project URL</label>
+      <input class="form-input" id="cfg-url" placeholder="https://xxxx.supabase.co" />
+    </div>
+    <div class="field">
+      <label class="form-label">Supabase Anon Key</label>
+      <input class="form-input" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIs..." />
+    </div>
+    <div class="field" style="margin-top:16px">
+      <label class="form-label">管理員 Email</label>
+      <input class="form-input" id="cfg-admin-email" placeholder="your@email.com" />
+    </div>
+    <div class="field">
+      <label class="form-label">管理員密碼（設定登入密碼）</label>
+      <input class="form-input" type="password" id="cfg-admin-pw" placeholder="至少 8 字元" />
+    </div>
+
+    <details style="margin-bottom:20px">
+      <summary style="font-size:12px; color:var(--text-tertiary); cursor:pointer; margin-bottom:8px">📋 SQL 建表語法（點擊展開）</summary>
+      <pre style="background:var(--bg-tertiary);padding:14px;border-radius:var(--radius-md);font-size:11px;overflow-x:auto;color:var(--text-secondary);line-height:1.6;margin-top:8px">-- 個人資料
+CREATE TABLE profile (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  tagline TEXT,
+  description TEXT,
+  email TEXT,
+  phone TEXT,
+  note TEXT,
+  status TEXT DEFAULT '目前在職',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+INSERT INTO profile (name,tagline,description,email,phone,note)
+VALUES ('林艾奭','UI / UX Designer · 4 年經驗',
+  '從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。',
+  'zh6502014@gmail.com','0911-585-420',
+  '如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。');
+
+-- 技能
+CREATE TABLE skills (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  icon TEXT DEFAULT '🎨',
+  tags TEXT[] DEFAULT '{}',
+  sort_order INT DEFAULT 0
+);
+
+-- 工具
+CREATE TABLE tools (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  sort_order INT DEFAULT 0
+);
+
+-- 專案
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  time_range TEXT,
+  tags TEXT[] DEFAULT '{}',
+  description TEXT,
+  role TEXT,
+  members TEXT,
+  goals TEXT[] DEFAULT '{}',
+  challenges TEXT[] DEFAULT '{}',
+  methods TEXT[] DEFAULT '{}',
+  work_items TEXT[] DEFAULT '{}',
+  products TEXT[] DEFAULT '{}',
+  insight TEXT,
+  images TEXT[] DEFAULT '{}',
+  sort_order INT DEFAULT 0,
+  published BOOLEAN DEFAULT TRUE,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 隨筆
+CREATE TABLE notes (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  note_date DATE,
+  note_type TEXT,
+  content TEXT,
+  sort_order INT DEFAULT 0,
+  published BOOLEAN DEFAULT TRUE
+);
+
+-- RLS (開放匿名讀取，只有登入者可寫)
+ALTER TABLE profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tools ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "public read" ON profile FOR SELECT USING (true);
+CREATE POLICY "auth write" ON profile FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "public read" ON skills FOR SELECT USING (true);
+CREATE POLICY "auth write" ON skills FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "public read" ON tools FOR SELECT USING (true);
+CREATE POLICY "auth write" ON tools FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "public read" ON projects FOR SELECT USING (true);
+CREATE POLICY "auth write" ON projects FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "public read" ON notes FOR SELECT USING (true);
+CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated');</pre>
+    </details>
+
+    <button class="btn btn-primary" onclick="saveConfig()">儲存設定並繼續</button>
+    <p class="error-msg" id="cfg-error"></p>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:none">
+  <div class="login-card">
+    <h1>後台管理</h1>
+    <p>請輸入管理員帳號登入</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" class="form-input" placeholder="your@email.com" />
+    </div>
+    <div class="field">
+      <label>密碼</label>
+      <input type="password" id="login-pw" class="form-input" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">登入</button>
+    <p class="error-msg" id="login-error"></p>
+    <p style="margin-top:16px; font-size:12px; color:var(--text-tertiary); text-align:center">
+      <a href="#" onclick="resetConfig()" style="color:inherit">重新設定連線</a>
+    </p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">林艾奭</div>
+        <div class="sidebar-sub">作品集後台</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">內容管理</div>
+        <button class="nav-item active" onclick="showPage('profile',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          個人資料
+        </button>
+        <button class="nav-item" onclick="showPage('skills',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          設計技能
+        </button>
+        <button class="nav-item" onclick="showPage('tools',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          使用工具
+        </button>
+        <button class="nav-item" onclick="showPage('projects',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+          作品集專案
+        </button>
+        <button class="nav-item" onclick="showPage('notes',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          隨筆紀錄
+        </button>
+      </div>
+      <div class="sidebar-footer">
+        <button class="nav-item" onclick="doLogout()" style="color:var(--text-tertiary)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          登出
+        </button>
+        <a href="index.html" class="nav-item" target="_blank" style="text-decoration:none; color:var(--text-tertiary)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          查看前台
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="main-inner">
+        <div id="page-profile" class="page"></div>
+        <div id="page-skills" class="page" style="display:none"></div>
+        <div id="page-tools" class="page" style="display:none"></div>
+        <div id="page-projects" class="page" style="display:none"></div>
+        <div id="page-notes" class="page" style="display:none"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Globals ──
+let supabase_client = null;
+let quillInstances = {};
+
+// ── Config ──
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem('sb_config') || 'null'); } catch { return null; }
+}
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  const email = document.getElementById('cfg-admin-email').value.trim();
+  const pw = document.getElementById('cfg-admin-pw').value;
+  if (!url || !key) { document.getElementById('cfg-error').textContent = '請填入 URL 和 Key'; return; }
+  if (!email || pw.length < 8) { document.getElementById('cfg-error').textContent = '請填入 Email 及 8 字元以上密碼'; return; }
+  localStorage.setItem('sb_config', JSON.stringify({ url, key }));
+  localStorage.setItem('admin_email', email);
+  localStorage.setItem('admin_pw', pw);
+  initSupabase(url, key);
+  registerAndLogin(email, pw);
+}
+function resetConfig() { localStorage.removeItem('sb_config'); location.reload(); }
+
+async function registerAndLogin(email, pw) {
+  document.getElementById('cfg-error').textContent = '';
+  try {
+    const { error: signUpError } = await supabase_client.auth.signUp({ email, password: pw });
+    const { error: signInError } = await supabase_client.auth.signInWithPassword({ email, password: pw });
+    if (signInError) { document.getElementById('cfg-error').textContent = '設定失敗：' + signInError.message; return; }
+    showApp();
+  } catch (e) { document.getElementById('cfg-error').textContent = '連線失敗，請確認 URL 和 Key'; }
+}
+
+function initSupabase(url, key) {
+  supabase_client = window.supabase.createClient(url, key);
+}
+
+// ── Auth ──
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  document.getElementById('login-error').textContent = '登入中...';
+  const { error } = await supabase_client.auth.signInWithPassword({ email, password: pw });
+  if (error) { document.getElementById('login-error').textContent = '帳號或密碼錯誤'; return; }
+  showApp();
+}
+async function doLogout() {
+  await supabase_client.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── Boot ──
+async function boot() {
+  const cfg = getConfig();
+  if (!cfg) { document.getElementById('config-screen').style.display = 'flex'; return; }
+  initSupabase(cfg.url, cfg.key);
+  const { data: { session } } = await supabase_client.auth.getSession();
+  if (session) { showApp(); }
+  else {
+    const saved_email = localStorage.getItem('admin_email') || '';
+    if (document.getElementById('login-email')) document.getElementById('login-email').value = saved_email;
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+}
+
+// ── App ──
+function showApp() {
+  document.getElementById('config-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderProfilePage();
+}
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).style.display = 'block';
+  btn.classList.add('active');
+  const renderers = { profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage, projects: renderProjectsPage, notes: renderNotesPage };
+  if (renderers[name]) renderers[name]();
+}
+
+// ── Toast ──
+function toast(msg, duration = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Image Upload ──
+async function uploadImage(file, bucket = 'portfolio-images') {
+  const ext = file.name.split('.').pop();
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { error } = await supabase_client.storage.from(bucket).upload(path, file);
+  if (error) throw error;
+  const { data } = supabase_client.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
+  const container = document.getElementById(containerId);
+  let urls = [...existingUrls];
+
+  function render() {
+    container.innerHTML = `
+      <div class="img-upload-area" id="${containerId}-drop">
+        <input type="file" accept="image/*" multiple id="${containerId}-input" />
+        <div class="img-upload-icon">📁</div>
+        <div class="img-upload-text">點擊或拖拉上傳圖片</div>
+        <div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB</div>
+      </div>
+      <div class="uploading-bar" id="${containerId}-bar"><div class="fill" id="${containerId}-fill"></div></div>
+      <div class="img-preview-grid" id="${containerId}-preview"></div>
+    `;
+
+    document.getElementById(`${containerId}-input`).addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      const bar = document.getElementById(`${containerId}-bar`);
+      const fill = document.getElementById(`${containerId}-fill`);
+      bar.style.display = 'block';
+      for (let i = 0; i < files.length; i++) {
+        fill.style.width = ((i / files.length) * 100) + '%';
+        try {
+          const url = await uploadImage(files[i]);
+          urls.push(url);
+          if (onChangeCallback) onChangeCallback(urls);
+        } catch (err) { toast('上傳失敗：' + err.message); }
+      }
+      fill.style.width = '100%';
+      setTimeout(() => { bar.style.display = 'none'; fill.style.width = '0%'; }, 600);
+      renderPreviews();
+    });
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    const grid = document.getElementById(`${containerId}-preview`);
+    if (!grid) return;
+    grid.innerHTML = urls.map((url, i) => `
+      <div class="img-preview-item">
+        <img src="${url}" alt="" />
+        <button class="img-remove" onclick="removeImg('${containerId}',${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  window[`removeImg_${containerId}`] = (idx) => { urls.splice(idx, 1); if (onChangeCallback) onChangeCallback(urls); render(); };
+  window[`removeImg`] = (cid, idx) => { if (cid !== containerId) return; urls.splice(idx, 1); if (onChangeCallback) onChangeCallback(urls); render(); };
+  window[`getImgs_${containerId}`] = () => urls;
+
+  render();
+}
+
+// ── Quill helper ──
+function makeQuill(id, placeholder = '在這裡輸入內容...') {
+  if (quillInstances[id]) { quillInstances[id].root.parentElement.parentElement.remove(); }
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `<div id="quill-${id}"></div>`;
+  document.getElementById(id).appendChild(wrapper);
+  const q = new Quill(`#quill-${id}`, {
+    theme: 'snow', placeholder,
+    modules: { toolbar: [
+      ['bold','italic','underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link'], ['clean']
+    ]}
+  });
+  quillInstances[id] = q;
+  return q;
+}
+
+// ─────────────────────────────────────────────
+// PROFILE PAGE
+// ─────────────────────────────────────────────
+async function renderProfilePage() {
+  const el = document.getElementById('page-profile');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">個人資料</div><div class="page-desc">首頁 Hero 區塊的內容</div></div>
+      <button class="btn btn-primary btn-sm" onclick="saveProfile()">儲存變更</button>
+    </div>
+    <div class="card">
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">姓名</label><input class="form-input" id="p-name" /></div>
+        <div class="form-row"><label class="form-label">目前狀態</label><input class="form-input" id="p-status" placeholder="目前在職 · 金融業數位設計" /></div>
+      </div>
+      <div class="form-row"><label class="form-label">標語</label><input class="form-input" id="p-tagline" placeholder="UI / UX Designer · 4 年經驗" /></div>
+      <div class="form-row"><label class="form-label">自我介紹（支援基本格式）</label><div id="p-desc-editor"></div></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="p-email" type="email" /></div>
+        <div class="form-row"><label class="form-label">電話</label><input class="form-input" id="p-phone" /></div>
+      </div>
+      <div class="form-row"><label class="form-label">聯絡備註</label><input class="form-input" id="p-note" /></div>
+    </div>
+  `;
+  const descQuill = makeQuill('p-desc-editor', '自我介紹...');
+  const { data } = await supabase_client.from('profile').select('*').single();
+  if (data) {
+    document.getElementById('p-name').value = data.name || '';
+    document.getElementById('p-status').value = data.status || '';
+    document.getElementById('p-tagline').value = data.tagline || '';
+    document.getElementById('p-email').value = data.email || '';
+    document.getElementById('p-phone').value = data.phone || '';
+    document.getElementById('p-note').value = data.note || '';
+    descQuill.root.innerHTML = data.description || '';
+  }
+}
+async function saveProfile() {
+  const q = quillInstances['p-desc-editor'];
+  const payload = {
+    name: document.getElementById('p-name').value,
+    status: document.getElementById('p-status').value,
+    tagline: document.getElementById('p-tagline').value,
+    description: q ? q.root.innerHTML : '',
+    email: document.getElementById('p-email').value,
+    phone: document.getElementById('p-phone').value,
+    note: document.getElementById('p-note').value,
+    updated_at: new Date().toISOString()
+  };
+  const { data: existing } = await supabase_client.from('profile').select('id').single();
+  if (existing) {
+    await supabase_client.from('profile').update(payload).eq('id', existing.id);
+  } else {
+    await supabase_client.from('profile').insert([payload]);
+  }
+  toast('✓ 個人資料已儲存');
+}
+
+// ─────────────────────────────────────────────
+// SKILLS PAGE
+// ─────────────────────────────────────────────
+async function renderSkillsPage() {
+  const el = document.getElementById('page-skills');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">設計技能</div><div class="page-desc">關於頁面的技能卡片</div></div>
+      <button class="btn btn-primary btn-sm" onclick="addSkill()">+ 新增技能</button>
+    </div>
+    <div id="skills-list"></div>
+  `;
+  loadSkills();
+}
+async function loadSkills() {
+  const { data } = await supabase_client.from('skills').select('*').order('sort_order');
+  const el = document.getElementById('skills-list');
+  if (!data || !data.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-tertiary);padding:32px">尚無技能，點擊「新增技能」開始</div>'; return; }
+  el.innerHTML = data.map(s => `
+    <div class="card" id="skill-card-${s.id}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div class="card-title">${s.icon} ${s.title}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="editSkill(${s.id})">編輯</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSkill(${s.id})">刪除</button>
+        </div>
+      </div>
+      <div>${(s.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+function addSkill() { renderSkillForm(null); }
+async function editSkill(id) {
+  const { data } = await supabase_client.from('skills').select('*').eq('id', id).single();
+  renderSkillForm(data);
+}
+function renderSkillForm(skill) {
+  const el = document.getElementById('page-skills');
+  const isEdit = !!skill;
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">${isEdit ? '編輯技能' : '新增技能'}</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="renderSkillsPage()">← 返回</button>
+    </div>
+    <div class="card">
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Emoji 圖示</label><input class="form-input" id="sk-icon" value="${skill?.icon || '🎨'}" /></div>
+        <div class="form-row"><label class="form-label">技能名稱</label><input class="form-input" id="sk-title" value="${skill?.title || ''}" /></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">技能標籤（每行一個）</label>
+        <textarea class="form-textarea" id="sk-tags">${(skill?.tags || []).join('\n')}</textarea>
+        <p class="form-hint">每行輸入一個標籤，例如：Wireframe</p>
+      </div>
+      <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="sk-order" type="number" value="${skill?.sort_order || 0}" /></div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveSkill(${skill?.id || 'null'})">${isEdit ? '儲存變更' : '新增技能'}</button>
+      </div>
+    </div>
+  `;
+}
+async function saveSkill(id) {
+  const tags = document.getElementById('sk-tags').value.split('\n').map(t => t.trim()).filter(Boolean);
+  const payload = {
+    icon: document.getElementById('sk-icon').value,
+    title: document.getElementById('sk-title').value,
+    tags, sort_order: parseInt(document.getElementById('sk-order').value) || 0
+  };
+  if (id) await supabase_client.from('skills').update(payload).eq('id', id);
+  else await supabase_client.from('skills').insert([payload]);
+  toast('✓ 技能已儲存');
+  renderSkillsPage();
+}
+async function deleteSkill(id) {
+  if (!confirm('確定要刪除這個技能嗎？')) return;
+  await supabase_client.from('skills').delete().eq('id', id);
+  toast('已刪除'); loadSkills();
+}
+
+// ─────────────────────────────────────────────
+// TOOLS PAGE
+// ─────────────────────────────────────────────
+async function renderToolsPage() {
+  const el = document.getElementById('page-tools');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">使用工具</div><div class="page-desc">關於頁面的工具清單</div></div>
+      <button class="btn btn-primary btn-sm" onclick="renderToolForm(null)">+ 新增工具</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div id="tools-list"></div>
+    </div>
+  `;
+  loadTools();
+}
+async function loadTools() {
+  const { data } = await supabase_client.from('tools').select('*').order('sort_order');
+  const el = document.getElementById('tools-list');
+  if (!data || !data.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary)">尚無工具</div>'; return; }
+  el.innerHTML = data.map(t => `
+    <div class="project-item">
+      <div class="project-item-left">
+        <div class="project-item-title">${t.name}</div>
+        <div class="project-item-meta">${t.description || ''}</div>
+      </div>
+      <div class="project-item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editTool(${t.id})">編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTool(${t.id})">刪除</button>
+      </div>
+    </div>
+  `).join('');
+}
+function renderToolForm(tool) {
+  const el = document.getElementById('page-tools');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">${tool ? '編輯工具' : '新增工具'}</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="renderToolsPage()">← 返回</button>
+    </div>
+    <div class="card">
+      <div class="form-row"><label class="form-label">工具名稱</label><input class="form-input" id="tl-name" value="${tool?.name || ''}" /></div>
+      <div class="form-row"><label class="form-label">功能說明</label><input class="form-input" id="tl-desc" value="${tool?.description || ''}" /></div>
+      <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="tl-order" type="number" value="${tool?.sort_order || 0}" /></div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveTool(${tool?.id || 'null'})">${tool ? '儲存變更' : '新增工具'}</button>
+      </div>
+    </div>
+  `;
+}
+async function editTool(id) {
+  const { data } = await supabase_client.from('tools').select('*').eq('id', id).single();
+  renderToolForm(data);
+}
+async function saveTool(id) {
+  const payload = {
+    name: document.getElementById('tl-name').value,
+    description: document.getElementById('tl-desc').value,
+    sort_order: parseInt(document.getElementById('tl-order').value) || 0
+  };
+  if (id) await supabase_client.from('tools').update(payload).eq('id', id);
+  else await supabase_client.from('tools').insert([payload]);
+  toast('✓ 工具已儲存'); renderToolsPage();
+}
+async function deleteTool(id) {
+  if (!confirm('確定刪除？')) return;
+  await supabase_client.from('tools').delete().eq('id', id);
+  toast('已刪除'); loadTools();
+}
+
+// ─────────────────────────────────────────────
+// PROJECTS PAGE
+// ─────────────────────────────────────────────
+async function renderProjectsPage() {
+  const el = document.getElementById('page-projects');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">作品集專案</div><div class="page-desc">可新增、編輯、刪除專案</div></div>
+      <button class="btn btn-primary btn-sm" onclick="renderProjectForm(null)">+ 新增專案</button>
+    </div>
+    <div class="card" style="padding:0"><div id="projects-list"></div></div>
+  `;
+  loadProjects();
+}
+async function loadProjects() {
+  const { data } = await supabase_client.from('projects').select('id,title,time_range,tags,published').order('sort_order');
+  const el = document.getElementById('projects-list');
+  if (!data || !data.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary)">尚無專案</div>'; return; }
+  el.innerHTML = data.map(p => `
+    <div class="project-item">
+      <div class="project-item-left">
+        <div class="project-item-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${p.title}</div>
+        <div class="project-item-meta">${p.time_range || ''} &nbsp; ${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
+      </div>
+      <div class="project-item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editProject(${p.id})">編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})">刪除</button>
+      </div>
+    </div>
+  `).join('');
+}
+async function editProject(id) {
+  const { data } = await supabase_client.from('projects').select('*').eq('id', id).single();
+  renderProjectForm(data);
+}
+function renderProjectForm(proj) {
+  const el = document.getElementById('page-projects');
+  const isEdit = !!proj;
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">${isEdit ? '編輯專案' : '新增專案'}</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="renderProjectsPage()">← 返回</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">基本資訊</div>
+      <div class="card-desc">專案的標題、時間與標籤</div>
+      <div class="form-row"><label class="form-label">專案名稱</label><input class="form-input" id="pj-title" value="${proj?.title || ''}" /></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">時間範圍</label><input class="form-input" id="pj-time" value="${proj?.time_range || ''}" placeholder="2022/02 — 開發中" /></div>
+        <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="pj-order" type="number" value="${proj?.sort_order || 0}" /></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">標籤（每行一個）</label>
+        <textarea class="form-textarea" id="pj-tags" style="min-height:64px">${(proj?.tags || []).join('\n')}</textarea>
+      </div>
+      <div class="form-row"><label class="form-label">我的角色</label><input class="form-input" id="pj-role" value="${proj?.role || ''}" /></div>
+      <div class="form-row"><label class="form-label">成員</label><input class="form-input" id="pj-members" value="${proj?.members || ''}" /></div>
+      <div class="form-row" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="pj-published" ${proj?.published !== false ? 'checked' : ''} />
+        <label for="pj-published" class="form-label" style="margin:0">公開顯示</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">專案介紹</div>
+      <div class="card-desc">作品集卡片上顯示的描述文字</div>
+      <div id="pj-desc-editor"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">詳細資訊</div>
+      <div class="card-desc">點開 Modal 後顯示的完整內容（每行一項）</div>
+      <div class="form-row"><label class="form-label">專案目標</label><textarea class="form-textarea" id="pj-goals">${(proj?.goals || []).join('\n')}</textarea></div>
+      <div class="form-row"><label class="form-label">專案挑戰</label><textarea class="form-textarea" id="pj-challenges">${(proj?.challenges || []).join('\n')}</textarea></div>
+      <div class="form-row"><label class="form-label">分析方法</label><textarea class="form-textarea" id="pj-methods">${(proj?.methods || []).join('\n')}</textarea></div>
+      <div class="form-row"><label class="form-label">我做了什麼</label><textarea class="form-textarea" id="pj-work">${(proj?.work_items || []).join('\n')}</textarea></div>
+      <div class="form-row"><label class="form-label">接觸的產品</label><textarea class="form-textarea" id="pj-products">${(proj?.products || []).join('\n')}</textarea></div>
+      <div class="form-row"><label class="form-label">設計洞察</label><textarea class="form-textarea" id="pj-insight" style="min-height:100px">${proj?.insight || ''}</textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">專案圖片</div>
+      <div class="card-desc">上傳後會自動儲存到雲端，支援多張</div>
+      <div id="pj-images-uploader"></div>
+    </div>
+
+    <div class="card">
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveProject(${proj?.id || 'null'})">
+          ${isEdit ? '儲存變更' : '新增專案'}
+        </button>
+        <button class="btn btn-secondary" onclick="renderProjectsPage()">取消</button>
+      </div>
+    </div>
+  `;
+
+  const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...');
+  if (proj?.description) descQuill.root.innerHTML = proj.description;
+  makeImageUploader('pj-images-uploader', proj?.images || []);
+}
+async function saveProject(id) {
+  const q = quillInstances['pj-desc-editor'];
+  const toArr = (id) => document.getElementById(id).value.split('\n').map(t => t.trim()).filter(Boolean);
+  const payload = {
+    title: document.getElementById('pj-title').value,
+    time_range: document.getElementById('pj-time').value,
+    tags: toArr('pj-tags'),
+    role: document.getElementById('pj-role').value,
+    members: document.getElementById('pj-members').value,
+    published: document.getElementById('pj-published').checked,
+    sort_order: parseInt(document.getElementById('pj-order').value) || 0,
+    description: q ? q.root.innerHTML : '',
+    goals: toArr('pj-goals'),
+    challenges: toArr('pj-challenges'),
+    methods: toArr('pj-methods'),
+    work_items: toArr('pj-work'),
+    products: toArr('pj-products'),
+    insight: document.getElementById('pj-insight').value,
+    images: window.getImgs_pj_images_uploader ? window.getImgs_pj_images_uploader() : [],
+    updated_at: new Date().toISOString()
+  };
+  if (id) await supabase_client.from('projects').update(payload).eq('id', id);
+  else await supabase_client.from('projects').insert([payload]);
+  toast('✓ 專案已儲存'); renderProjectsPage();
+}
+async function deleteProject(id) {
+  if (!confirm('確定要刪除此專案？')) return;
+  await supabase_client.from('projects').delete().eq('id', id);
+  toast('已刪除'); loadProjects();
+}
+
+// ─────────────────────────────────────────────
+// NOTES PAGE
+// ─────────────────────────────────────────────
+async function renderNotesPage() {
+  const el = document.getElementById('page-notes');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">隨筆紀錄</div><div class="page-desc">部落格文章列表</div></div>
+      <button class="btn btn-primary btn-sm" onclick="renderNoteForm(null)">+ 新增隨筆</button>
+    </div>
+    <div class="card" style="padding:0"><div id="notes-list"></div></div>
+  `;
+  loadNotes();
+}
+async function loadNotes() {
+  const { data } = await supabase_client.from('notes').select('id,title,note_date,note_type,published').order('sort_order');
+  const el = document.getElementById('notes-list');
+  if (!data || !data.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary)">尚無隨筆</div>'; return; }
+  el.innerHTML = data.map(n => `
+    <div class="project-item">
+      <div class="project-item-left">
+        <div class="project-item-title">${n.published ? '' : '<span style="color:var(--text-tertiary)">[草稿] </span>'}${n.title}</div>
+        <div class="project-item-meta">${n.note_date || ''} &nbsp; ${n.note_type || ''}</div>
+      </div>
+      <div class="project-item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editNote(${n.id})">編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNote(${n.id})">刪除</button>
+      </div>
+    </div>
+  `).join('');
+}
+async function editNote(id) {
+  const { data } = await supabase_client.from('notes').select('*').eq('id', id).single();
+  renderNoteForm(data);
+}
+function renderNoteForm(note) {
+  const el = document.getElementById('page-notes');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">${note ? '編輯隨筆' : '新增隨筆'}</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="renderNotesPage()">← 返回</button>
+    </div>
+    <div class="card">
+      <div class="form-row"><label class="form-label">標題</label><input class="form-input" id="nt-title" value="${note?.title || ''}" /></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">日期</label><input class="form-input" id="nt-date" type="date" value="${note?.note_date || ''}" /></div>
+        <div class="form-row"><label class="form-label">類型</label><input class="form-input" id="nt-type" value="${note?.note_type || ''}" placeholder="讀書心得" /></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">文章內容（富文字編輯器）</label>
+        <div id="nt-content-editor"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">文章圖片</label>
+        <div id="nt-images-uploader"></div>
+      </div>
+      <div class="form-row" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="nt-published" ${note?.published !== false ? 'checked' : ''} />
+        <label for="nt-published" class="form-label" style="margin:0">公開顯示</label>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveNote(${note?.id || 'null'})">${note ? '儲存變更' : '新增隨筆'}</button>
+        <button class="btn btn-secondary" onclick="renderNotesPage()">取消</button>
+      </div>
+    </div>
+  `;
+  const q = makeQuill('nt-content-editor', '文章內容...');
+  if (note?.content) q.root.innerHTML = note.content;
+  makeImageUploader('nt-images-uploader', note?.images || []);
+}
+async function saveNote(id) {
+  const q = quillInstances['nt-content-editor'];
+  const payload = {
+    title: document.getElementById('nt-title').value,
+    note_date: document.getElementById('nt-date').value,
+    note_type: document.getElementById('nt-type').value,
+    content: q ? q.root.innerHTML : '',
+    images: window.getImgs_nt_images_uploader ? window.getImgs_nt_images_uploader() : [],
+    published: document.getElementById('nt-published').checked,
+  };
+  if (id) await supabase_client.from('notes').update(payload).eq('id', id);
+  else await supabase_client.from('notes').insert([payload]);
+  toast('✓ 隨筆已儲存'); renderNotesPage();
+}
+async function deleteNote(id) {
+  if (!confirm('確定刪除？')) return;
+  await supabase_client.from('notes').delete().eq('id', id);
+  toast('已刪除'); loadNotes();
+}
+
+// ── Boot ──
+boot();
+</script>
+</body>
+</html>
