@@ -184,6 +184,19 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ql-snow .ql-picker-label { color: var(--text-secondary); }
 .ql-snow .ql-stroke { stroke: var(--text-secondary); }
 .ql-snow .ql-fill { fill: var(--text-secondary); }
+/* ── Sortable list ── */
+.sort-list { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+.sort-item { display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 10px; cursor:grab; user-select:none; transition:box-shadow .15s; }
+.sort-item:active { cursor:grabbing; }
+.sort-item.dragging { opacity:0.4; }
+.sort-item.drag-over { border-color:var(--border-strong); box-shadow:0 0 0 2px var(--border-strong); }
+.sort-handle { color:var(--text-tertiary); font-size:14px; cursor:grab; flex-shrink:0; padding:0 2px; }
+.sort-input { flex:1; background:transparent; border:none; outline:none; font-size:13px; color:var(--text); font-family:inherit; }
+.sort-remove { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:16px; padding:0 2px; flex-shrink:0; line-height:1; }
+.sort-remove:hover { color:var(--danger); }
+.sort-add { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-tertiary); background:none; border:1px dashed var(--border-strong); border-radius:var(--radius-md); padding:7px 12px; cursor:pointer; width:100%; font-family:inherit; transition:border-color .15s, color .15s; }
+.sort-add:hover { border-color:var(--text-tertiary); color:var(--text); }
+
 /* Video embed modal */
 .video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
 .video-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:440px; max-width:90vw; }
@@ -643,6 +656,68 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
   render();
 }
 
+// ── Sortable dynamic list helper ──
+function makeSortableList(containerId, items = [], placeholder = '輸入項目') {
+  const container = document.getElementById(containerId);
+  let list = [...items];
+
+  function render() {
+    container.innerHTML = `
+      <div class="sort-list" id="${containerId}-list"></div>
+      <button class="sort-add" onclick="addSortItem('${containerId}','${placeholder}')">＋ 新增項目</button>
+    `;
+    const listEl = document.getElementById(`${containerId}-list`);
+    list.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'sort-item';
+      row.draggable = true;
+      row.dataset.index = i;
+      row.innerHTML = `
+        <span class="sort-handle" title="拖拉排序">⠿</span>
+        <input class="sort-input" value="${item.replace(/"/g,'&quot;')}" placeholder="${placeholder}"
+          oninput="updateSortItem('${containerId}', ${i}, this.value)" />
+        <button class="sort-remove" onclick="removeSortItem('${containerId}', ${i})" title="移除">×</button>
+      `;
+      // Drag events
+      row.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed='move'; row.classList.add('dragging'); window._dragIdx = i; });
+      row.addEventListener('dragend', () => { row.classList.remove('dragging'); document.querySelectorAll('.sort-item').forEach(r=>r.classList.remove('drag-over')); });
+      row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drag-over'); });
+      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+      row.addEventListener('drop', e => {
+        e.preventDefault(); row.classList.remove('drag-over');
+        const from = window._dragIdx; const to = i;
+        if (from === to) return;
+        const moved = list.splice(from, 1)[0];
+        list.splice(to, 0, moved);
+        window[`sortList_${containerId}`] = list;
+        render();
+      });
+      listEl.appendChild(row);
+    });
+    window[`sortList_${containerId}`] = list;
+  }
+
+  window[`addSortItem`] = function(cid, ph) {
+    if (cid !== containerId) return;
+    list.push(''); window[`sortList_${containerId}`] = list; render();
+    // Focus last input
+    setTimeout(() => { const inputs = document.querySelectorAll(`#${containerId}-list .sort-input`); if(inputs.length) inputs[inputs.length-1].focus(); }, 50);
+  };
+  window[`removeSortItem`] = function(cid, idx) {
+    if (cid !== containerId) return;
+    list.splice(idx, 1); window[`sortList_${containerId}`] = list; render();
+  };
+  window[`updateSortItem`] = function(cid, idx, val) {
+    if (cid !== containerId) return;
+    list[idx] = val; window[`sortList_${containerId}`] = list;
+  };
+  window[`getSortList`] = function(cid) {
+    return (window[`sortList_${cid}`] || []).filter(Boolean);
+  };
+
+  render();
+}
+
 // ── Quill helper ──
 function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = false) {
   if (quillInstances[id]) {
@@ -1029,7 +1104,11 @@ function renderProjectForm(proj) {
         <textarea class="form-textarea" id="pj-tags" style="min-height:64px">${(proj?.tags || []).join('\n')}</textarea>
       </div>
       <div class="form-row"><label class="form-label">我的角色</label><input class="form-input" id="pj-role" value="${proj?.role || ''}" /></div>
-      <div class="form-row"><label class="form-label">成員</label><input class="form-input" id="pj-members" value="${proj?.members || ''}" /></div>
+      <div class="form-row">
+        <label class="form-label">成員（每行一個）</label>
+        <textarea class="form-textarea" id="pj-members" style="min-height:80px">${(proj?.members ? proj.members.split('·').map(m=>m.trim()).join('\n') : '')}</textarea>
+        <p class="form-hint">每行輸入一個成員，例如：設計 林艾奭</p>
+      </div>
       <div class="form-row" style="display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="pj-published" ${proj?.published !== false ? 'checked' : ''} />
         <label for="pj-published" class="form-label" style="margin:0">公開顯示</label>
@@ -1045,11 +1124,11 @@ function renderProjectForm(proj) {
     <div class="card">
       <div class="card-title">詳細資訊</div>
       <div class="card-desc">點開 Modal 後顯示的完整內容（每行一項）</div>
-      <div class="form-row"><label class="form-label">專案目標</label><textarea class="form-textarea" id="pj-goals">${(proj?.goals || []).join('\n')}</textarea></div>
-      <div class="form-row"><label class="form-label">專案挑戰</label><textarea class="form-textarea" id="pj-challenges">${(proj?.challenges || []).join('\n')}</textarea></div>
-      <div class="form-row"><label class="form-label">分析方法</label><textarea class="form-textarea" id="pj-methods">${(proj?.methods || []).join('\n')}</textarea></div>
-      <div class="form-row"><label class="form-label">我做了什麼</label><textarea class="form-textarea" id="pj-work">${(proj?.work_items || []).join('\n')}</textarea></div>
-      <div class="form-row"><label class="form-label">接觸的產品</label><textarea class="form-textarea" id="pj-products">${(proj?.products || []).join('\n')}</textarea></div>
+      <div class="form-row"><label class="form-label">專案目標</label><div id="pj-goals"></div></div>
+      <div class="form-row"><label class="form-label">專案挑戰</label><div id="pj-challenges"></div></div>
+      <div class="form-row"><label class="form-label">分析方法</label><div id="pj-methods"></div></div>
+      <div class="form-row"><label class="form-label">我做了什麼</label><div id="pj-work"></div></div>
+      <div class="form-row"><label class="form-label">接觸的產品</label><div id="pj-products"></div></div>
       <div class="form-row"><label class="form-label">設計洞察</label><textarea class="form-textarea" id="pj-insight" style="min-height:100px">${proj?.insight || ''}</textarea></div>
     </div>
 
@@ -1069,9 +1148,15 @@ function renderProjectForm(proj) {
     </div>
   `;
 
-  const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...');
+  const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...', true);
   if (proj?.description) descQuill.root.innerHTML = proj.description;
   makeImageUploader('pj-images-uploader', proj?.images || []);
+  // Init all 5 sortable lists
+  makeSortableList('pj-goals', proj?.goals || [], '輸入專案目標');
+  makeSortableList('pj-challenges', proj?.challenges || [], '輸入專案挑戰');
+  makeSortableList('pj-methods', proj?.methods || [], '輸入分析方法');
+  makeSortableList('pj-work', proj?.work_items || [], '輸入工作項目');
+  makeSortableList('pj-products', proj?.products || [], '輸入接觸的產品');
 }
 async function saveProject(id) {
   const q = quillInstances['pj-desc-editor'];
@@ -1081,15 +1166,15 @@ async function saveProject(id) {
     time_range: document.getElementById('pj-time').value,
     tags: toArr('pj-tags'),
     role: document.getElementById('pj-role').value,
-    members: document.getElementById('pj-members').value,
+    members: document.getElementById('pj-members').value.split('\n').map(m=>m.trim()).filter(Boolean).join(' · '),
     published: document.getElementById('pj-published').checked,
     sort_order: parseInt(document.getElementById('pj-order').value) || 0,
     description: q ? q.root.innerHTML : '',
-    goals: toArr('pj-goals'),
-    challenges: toArr('pj-challenges'),
-    methods: toArr('pj-methods'),
-    work_items: toArr('pj-work'),
-    products: toArr('pj-products'),
+    goals: getSortList('pj-goals'),
+    challenges: getSortList('pj-challenges'),
+    methods: getSortList('pj-methods'),
+    work_items: getSortList('pj-work'),
+    products: getSortList('pj-products'),
     insight: document.getElementById('pj-insight').value,
     images: window.getImgs_pj_images_uploader ? window.getImgs_pj_images_uploader() : [],
     updated_at: new Date().toISOString()
