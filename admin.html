@@ -189,7 +189,8 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .group-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .15s; }
 .group-card.drag-over { border-color:var(--border-strong); }
 .group-header { display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
-.group-drag { color:var(--text-tertiary); font-size:16px; cursor:grab; flex-shrink:0; }
+.group-drag { color:var(--text-tertiary); font-size:16px; cursor:grab; flex-shrink:0; padding:0 4px; border-radius:4px; transition:background .1s; }
+.group-drag:hover { background:var(--bg-tertiary); color:var(--text); }
 .group-title-input { flex:1; background:transparent; border:none; outline:none; font-size:13px; font-weight:500; color:var(--text); font-family:inherit; }
 .group-del { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:18px; line-height:1; padding:0 2px; }
 .group-del:hover { color:var(--danger); }
@@ -694,14 +695,14 @@ function renderGroupEditor(containerId) {
   _groupSections.forEach((sec, gi) => {
     const card = document.createElement('div');
     card.className = 'group-card';
-    card.draggable = true;
+    card.draggable = false;
     card.dataset.gi = gi;
 
     // Header
     const header = document.createElement('div');
     header.className = 'group-header';
     header.innerHTML = `
-      <span class="group-drag" title="拖拉排序群組">⠿</span>
+      <span class="group-drag" title="拖拉排序群組" draggable="false">⠿</span>
       <input class="group-title-input" value="${sec.title.replace(/"/g,'&quot;')}" placeholder="群組標題"
         oninput="_groupSections[${gi}].title=this.value" />
       <button class="group-del" onclick="removeGroup(${gi})" title="刪除群組">×</button>
@@ -720,15 +721,28 @@ function renderGroupEditor(containerId) {
     card.appendChild(header);
     card.appendChild(body);
 
-    // Group drag
-    card.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed='move'; window._dragGroupIdx=gi; card.style.opacity='.4'; });
-    card.addEventListener('dragend', () => card.style.opacity='1');
+    // Only the drag handle triggers dragging
+    const handle = header.querySelector('.group-drag');
+    handle.addEventListener('mouseenter', () => card.draggable = true);
+    handle.addEventListener('mouseleave', () => { if (!window._isDragging) card.draggable = false; });
+
+    card.addEventListener('dragstart', e => {
+      window._isDragging = true;
+      e.dataTransfer.effectAllowed = 'move';
+      window._dragGroupIdx = gi;
+      card.style.opacity = '.4';
+    });
+    card.addEventListener('dragend', () => {
+      window._isDragging = false;
+      card.draggable = false;
+      card.style.opacity = '1';
+    });
     card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
     card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
     card.addEventListener('drop', e => { e.preventDefault(); card.classList.remove('drag-over');
       if (window._dragGroupIdx !== undefined && window._dragGroupIdx !== gi) {
-        const moved = _groupSections.splice(window._dragGroupIdx,1)[0];
-        _groupSections.splice(gi,0,moved);
+        const moved = _groupSections.splice(window._dragGroupIdx, 1)[0];
+        _groupSections.splice(gi, 0, moved);
         renderGroupEditor(containerId);
       }
     });
