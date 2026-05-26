@@ -120,8 +120,6 @@
   .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-  #setup-notice { background:#fef3c7; border:1px solid #fcd34d; border-radius:var(--radius-md); padding:14px 18px; font-size:13px; color:#92400e; margin:20px 0; display:none; }
-  #setup-notice a { color:#78350f; }
 
   @media (max-width:560px) {
     .modal { padding:24px 20px 40px; }
@@ -149,9 +147,6 @@
 <main>
 <div class="wrapper">
 
-  <div id="setup-notice">
-    ⚠️ 尚未連接 Supabase 資料庫，顯示的是預設內容。請前往 <a href="admin.html">後台管理</a> 完成設定。
-  </div>
 
   <section class="hero" id="hero">
     <div class="hero-badge"><span></span> <span id="hero-status">目前在職 · 金融業數位設計</span></div>
@@ -219,17 +214,15 @@
 </div>
 
 <script>
+// ── Supabase 連線設定（直接寫在這裡）──
+const SUPABASE_URL = 'https://wlxlhyieypohktsvwuuc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndseGxoeWlleXBvaGt0c3Z3dXVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTYxNTAsImV4cCI6MjA5NTM3MjE1MH0.KbgbCGBCoJA6ybawKDTHp6w-Tl_dGpE0RVgbaiFgv3Y';
+
 let sbClient = null;
 
-function getConfig() {
-  try { return JSON.parse(localStorage.getItem('sb_config') || 'null'); } catch { return null; }
-}
-
 async function loadData() {
-  const cfg = getConfig();
-  if (!cfg) { document.getElementById('setup-notice').style.display = 'block'; renderFallback(); return; }
   try {
-    sbClient = window.supabase.createClient(cfg.url, cfg.key);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const [profileRes, skillsRes, toolsRes, projectsRes, notesRes] = await Promise.all([
       sbClient.from('profile').select('*').single(),
       sbClient.from('skills').select('*').order('sort_order'),
@@ -242,7 +235,7 @@ async function loadData() {
     if (toolsRes.data) renderTools(toolsRes.data);
     if (projectsRes.data) renderProjects(projectsRes.data);
     if (notesRes.data) renderNotes(notesRes.data);
-  } catch (e) { document.getElementById('setup-notice').style.display = 'block'; renderFallback(); }
+  } catch (e) { renderFallback(); }
 }
 
 function renderProfile(p) {
