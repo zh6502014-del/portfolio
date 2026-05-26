@@ -105,9 +105,13 @@
   .modal-insight-label { font-size:11px; font-weight:500; color:var(--text-tertiary); margin-bottom:8px; }
   .modal-images { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
   .modal-images img { width:160px; height:110px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); }
+  .note-item { display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
+  .note-item:hover { opacity:0.75; }
+  .note-content { font-size:14px; color:var(--text-secondary); line-height:1.85; }
+  .note-content img { max-width:100%; border-radius:var(--radius-md); margin:12px 0; }
+  .note-empty { font-size:13px; color:var(--text-tertiary); padding:20px 0; }
 
   .notes-list { display:flex; flex-direction:column; }
-  .note-item { display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border); gap:16px; }
   .note-item:first-child { border-top:1px solid var(--border); }
   .note-date { font-size:12px; color:var(--text-tertiary); font-family:var(--font-serif); white-space:nowrap; }
   .note-title { font-size:14px; color:var(--text); flex:1; }
@@ -290,14 +294,42 @@ function renderProjects(data) {
   `).join('');
 }
 
+let allNotes = [];
 function renderNotes(data) {
+  allNotes = data;
   document.getElementById('notes-list').innerHTML = data.map(n => `
-    <div class="note-item">
+    <div class="note-item" onclick="openNote(${n.id})" role="button" tabindex="0"
+      onkeydown="if(event.key==='Enter')openNote(${n.id})">
       <span class="note-date">${formatDate(n.note_date)}</span>
       <span class="note-title">${n.title}</span>
-      <span class="note-type">${n.note_type || ''}</span>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span class="note-type">${n.note_type || ''}</span>
+        <span style="font-size:14px;color:var(--text-tertiary)">→</span>
+      </div>
     </div>
   `).join('');
+}
+
+function openNote(id) {
+  const n = allNotes.find(x => x.id === id);
+  if (!n) return;
+  const imgsHtml = (n.images||[]).length
+    ? `<div class="modal-images">${n.images.map(u=>`<img src="${u}" alt="" loading="lazy">`).join('')}</div>`
+    : '';
+  const contentHtml = n.content
+    ? `<div class="note-content">${n.content}</div>`
+    : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span class="note-type">${n.note_type || ''}</span>
+      <span style="font-size:12px;color:var(--text-tertiary)">${formatDate(n.note_date)}</span>
+    </div>
+    <h2 class="modal-title" style="font-size:20px;margin-bottom:20px">${n.title}</h2>
+    ${contentHtml}
+    ${imgsHtml}
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
 function openModal(id) {
