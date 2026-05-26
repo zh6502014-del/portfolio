@@ -184,18 +184,26 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ql-snow .ql-picker-label { color: var(--text-secondary); }
 .ql-snow .ql-stroke { stroke: var(--text-secondary); }
 .ql-snow .ql-fill { fill: var(--text-secondary); }
-/* ── Sortable list ── */
-.sort-list { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
-.sort-item { display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 10px; cursor:grab; user-select:none; transition:box-shadow .15s; }
-.sort-item:active { cursor:grabbing; }
-.sort-item.dragging { opacity:0.4; }
-.sort-item.drag-over { border-color:var(--border-strong); box-shadow:0 0 0 2px var(--border-strong); }
-.sort-handle { color:var(--text-tertiary); font-size:14px; cursor:grab; flex-shrink:0; padding:0 2px; }
-.sort-input { flex:1; background:transparent; border:none; outline:none; font-size:13px; color:var(--text); font-family:inherit; }
-.sort-remove { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:16px; padding:0 2px; flex-shrink:0; line-height:1; }
-.sort-remove:hover { color:var(--danger); }
-.sort-add { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-tertiary); background:none; border:1px dashed var(--border-strong); border-radius:var(--radius-md); padding:7px 12px; cursor:pointer; width:100%; font-family:inherit; transition:border-color .15s, color .15s; }
-.sort-add:hover { border-color:var(--text-tertiary); color:var(--text); }
+/* ── Group editor ── */
+.group-list { display:flex; flex-direction:column; gap:12px; }
+.group-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .15s; }
+.group-card.drag-over { border-color:var(--border-strong); }
+.group-header { display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
+.group-drag { color:var(--text-tertiary); font-size:16px; cursor:grab; flex-shrink:0; }
+.group-title-input { flex:1; background:transparent; border:none; outline:none; font-size:13px; font-weight:500; color:var(--text); font-family:inherit; }
+.group-del { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:18px; line-height:1; padding:0 2px; }
+.group-del:hover { color:var(--danger); }
+.group-body { padding:10px 14px; display:flex; flex-direction:column; gap:6px; }
+.group-item-row { display:flex; align-items:center; gap:6px; }
+.group-item-drag { color:var(--text-tertiary); font-size:13px; cursor:grab; flex-shrink:0; }
+.group-item-input { flex:1; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:6px 10px; font-size:13px; color:var(--text); font-family:inherit; outline:none; }
+.group-item-input:focus { border-color:var(--border-strong); }
+.group-item-del { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:16px; line-height:1; padding:0 2px; flex-shrink:0; }
+.group-item-del:hover { color:var(--danger); }
+.group-add-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-tertiary); background:none; border:1px dashed var(--border); border-radius:var(--radius-md); padding:6px 10px; cursor:pointer; width:100%; font-family:inherit; margin-top:2px; transition:border-color .15s,color .15s; }
+.group-add-item:hover { border-color:var(--border-strong); color:var(--text); }
+.groups-add { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-tertiary); background:none; border:1px dashed var(--border-strong); border-radius:var(--radius-md); padding:9px 14px; cursor:pointer; width:100%; font-family:inherit; margin-top:4px; transition:border-color .15s,color .15s; }
+.groups-add:hover { border-color:var(--text-tertiary); color:var(--text); }
 
 /* Video embed modal */
 .video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
@@ -656,66 +664,127 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
   render();
 }
 
-// ── Sortable dynamic list helper ──
-function makeSortableList(containerId, items = [], placeholder = '輸入項目') {
+// ── Group editor ──
+const DEFAULT_SECTIONS = [
+  { title: '我做了什麼',  items: [] },
+  { title: '接觸的產品',  items: [] },
+  { title: '專案目標',    items: [] },
+  { title: '專案挑戰',    items: [] },
+  { title: '分析方法',    items: [] },
+  { title: '我的角色',    items: [] },
+];
+
+let _groupSections = [];
+
+function makeGroupEditor(containerId, sections) {
+  _groupSections = sections && sections.length ? JSON.parse(JSON.stringify(sections)) : JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+  renderGroupEditor(containerId);
+}
+
+function renderGroupEditor(containerId) {
   const container = document.getElementById(containerId);
-  let list = [...items];
+  if (!container) return;
+  container.innerHTML = '';
 
-  function render() {
-    container.innerHTML = `
-      <div class="sort-list" id="${containerId}-list"></div>
-      <button class="sort-add" onclick="addSortItem('${containerId}','${placeholder}')">＋ 新增項目</button>
+  const listEl = document.createElement('div');
+  listEl.className = 'group-list';
+  listEl.id = containerId + '-list';
+
+  _groupSections.forEach((sec, gi) => {
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    card.draggable = true;
+    card.dataset.gi = gi;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    header.innerHTML = `
+      <span class="group-drag" title="拖拉排序群組">⠿</span>
+      <input class="group-title-input" value="${sec.title.replace(/"/g,'&quot;')}" placeholder="群組標題"
+        oninput="_groupSections[${gi}].title=this.value" />
+      <button class="group-del" onclick="removeGroup(${gi})" title="刪除群組">×</button>
     `;
-    const listEl = document.getElementById(`${containerId}-list`);
-    list.forEach((item, i) => {
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'group-body';
+    body.id = `${containerId}-g${gi}-body`;
+
+    sec.items.forEach((item, ii) => {
       const row = document.createElement('div');
-      row.className = 'sort-item';
+      row.className = 'group-item-row';
       row.draggable = true;
-      row.dataset.index = i;
+      row.dataset.ii = ii;
       row.innerHTML = `
-        <span class="sort-handle" title="拖拉排序">⠿</span>
-        <input class="sort-input" value="${item.replace(/"/g,'&quot;')}" placeholder="${placeholder}"
-          oninput="updateSortItem('${containerId}', ${i}, this.value)" />
-        <button class="sort-remove" onclick="removeSortItem('${containerId}', ${i})" title="移除">×</button>
+        <span class="group-item-drag">⠿</span>
+        <input class="group-item-input" value="${item.replace(/"/g,'&quot;')}" placeholder="輸入描述"
+          oninput="_groupSections[${gi}].items[${ii}]=this.value" />
+        <button class="group-item-del" onclick="removeGroupItem(${gi},${ii})">×</button>
       `;
-      // Drag events
-      row.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed='move'; row.classList.add('dragging'); window._dragIdx = i; });
-      row.addEventListener('dragend', () => { row.classList.remove('dragging'); document.querySelectorAll('.sort-item').forEach(r=>r.classList.remove('drag-over')); });
-      row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drag-over'); });
-      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-      row.addEventListener('drop', e => {
-        e.preventDefault(); row.classList.remove('drag-over');
-        const from = window._dragIdx; const to = i;
-        if (from === to) return;
-        const moved = list.splice(from, 1)[0];
-        list.splice(to, 0, moved);
-        window[`sortList_${containerId}`] = list;
-        render();
+      // item drag
+      row.addEventListener('dragstart', e => { e.stopPropagation(); e.dataTransfer.effectAllowed='move'; window._dragGi=gi; window._dragIi=ii; });
+      row.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); row.style.opacity='.5'; });
+      row.addEventListener('dragleave', () => row.style.opacity='1');
+      row.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); row.style.opacity='1';
+        if (window._dragGi===gi && window._dragIi!==ii) {
+          const moved = _groupSections[gi].items.splice(window._dragIi,1)[0];
+          _groupSections[gi].items.splice(ii,0,moved);
+          renderGroupEditor(containerId);
+        }
       });
-      listEl.appendChild(row);
+      body.appendChild(row);
     });
-    window[`sortList_${containerId}`] = list;
-  }
 
-  window[`addSortItem`] = function(cid, ph) {
-    if (cid !== containerId) return;
-    list.push(''); window[`sortList_${containerId}`] = list; render();
-    // Focus last input
-    setTimeout(() => { const inputs = document.querySelectorAll(`#${containerId}-list .sort-input`); if(inputs.length) inputs[inputs.length-1].focus(); }, 50);
-  };
-  window[`removeSortItem`] = function(cid, idx) {
-    if (cid !== containerId) return;
-    list.splice(idx, 1); window[`sortList_${containerId}`] = list; render();
-  };
-  window[`updateSortItem`] = function(cid, idx, val) {
-    if (cid !== containerId) return;
-    list[idx] = val; window[`sortList_${containerId}`] = list;
-  };
-  window[`getSortList`] = function(cid) {
-    return (window[`sortList_${cid}`] || []).filter(Boolean);
+    const addBtn = document.createElement('button');
+    addBtn.className = 'group-add-item';
+    addBtn.innerHTML = '＋ 新增項目';
+    addBtn.onclick = () => { _groupSections[gi].items.push(''); renderGroupEditor(containerId);
+      setTimeout(() => { const inputs = document.querySelectorAll(`#${containerId}-g${gi}-body .group-item-input`); if(inputs.length) inputs[inputs.length-1].focus(); }, 40);
+    };
+    body.appendChild(addBtn);
+
+    card.appendChild(header);
+    card.appendChild(body);
+
+    // Group drag
+    card.addEventListener('dragstart', e => { if(e.target.classList.contains('group-item-drag')||e.target.classList.contains('group-item-row')) return; e.dataTransfer.effectAllowed='move'; window._dragGroupIdx=gi; card.style.opacity='.4'; });
+    card.addEventListener('dragend', () => card.style.opacity='1');
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => { e.preventDefault(); card.classList.remove('drag-over');
+      if (window._dragGroupIdx !== undefined && window._dragGroupIdx !== gi) {
+        const moved = _groupSections.splice(window._dragGroupIdx,1)[0];
+        _groupSections.splice(gi,0,moved);
+        renderGroupEditor(containerId);
+      }
+    });
+
+    listEl.appendChild(card);
+  });
+
+  const addGroupBtn = document.createElement('button');
+  addGroupBtn.className = 'groups-add';
+  addGroupBtn.innerHTML = '＋ 新增群組';
+  addGroupBtn.onclick = () => { _groupSections.push({ title:'新群組', items:[] }); renderGroupEditor(containerId);
+    setTimeout(() => { const inputs = document.querySelectorAll(`#${containerId}-list .group-title-input`); if(inputs.length) inputs[inputs.length-1].focus(); }, 40);
   };
 
-  render();
+  container.appendChild(listEl);
+  container.appendChild(addGroupBtn);
+}
+
+function removeGroup(gi) {
+  if (!confirm('確定刪除此群組？')) return;
+  _groupSections.splice(gi,1);
+  renderGroupEditor('pj-sections');
+}
+function removeGroupItem(gi, ii) {
+  _groupSections[gi].items.splice(ii,1);
+  renderGroupEditor('pj-sections');
+}
+function getGroupSections() {
+  return _groupSections.map(s => ({ title: s.title.trim(), items: s.items.filter(i=>i.trim()) })).filter(s=>s.title);
 }
 
 // ── Quill helper ──
@@ -1123,13 +1192,8 @@ function renderProjectForm(proj) {
 
     <div class="card">
       <div class="card-title">詳細資訊</div>
-      <div class="card-desc">點開 Modal 後顯示的完整內容（每行一項）</div>
-      <div class="form-row"><label class="form-label">專案目標</label><div id="pj-goals"></div></div>
-      <div class="form-row"><label class="form-label">專案挑戰</label><div id="pj-challenges"></div></div>
-      <div class="form-row"><label class="form-label">分析方法</label><div id="pj-methods"></div></div>
-      <div class="form-row"><label class="form-label">我做了什麼</label><div id="pj-work"></div></div>
-      <div class="form-row"><label class="form-label">接觸的產品</label><div id="pj-products"></div></div>
-      <div class="form-row"><label class="form-label">設計洞察</label><textarea class="form-textarea" id="pj-insight" style="min-height:100px">${proj?.insight || ''}</textarea></div>
+      <div class="card-desc">每個群組有標題和項目清單，可拖拉調整群組順序及項目順序</div>
+      <div id="pj-sections"></div>
     </div>
 
     <div class="card">
@@ -1152,11 +1216,16 @@ function renderProjectForm(proj) {
   if (proj?.description) descQuill.root.innerHTML = proj.description;
   makeImageUploader('pj-images-uploader', proj?.images || []);
   // Init all 5 sortable lists
-  makeSortableList('pj-goals', proj?.goals || [], '輸入專案目標');
-  makeSortableList('pj-challenges', proj?.challenges || [], '輸入專案挑戰');
-  makeSortableList('pj-methods', proj?.methods || [], '輸入分析方法');
-  makeSortableList('pj-work', proj?.work_items || [], '輸入工作項目');
-  makeSortableList('pj-products', proj?.products || [], '輸入接觸的產品');
+  // Build sections from existing data or defaults
+  const existingSections = proj?.sections && proj.sections.length ? proj.sections : [
+    { title: '我做了什麼', items: proj?.work_items || [] },
+    { title: '接觸的產品', items: proj?.products || [] },
+    { title: '專案目標',   items: proj?.goals || [] },
+    { title: '專案挑戰',   items: proj?.challenges || [] },
+    { title: '分析方法',   items: proj?.methods || [] },
+    { title: '我的角色',   items: proj?.role ? [proj.role] : [] },
+  ];
+  makeGroupEditor('pj-sections', existingSections);
 }
 async function saveProject(id) {
   const q = quillInstances['pj-desc-editor'];
@@ -1170,12 +1239,7 @@ async function saveProject(id) {
     published: document.getElementById('pj-published').checked,
     sort_order: parseInt(document.getElementById('pj-order').value) || 0,
     description: q ? q.root.innerHTML : '',
-    goals: getSortList('pj-goals'),
-    challenges: getSortList('pj-challenges'),
-    methods: getSortList('pj-methods'),
-    work_items: getSortList('pj-work'),
-    products: getSortList('pj-products'),
-    insight: document.getElementById('pj-insight').value,
+    sections: getGroupSections(),
     images: window.getImgs_pj_images_uploader ? window.getImgs_pj_images_uploader() : [],
     updated_at: new Date().toISOString()
   };

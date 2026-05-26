@@ -90,19 +90,24 @@
   .modal-title { font-family:var(--font-serif); font-size:24px; font-weight:500; margin-bottom:6px; }
   .modal-subtitle { font-size:13px; color:var(--text-tertiary); margin-bottom:20px; }
   .modal-desc { font-size:14px; color:var(--text-secondary); line-height:1.85; margin-bottom:28px; }
+  .modal-desc h1 { font-size:20px; font-weight:600; margin:16px 0 8px; color:var(--text); }
+  .modal-desc h2 { font-size:17px; font-weight:600; margin:14px 0 6px; color:var(--text); }
+  .modal-desc h3 { font-size:15px; font-weight:600; margin:12px 0 4px; color:var(--text); }
+  .modal-desc p { margin:5px 0; }
+  .modal-desc strong { font-weight:600; color:var(--text); }
+  .modal-desc img { max-width:100%; border-radius:var(--radius-md); margin:10px 0; display:block; }
+  .modal-desc blockquote { border-left:3px solid var(--border-strong); padding-left:14px; color:var(--text-tertiary); margin:10px 0; }
+  .modal-desc ul, .modal-desc ol { padding-left:22px; margin:6px 0; }
+  .modal-desc li { margin:3px 0; }
+  .modal-desc a { color:var(--text); text-decoration:underline; }
+  .modal-desc iframe, .modal-desc .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
   .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:28px; }
   .modal-block { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; }
   .modal-block-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px; }
   .modal-block ul { list-style:none; }
   .modal-block li { font-size:13px; color:var(--text-secondary); padding:3px 0; display:flex; gap:8px; }
   .modal-block li::before { content:'—'; color:var(--text-tertiary); flex-shrink:0; }
-  .modal-section-title { font-size:13px; font-weight:500; margin:24px 0 12px; }
-  .modal-numbered { list-style:none; }
-  .modal-numbered li { font-size:13px; color:var(--text-secondary); padding:8px 0; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:flex-start; }
-  .modal-numbered li:last-child { border-bottom:none; }
-  .modal-numbered .li-num { font-size:12px; color:var(--text-tertiary); min-width:16px; font-family:var(--font-serif); }
-  .modal-insight { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; font-size:13px; color:var(--text-secondary); line-height:1.8; margin-top:20px; }
-  .modal-insight-label { font-size:11px; font-weight:500; color:var(--text-tertiary); margin-bottom:8px; }
+
   .modal-images { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
   .modal-images img { width:160px; height:110px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); }
   .note-item { display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
@@ -346,7 +351,6 @@ function openModal(id) {
   const p = allProjects.find(x => x.id === id);
   if (!p) return;
   const liHtml = arr => (arr||[]).map(item=>`<li>${item}</li>`).join('');
-  const numHtml = arr => (arr||[]).map((item,i)=>`<li><span class="li-num">${String(i+1).padStart(2,'0')}</span>${item}</li>`).join('');
   const imgsHtml = (p.images||[]).length ? `<div class="modal-images">${p.images.map(u=>`<img src="${u}" alt="" loading="lazy">`).join('')}</div>` : '';
   document.getElementById('modal-content').innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
@@ -358,9 +362,9 @@ function openModal(id) {
       <div class="modal-block"><p class="modal-block-label">專案挑戰</p><ul>${liHtml(p.challenges)}</ul></div>
       <div class="modal-block"><p class="modal-block-label">分析方法</p><ul>${liHtml(p.methods)}</ul></div>
       <div class="modal-block"><p class="modal-block-label">我的角色</p><ul><li>${p.role||''}</li></ul></div>
+      ${p.work_items?.length ? `<div class="modal-block"><p class="modal-block-label">我做了什麼</p><ul>${liHtml(p.work_items)}</ul></div>` : ''}
+      ${p.products?.length ? `<div class="modal-block"><p class="modal-block-label">接觸的產品</p><ul>${liHtml(p.products)}</ul></div>` : ''}
     </div>
-    ${p.work_items?.length ? `<p class="modal-section-title">我做了什麼</p><ul class="modal-numbered">${numHtml(p.work_items)}</ul>` : ''}
-    ${p.products?.length ? `<p class="modal-section-title">接觸的產品</p><ul class="modal-numbered">${numHtml(p.products)}</ul>` : ''}
     ${p.insight ? `<div class="modal-insight"><p class="modal-insight-label">設計洞察</p>${p.insight}</div>` : ''}
     ${imgsHtml}
   `;
