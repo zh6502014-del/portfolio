@@ -108,7 +108,17 @@
   .note-item { display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
   .note-item:hover { opacity:0.75; }
   .note-content { font-size:14px; color:var(--text-secondary); line-height:1.85; }
-  .note-content img { max-width:100%; border-radius:var(--radius-md); margin:12px 0; }
+  .note-content h1 { font-size:20px; font-weight:600; margin:18px 0 8px; color:var(--text); }
+  .note-content h2 { font-size:17px; font-weight:600; margin:16px 0 6px; color:var(--text); }
+  .note-content h3 { font-size:15px; font-weight:600; margin:14px 0 4px; color:var(--text); }
+  .note-content p { margin:6px 0; }
+  .note-content img { max-width:100%; border-radius:var(--radius-md); margin:12px 0; display:block; }
+  .note-content blockquote { border-left:3px solid var(--border-strong); padding-left:14px; color:var(--text-tertiary); margin:10px 0; }
+  .note-content ul, .note-content ol { padding-left:22px; margin:6px 0; }
+  .note-content li { margin:3px 0; }
+  .note-content a { color:var(--text); text-decoration:underline; }
+  .note-content strong { font-weight:600; color:var(--text); }
+  .note-content iframe, .note-content .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
   .note-empty { font-size:13px; color:var(--text-tertiary); padding:20px 0; }
 
   .notes-list { display:flex; flex-direction:column; }

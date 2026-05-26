@@ -8,8 +8,8 @@
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Quill Editor -->
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
@@ -167,11 +167,29 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
 /* ── Quill override ── */
-.ql-container { font-family: 'Noto Sans TC', sans-serif; font-size: 13px; border-radius: 0 0 var(--radius-md) var(--radius-md); }
-.ql-toolbar { border-radius: var(--radius-md) var(--radius-md) 0 0; border-color: var(--border) !important; background: var(--bg-secondary); }
+.ql-container { font-family: 'Noto Sans TC', sans-serif; font-size: 14px; border-radius: 0 0 var(--radius-md) var(--radius-md); }
+.ql-toolbar { border-radius: var(--radius-md) var(--radius-md) 0 0; border-color: var(--border) !important; background: var(--bg-secondary); flex-wrap: wrap; }
 .ql-container { border-color: var(--border) !important; }
-.ql-editor { min-height: 140px; color: var(--text); }
+.ql-editor { min-height: 300px; color: var(--text); line-height: 1.8; }
 .ql-editor.ql-blank::before { color: var(--text-tertiary); font-style: normal; }
+.ql-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
+.ql-editor h2 { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
+.ql-editor h3 { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
+.ql-editor p { margin: 6px 0; }
+.ql-editor img { max-width: 100%; border-radius: var(--radius-md); margin: 8px 0; cursor: pointer; }
+.ql-editor blockquote { border-left: 3px solid var(--border-strong); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
+.ql-editor .ql-video { width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-md); border: none; margin: 10px 0; display: block; }
+.ql-editor a { color: var(--text); text-decoration: underline; }
+.ql-editor ul, .ql-editor ol { padding-left: 20px; }
+.ql-snow .ql-picker-label { color: var(--text-secondary); }
+.ql-snow .ql-stroke { stroke: var(--text-secondary); }
+.ql-snow .ql-fill { fill: var(--text-secondary); }
+/* Video embed modal */
+.video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
+.video-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:440px; max-width:90vw; }
+.video-modal-title { font-size:15px; font-weight:500; margin-bottom:16px; }
+.video-modal-hint { font-size:12px; color:var(--text-tertiary); margin-top:8px; line-height:1.6; }
+.video-modal-actions { display:flex; gap:8px; margin-top:18px; }
 
 /* ── Image upload ── */
 .img-upload-area {
@@ -626,21 +644,126 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
 }
 
 // ── Quill helper ──
-function makeQuill(id, placeholder = '在這裡輸入內容...') {
-  if (quillInstances[id]) { quillInstances[id].root.parentElement.parentElement.remove(); }
+function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = false) {
+  if (quillInstances[id]) {
+    try { quillInstances[id].root.parentElement.parentElement.remove(); } catch(e) {}
+    delete quillInstances[id];
+  }
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `<div id="quill-${id}"></div>`;
   document.getElementById(id).appendChild(wrapper);
+
+  const toolbar = richMode ? [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: [] }, { background: [] }],
+    [{ align: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image', 'video'],
+    ['clean']
+  ] : [
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link'], ['clean']
+  ];
+
   const q = new Quill(`#quill-${id}`, {
     theme: 'snow', placeholder,
-    modules: { toolbar: [
-      ['bold','italic','underline'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link'], ['clean']
-    ]}
+    modules: {
+      toolbar: {
+        container: toolbar,
+        handlers: richMode ? { video: () => openVideoModal(id) } : {}
+      }
+    }
   });
+
+  // Override image handler for rich mode — upload to Supabase
+  if (richMode) {
+    q.getModule('toolbar').addHandler('image', () => {
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files[0]; if (!file) return;
+        try {
+          toast('圖片上傳中...');
+          const url = await uploadImage(file);
+          const range = q.getSelection(true);
+          q.insertEmbed(range.index, 'image', url);
+          q.setSelection(range.index + 1);
+          toast('✓ 圖片已插入');
+        } catch(e) { toast('圖片上傳失敗：' + e.message); }
+      };
+      input.click();
+    });
+  }
+
   quillInstances[id] = q;
   return q;
+}
+
+// ── Video embed modal ──
+let _videoQuillId = null;
+function openVideoModal(quillId) {
+  _videoQuillId = quillId;
+  const existing = document.getElementById('video-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'video-modal';
+  modal.className = 'video-modal';
+  modal.innerHTML = `
+    <div class="video-modal-card">
+      <div class="video-modal-title">📹 嵌入影片</div>
+      <div class="form-row">
+        <label class="form-label">影片網址</label>
+        <input class="form-input" id="video-url-input" placeholder="https://www.youtube.com/watch?v=..." />
+        <p class="video-modal-hint">
+          支援 YouTube、Vimeo 等影片網址<br>
+          YouTube 請貼分享網址，例如：https://youtu.be/xxxxx
+        </p>
+      </div>
+      <div class="video-modal-actions">
+        <button class="btn btn-primary" onclick="insertVideo()">插入影片</button>
+        <button class="btn btn-secondary" onclick="closeVideoModal()">取消</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('video-url-input')?.focus(), 100);
+}
+
+function convertToEmbedUrl(url) {
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  // YouTube shorts
+  const ytShorts = url.match(/youtube\.com\/shorts\/([\w-]{11})/);
+  if (ytShorts) return `https://www.youtube.com/embed/${ytShorts[1]}`;
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  // Already embed URL
+  if (url.includes('/embed/') || url.includes('player.vimeo')) return url;
+  return url;
+}
+
+function insertVideo() {
+  const rawUrl = document.getElementById('video-url-input')?.value.trim();
+  if (!rawUrl) { toast('請輸入影片網址'); return; }
+  const embedUrl = convertToEmbedUrl(rawUrl);
+  const q = quillInstances[_videoQuillId];
+  if (q) {
+    const range = q.getSelection(true) || { index: q.getLength() };
+    q.insertEmbed(range.index, 'video', embedUrl);
+    q.setSelection(range.index + 1);
+    toast('✓ 影片已嵌入');
+  }
+  closeVideoModal();
+}
+
+function closeVideoModal() {
+  const m = document.getElementById('video-modal');
+  if (m) m.remove();
 }
 
 // ─────────────────────────────────────────────
@@ -1047,7 +1170,7 @@ function renderNoteForm(note) {
       </div>
     </div>
   `;
-  const q = makeQuill('nt-content-editor', '文章內容...');
+  const q = makeQuill('nt-content-editor', '在這裡撰寫文章內容...\n\n支援：標題、粗體、斜體、清單、引用、圖片上傳、影片嵌入', true);
   if (note?.content) q.root.innerHTML = note.content;
   makeImageUploader('nt-images-uploader', note?.images || []);
 }
