@@ -217,6 +217,28 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .single-date-row .date-picker-input { width:180px; }
 .single-date-row .date-range-hint { white-space:nowrap; }
 
+/* ── Toolbar tooltips ── */
+.ql-toolbar button[title],
+.ql-toolbar .ql-picker[title] { position:relative; }
+.ql-tooltip-tip {
+  position:absolute; bottom:calc(100% + 6px); left:50%;
+  transform:translateX(-50%);
+  background:var(--text); color:var(--bg);
+  font-size:11px; white-space:nowrap;
+  padding:4px 8px; border-radius:var(--radius-sm);
+  pointer-events:none; opacity:0;
+  transition:opacity 0.15s;
+  z-index:999;
+}
+.ql-tooltip-tip::after {
+  content:''; position:absolute; top:100%; left:50%;
+  transform:translateX(-50%);
+  border:4px solid transparent;
+  border-top-color:var(--text);
+}
+.ql-toolbar button:hover .ql-tooltip-tip,
+.ql-toolbar .ql-picker:hover .ql-tooltip-tip { opacity:1; }
+
 /* Video embed modal */
 .video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
 .video-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:440px; max-width:90vw; }
@@ -946,7 +968,71 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
   }
 
   quillInstances[id] = q;
+  // Attach tooltips after DOM renders
+  setTimeout(() => attachQuillTooltips(id), 100);
   return q;
+}
+
+// ── Quill toolbar tooltip labels ──
+const QUILL_TIPS = {
+  'ql-bold':        '粗體',
+  'ql-italic':      '斜體',
+  'ql-underline':   '底線',
+  'ql-strike':      '刪除線',
+  'ql-blockquote':  '引用',
+  'ql-code-block':  '程式碼區塊',
+  'ql-link':        '插入連結',
+  'ql-image':       '上傳圖片',
+  'ql-video':       '嵌入影片',
+  'ql-clean':       '清除格式',
+  'ql-list-ordered':'有序清單',
+  'ql-list-bullet': '無序清單',
+  'ql-align':       '對齊方式',
+  'ql-color':       '文字顏色',
+  'ql-background':  '背景顏色',
+  'ql-header':      '標題層級',
+};
+
+function attachQuillTooltips(id) {
+  const editorEl = document.getElementById(`quill-${id}`);
+  if (!editorEl) return;
+  const toolbar = editorEl.previousElementSibling;
+  if (!toolbar || !toolbar.classList.contains('ql-toolbar')) return;
+
+  // Buttons
+  toolbar.querySelectorAll('button').forEach(btn => {
+    const cls = Array.from(btn.classList).find(c => c.startsWith('ql-'));
+    if (!cls) return;
+    let label = QUILL_TIPS[cls] || '';
+    // Handle list variants
+    if (cls === 'ql-list') {
+      label = btn.value === 'ordered' ? '有序清單' : '無序清單';
+    }
+    // Handle align variants
+    if (cls === 'ql-align') {
+      const map = { '': '靠左對齊', center: '置中對齊', right: '靠右對齊', justify: '兩端對齊' };
+      label = map[btn.value] || '對齊方式';
+    }
+    if (!label) return;
+    btn.style.position = 'relative';
+    btn.title = ''; // remove default browser tooltip
+    const tip = document.createElement('span');
+    tip.className = 'ql-tooltip-tip';
+    tip.textContent = label;
+    btn.appendChild(tip);
+  });
+
+  // Picker labels (header, color, background, align)
+  toolbar.querySelectorAll('.ql-picker').forEach(picker => {
+    const cls = Array.from(picker.classList).find(c => c.startsWith('ql-'));
+    const label = QUILL_TIPS[cls] || '';
+    if (!label) return;
+    picker.style.position = 'relative';
+    const tip = document.createElement('span');
+    tip.className = 'ql-tooltip-tip';
+    tip.textContent = label;
+    picker.appendChild(tip);
+  });
 }
 
 // ── Video embed modal ──
