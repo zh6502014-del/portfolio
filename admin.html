@@ -732,7 +732,8 @@ function showPage(name, btn) {
 function toast(msg, duration = 2200) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
 // ── Image Upload ──
@@ -1456,9 +1457,31 @@ async function saveProject(id) {
     images: window.getImgs_pj_images_uploader ? window.getImgs_pj_images_uploader() : [],
     updated_at: new Date().toISOString()
   };
-  if (id) await supabase_client.from('projects').update(payload).eq('id', id);
-  else await supabase_client.from('projects').insert([payload]);
-  toast('✓ 專案已儲存'); renderProjectsPage();
+  try {
+    let error;
+    if (id) {
+      const res = await supabase_client.from('projects').update(payload).eq('id', id);
+      error = res.error;
+    } else {
+      const res = await supabase_client.from('projects').insert([payload]);
+      error = res.error;
+    }
+    if (error) {
+      // If sections column missing, try without it
+      if (error.message && error.message.includes('sections')) {
+        toast('⚠️ 請先到 Supabase SQL Editor 執行：ALTER TABLE projects ADD COLUMN IF NOT EXISTS sections JSONB DEFAULT '[]';', 6000);
+        return;
+      }
+      toast('儲存失敗：' + error.message, 5000);
+      console.error('saveProject error:', error);
+      return;
+    }
+    toast('✓ 專案已儲存');
+    renderProjectsPage();
+  } catch (e) {
+    toast('儲存失敗：' + e.message, 5000);
+    console.error('saveProject exception:', e);
+  }
 }
 async function deleteProject(id) {
   if (!confirm('確定要刪除此專案？')) return;
@@ -1561,9 +1584,22 @@ async function saveNote(id) {
     images: window.getImgs_nt_images_uploader ? window.getImgs_nt_images_uploader() : [],
     published: document.getElementById('nt-published').checked,
   };
-  if (id) await supabase_client.from('notes').update(payload).eq('id', id);
-  else await supabase_client.from('notes').insert([payload]);
-  toast('✓ 隨筆已儲存'); renderNotesPage();
+  try {
+    let error;
+    if (id) {
+      const res = await supabase_client.from('notes').update(payload).eq('id', id);
+      error = res.error;
+    } else {
+      const res = await supabase_client.from('notes').insert([payload]);
+      error = res.error;
+    }
+    if (error) { toast('儲存失敗：' + error.message, 5000); console.error('saveNote error:', error); return; }
+    toast('✓ 隨筆已儲存');
+    renderNotesPage();
+  } catch (e) {
+    toast('儲存失敗：' + e.message, 5000);
+    console.error('saveNote exception:', e);
+  }
 }
 async function deleteNote(id) {
   if (!confirm('確定刪除？')) return;
