@@ -19,13 +19,34 @@
     --font-serif:'Noto Serif TC',serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg:#111110; --bg-secondary:#1a1917; --bg-tertiary:#222120;
       --text:#eeece9; --text-secondary:#a09e9b; --text-tertiary:#6b6966;
       --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
       --accent:#eeece9; --accent-text:#111110;
     }
   }
+  [data-theme="dark"] {
+    --bg:#111110; --bg-secondary:#1a1917; --bg-tertiary:#222120;
+    --text:#eeece9; --text-secondary:#a09e9b; --text-tertiary:#6b6966;
+    --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+    --accent:#eeece9; --accent-text:#111110;
+  }
+  [data-theme="light"] {
+    --bg:#ffffff; --bg-secondary:#f8f8f7; --bg-tertiary:#f3f2ef;
+    --text:#1a1917; --text-secondary:#5c5b58; --text-tertiary:#9b9a97;
+    --border:rgba(0,0,0,0.1); --border-strong:rgba(0,0,0,0.2);
+    --accent:#18181b; --accent-text:#ffffff;
+  }
+  /* Theme toggle button */
+  .theme-toggle {
+    width:32px; height:32px; border-radius:50%;
+    background:transparent; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:15px; transition:background .15s, border-color .15s;
+    flex-shrink:0;
+  }
+  .theme-toggle:hover { background:var(--bg-secondary); border-color:var(--border-strong); }
   html { scroll-behavior: smooth; }
   body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:15px; min-height:100vh; }
 
@@ -156,10 +177,13 @@
 <nav class="nav">
   <div class="nav-inner">
     <a href="#hero" class="nav-logo" id="nav-name">林艾奭</a>
-    <div class="nav-links">
-      <a href="#about" class="nav-link active" data-section="about">關於</a>
-      <a href="#projects" class="nav-link" data-section="projects">作品集</a>
-      <a href="#notes" class="nav-link" data-section="notes">隨筆</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="nav-links">
+        <a href="#about" class="nav-link active" data-section="about">關於</a>
+        <a href="#projects" class="nav-link" data-section="projects">作品集</a>
+        <a href="#notes" class="nav-link" data-section="notes">隨筆</a>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="切換深色模式"></button>
     </div>
   </div>
 </nav>
@@ -405,6 +429,39 @@ function renderFallback() {
   `;
   document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item"><div class="tool-name">${n}</div></div>`).join('');
 }
+
+// ── Theme toggle ──
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function getTheme() {
+  return localStorage.getItem('theme') || 'system';
+}
+function applyTheme(theme) {
+  const effective = theme === 'system' ? getSystemTheme() : theme;
+  document.documentElement.setAttribute('data-theme', effective);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = effective === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const current = getTheme();
+  const system = getSystemTheme();
+  // Cycle: system → opposite → system
+  let next;
+  if (current === 'system') {
+    next = system === 'dark' ? 'light' : 'dark';
+  } else {
+    next = 'system';
+  }
+  localStorage.setItem('theme', next);
+  applyTheme(next);
+}
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (getTheme() === 'system') applyTheme('system');
+});
+// Init on load
+applyTheme(getTheme());
 
 // Nav scroll highlight
 const sections = ['about','projects','notes'];
