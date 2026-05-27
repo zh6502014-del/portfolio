@@ -6,7 +6,7 @@
 <title>林艾奭 — UI/UX Designer</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -16,7 +16,7 @@
     --accent: #111110; --accent-text: #ffffff;
     --radius-sm:6px; --radius-md:8px; --radius-lg:12px;
     --font-sans:'Noto Sans TC',system-ui,sans-serif;
-    --font-serif:'Noto Serif TC',serif;
+    --font-serif:'Noto Sans TC',system-ui,sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -49,7 +49,8 @@
   .theme-toggle:hover { background:var(--bg-secondary); border-color:var(--border-strong); }
   .theme-toggle::after {
     content: attr(data-tip);
-    position:absolute; top:calc(100% + 10px); right:0;
+    position:absolute; top:calc(100% + 10px); left:50%;
+    transform:translateX(-50%);
     background:var(--text); color:var(--bg);
     font-size:11px; white-space:nowrap;
     padding:5px 10px; border-radius:6px;
@@ -59,7 +60,8 @@
     z-index:9999;
   }
   .theme-toggle::before {
-    content:''; position:absolute; top:calc(100% + 4px); right:10px;
+    content:''; position:absolute; top:calc(100% + 3px); left:50%;
+    transform:translateX(-50%);
     border:5px solid transparent;
     border-bottom-color:var(--text);
     pointer-events:none; opacity:0;
@@ -79,49 +81,49 @@
   }
   body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:15px; min-height:100vh; }
 
-  .nav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); backdrop-filter:blur(12px); overflow:visible; }
-  .nav-inner { max-width:780px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; height:56px; overflow:visible; }
-  .nav-logo { font-family:var(--font-serif); font-size:15px; font-weight:500; color:var(--text); text-decoration:none; }
+  .nav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); overflow:visible; }
+  .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
+  .nav-logo { font-family:var(--font-sans); font-size:15px; font-weight:500; color:var(--text); text-decoration:none; }
   .nav-links { display:flex; gap:4px; }
   .nav-link { font-size:13px; color:var(--text-secondary); text-decoration:none; padding:6px 12px; border-radius:var(--radius-md); transition:background .15s,color .15s; border:1px solid transparent; }
   .nav-link:hover { background:var(--bg-secondary); color:var(--text); }
   .nav-link.active { background:var(--bg-secondary); border-color:var(--border); color:var(--text); }
 
-  .wrapper { max-width:780px; margin:0 auto; padding:0 24px; }
-  section { padding:56px 0; }
-  section + section { border-top:1px solid var(--border); }
+  .wrapper { max-width:860px; margin:0 auto; padding:0 40px; }
+  section { padding:80px 0; }
+  section + section { border-top:none; }
 
-  .hero { padding-top:72px; padding-bottom:64px; }
+  .hero { padding-top:96px; padding-bottom:88px; }
   .hero-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-tertiary); background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; padding:5px 14px; margin-bottom:28px; white-space:nowrap; }
   .hero-badge-dot { width:6px; height:6px; min-width:6px; background:#22c55e; border-radius:50%; display:inline-block; }
-  .hero-title { font-family:var(--font-serif); font-size:clamp(40px,5.5vw,60px); font-weight:500; line-height:1.2; letter-spacing:-.025em; margin-bottom:20px; }
-  .hero-title em { font-style:normal; color:var(--text-tertiary); }
-  .hero-desc { font-size:16px; color:var(--text-secondary); max-width:520px; line-height:1.9; margin-bottom:36px; }
+  .hero-title { font-family:var(--font-sans); font-size:clamp(44px,6vw,68px); font-weight:700; line-height:1.15; letter-spacing:-.02em; margin-bottom:24px; }
+  .hero-title em { font-style:normal; color:var(--text); }
+  .hero-desc { font-size:17px; color:var(--text-secondary); max-width:560px; line-height:1.9; margin-bottom:44px; }
   .hero-contacts { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:32px; }
   .contact-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary); background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:7px 14px; text-decoration:none; transition:border-color .15s,color .15s; }
   .contact-item:hover { border-color:var(--border-strong); color:var(--text); }
   .hero-note { font-size:12px; color:var(--text-tertiary); padding:10px 14px; border-left:2px solid var(--border-strong); background:var(--bg-secondary); border-radius:0 var(--radius-sm) var(--radius-sm) 0; max-width:420px; }
 
-  .sec-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:24px; }
-  .skill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:40px; }
+  .sec-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:32px; }
+  .skill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:56px; }
   .skill-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; transition:border-color .15s; }
   .skill-card:hover { border-color:var(--border-strong); }
   .skill-card-icon { width:36px; height:36px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
   .skill-card-title { font-size:13px; font-weight:500; margin-bottom:10px; }
   .skill-tag-list { display:flex; flex-wrap:wrap; gap:5px; }
   .skill-tag { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-secondary); }
-  .tools-grid { display:flex; flex-wrap:wrap; gap:8px; }
+  .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
   .tool-item { display:flex; align-items:center; gap:8px; font-size:13px; padding:8px 16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-secondary); transition:border-color .15s; }
   .tool-item:hover { border-color:var(--border-strong); }
   .tool-name { font-weight:500; color:var(--text); font-size:13px; }
   .tool-desc { font-size:11px; color:var(--text-tertiary); }
 
   .projects-grid { display:flex; flex-direction:column; }
-  .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:24px 0; border-bottom:1px solid var(--border); cursor:pointer; }
-  .project-row:first-child { border-top:1px solid var(--border); }
+  .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .projects-grid { border-top:1px solid var(--border); }
   .project-row:hover .project-row-title { color:var(--text); }
   .project-row:hover .project-arrow { opacity:1; transform:translateX(2px); }
-  .project-row-num { font-size:11px; color:var(--text-tertiary); font-family:var(--font-serif); margin-bottom:6px; }
+  .project-row-num { font-size:11px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
   .project-row-title { font-size:18px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:13px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; }
   .project-tags { display:flex; flex-wrap:wrap; gap:5px; }
@@ -137,7 +139,7 @@
   .modal-handle { width:40px; height:4px; background:var(--border-strong); border-radius:2px; margin:0 auto 28px; }
   .modal-close { position:absolute; top:24px; right:24px; width:32px; height:32px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:background .15s; }
   .modal-close:hover { background:var(--bg-tertiary); }
-  .modal-title { font-family:var(--font-serif); font-size:24px; font-weight:500; margin-bottom:6px; }
+  .modal-title { font-family:var(--font-sans); font-size:24px; font-weight:500; margin-bottom:6px; }
   .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:20px; }
   .modal-time { font-size:12px; color:var(--text-tertiary); margin-right:4px; }
   .modal-desc { font-size:14px; color:var(--text-secondary); line-height:1.85; margin-bottom:28px; }
@@ -179,12 +181,12 @@
 
   .notes-list { display:flex; flex-direction:column; }
   .note-item:first-child { border-top:1px solid var(--border); }
-  .note-date { font-size:12px; color:var(--text-tertiary); font-family:var(--font-serif); white-space:nowrap; }
+  .note-date { font-size:12px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:14px; color:var(--text); flex:1; }
   .note-type { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-tertiary); white-space:nowrap; }
 
-  footer { border-top:1px solid var(--border); padding:40px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-  .footer-name { font-family:var(--font-serif); font-size:14px; color:var(--text-secondary); }
+  footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
+  .footer-name { font-family:var(--font-sans); font-size:14px; color:var(--text-secondary); }
   .footer-link { font-size:13px; color:var(--text-tertiary); text-decoration:none; }
   .footer-link:hover { color:var(--text); }
   .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
@@ -194,7 +196,9 @@
   @media (max-width:560px) {
     .modal { padding:24px 20px 40px; }
     .modal-grid { grid-template-columns:1fr; }
-    .hero-title { font-size:32px; }
+    .wrapper { padding:0 20px; }
+    .nav-inner { padding:0 20px; }
+    .hero-title { font-size:36px; }
     .project-row { grid-template-columns:1fr; }
     .project-row-right { flex-direction:row; padding-top:0; }
     .note-item { flex-wrap:wrap; }
@@ -223,7 +227,7 @@
 
   <section class="hero" id="hero">
     <div class="hero-badge"><i class="hero-badge-dot"></i><span id="hero-status">目前在職 · 金融業數位設計</span></div>
-    <h1 class="hero-title">您好，我是<br><em id="hero-name">林艾奭</em></h1>
+    <h1 class="hero-title"><span id="hero-greeting">您好，我是</span><em id="hero-name">林艾奭</em></h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
       <a href="mailto:zh6502014@gmail.com" class="contact-item">
@@ -313,11 +317,12 @@ async function loadData() {
 
 function renderProfile(p) {
   document.getElementById('hero-status').textContent = (p.status || '目前在職 · 金融業數位設計').split('').filter(c => c.charCodeAt(0) > 31 || c === ' ').join('').trim();
-  document.getElementById('hero-name').textContent = (p.name || '林艾奭').trim();
+  const name = (p.name || '林艾奭').trim();
+  document.getElementById('hero-name').textContent = name;
+  document.getElementById('nav-name').textContent = name;
+  document.getElementById('footer-name').textContent = name + ' · UI/UX Designer';
   document.getElementById('hero-desc').innerHTML = p.description || '';
   document.getElementById('hero-note').textContent = p.note || '';
-  document.getElementById('nav-name').textContent = p.name || '林艾奭';
-  document.getElementById('footer-name').textContent = (p.name || '林艾奭') + ' · UI/UX Designer';
   const contacts = document.getElementById('hero-contacts');
   contacts.innerHTML = '';
   if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
