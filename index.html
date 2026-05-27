@@ -49,22 +49,24 @@
   .theme-toggle:hover { background:var(--bg-secondary); border-color:var(--border-strong); }
   .theme-toggle::after {
     content: attr(data-tip);
-    position:absolute; bottom:calc(100% + 8px); left:50%;
-    transform:translateX(-50%);
+    position:fixed;
     background:var(--text); color:var(--bg);
     font-size:11px; white-space:nowrap;
-    padding:4px 8px; border-radius:6px;
+    padding:5px 10px; border-radius:6px;
     pointer-events:none; opacity:0;
     transition:opacity 0.15s;
     font-family:var(--font-sans);
+    z-index:9999;
+    top:52px; right:16px;
   }
   .theme-toggle::before {
-    content:''; position:absolute; bottom:calc(100% + 4px); left:50%;
-    transform:translateX(-50%);
-    border:4px solid transparent;
-    border-top-color:var(--text);
+    content:''; position:fixed;
+    top:44px; right:28px;
+    border:5px solid transparent;
+    border-bottom-color:var(--text);
     pointer-events:none; opacity:0;
     transition:opacity 0.15s;
+    z-index:9999;
   }
   .theme-toggle:hover::after,
   .theme-toggle:hover::before { opacity:1; }
