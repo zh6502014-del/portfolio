@@ -200,6 +200,23 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .groups-add { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-tertiary); background:none; border:1px dashed var(--border-strong); border-radius:var(--radius-md); padding:9px 14px; cursor:pointer; width:100%; font-family:inherit; margin-top:4px; transition:border-color .15s,color .15s; }
 .groups-add:hover { border-color:var(--text-tertiary); color:var(--text); }
 
+/* ── Date range picker ── */
+.date-range-wrap { display:flex; flex-direction:column; gap:8px; }
+.date-range-manual { width:100%; }
+.date-range-pickers { display:grid; grid-template-columns:1fr auto 1fr auto; align-items:center; gap:8px; }
+.date-range-pickers label { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
+.date-range-sep { font-size:13px; color:var(--text-tertiary); text-align:center; }
+.date-picker-input { width:100%; padding:7px 10px; font-size:12px; font-family:inherit; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text); outline:none; }
+.date-picker-input:focus { border-color:var(--border-strong); }
+.date-range-hint { font-size:11px; color:var(--text-tertiary); }
+.date-range-ongoing { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); cursor:pointer; user-select:none; }
+.date-range-ongoing input { cursor:pointer; }
+/* single date picker */
+.single-date-wrap { display:flex; flex-direction:column; gap:8px; }
+.single-date-row { display:flex; align-items:center; gap:8px; }
+.single-date-row .date-picker-input { width:180px; }
+.single-date-row .date-range-hint { white-space:nowrap; }
+
 /* Video embed modal */
 .video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
 .video-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:440px; max-width:90vw; }
@@ -556,6 +573,100 @@ async function doLogout() {
   await supabase_client.auth.signOut();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── Date range picker helpers ──
+function formatMonthDisplay(ym) {
+  // ym = "2022-02" → "2022/02"
+  if (!ym) return '';
+  return ym.replace('-', '/');
+}
+
+function syncManualFromPickers() {
+  const start = document.getElementById('pj-date-start')?.value;
+  const end = document.getElementById('pj-date-end')?.value;
+  const ongoing = document.getElementById('pj-date-ongoing')?.checked;
+  const manual = document.getElementById('pj-time');
+  if (!manual) return;
+  if (!start && !end) return;
+  const startStr = start ? formatMonthDisplay(start) : '';
+  const endStr = ongoing ? '開發中' : (end ? formatMonthDisplay(end) : '');
+  if (startStr && endStr) manual.value = startStr + ' — ' + endStr;
+  else if (startStr) manual.value = startStr;
+  else manual.value = endStr;
+}
+
+function toggleOngoing() {
+  const ongoing = document.getElementById('pj-date-ongoing')?.checked;
+  const endInput = document.getElementById('pj-date-end');
+  if (endInput) endInput.disabled = ongoing;
+  syncManualFromPickers();
+}
+
+function syncDatePickersFromManual() {
+  // Parse manual input back to pickers if possible
+  const val = document.getElementById('pj-time')?.value || '';
+  const parts = val.split('—').map(s => s.trim());
+  const parseToMonth = (str) => {
+    // Accept "2022/02" or "2022-02"
+    const m = str.match(/(\d{4})[\/-](\d{2})/);
+    return m ? m[1] + '-' + m[2] : '';
+  };
+  if (parts.length >= 1) {
+    const s = document.getElementById('pj-date-start');
+    if (s) s.value = parseToMonth(parts[0]);
+  }
+  if (parts.length >= 2) {
+    const ongoing = parts[1].includes('開發中') || parts[1].includes('present') || parts[1] === '';
+    const cb = document.getElementById('pj-date-ongoing');
+    const e = document.getElementById('pj-date-end');
+    if (cb) cb.checked = ongoing;
+    if (e) { e.disabled = ongoing; e.value = ongoing ? '' : parseToMonth(parts[1]); }
+  }
+}
+
+function initDatePickers(timeRange) {
+  // Pre-fill pickers from existing time_range value
+  const manual = document.getElementById('pj-time');
+  if (manual) manual.value = timeRange || '';
+  syncDatePickersFromManual();
+}
+
+// ── Note single date helpers ──
+function formatNoteDate(dateStr) {
+  // "2026-04-25" → "2026/04/25"
+  if (!dateStr) return '';
+  return dateStr.replace(/-/g, '/');
+}
+
+function parseNoteDate(str) {
+  // Accept "2026/04/25" or "2026-04-25"
+  const m = str.match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
+}
+
+function syncNoteDateManualFromPicker() {
+  const picker = document.getElementById('nt-date-picker');
+  const manual = document.getElementById('nt-date');
+  if (picker && manual && picker.value) {
+    manual.value = formatNoteDate(picker.value);
+  }
+}
+
+function syncNoteDatePickerFromManual() {
+  const manual = document.getElementById('nt-date');
+  const picker = document.getElementById('nt-date-picker');
+  if (manual && picker) {
+    const parsed = parseNoteDate(manual.value);
+    if (parsed) picker.value = parsed;
+  }
+}
+
+function initNoteDatePicker(dateStr) {
+  const manual = document.getElementById('nt-date');
+  const picker = document.getElementById('nt-date-picker');
+  if (manual) manual.value = formatNoteDate(dateStr || '');
+  if (picker) picker.value = dateStr || '';
 }
 
 // ── Boot ──
@@ -926,7 +1037,7 @@ async function renderProfilePage() {
       <div class="form-row"><label class="form-label">聯絡備註</label><input class="form-input" id="p-note" /></div>
     </div>
   `;
-  const descQuill = makeQuill('p-desc-editor', '自我介紹...');
+  const descQuill = makeQuill('p-desc-editor', '自我介紹...', true);
   const { data } = await supabase_client.from('profile').select('*').single();
   if (data) {
     document.getElementById('p-name').value = data.name || '';
@@ -1157,7 +1268,30 @@ function renderProjectForm(proj) {
       <div class="card-desc">專案的標題、時間與標籤</div>
       <div class="form-row"><label class="form-label">專案名稱</label><input class="form-input" id="pj-title" value="${proj?.title || ''}" /></div>
       <div class="form-row-2">
-        <div class="form-row"><label class="form-label">時間範圍</label><input class="form-input" id="pj-time" value="${proj?.time_range || ''}" placeholder="2022/02 — 開發中" /></div>
+        <div class="form-row">
+          <label class="form-label">時間範圍</label>
+          <div class="date-range-wrap">
+            <input class="form-input date-range-manual" id="pj-time"
+              value="${proj?.time_range || ''}"
+              placeholder="2022/02 — 開發中（可直接輸入）"
+              oninput="syncDatePickersFromManual()" />
+            <div class="date-range-pickers">
+              <div>
+                <div class="date-range-hint" style="margin-bottom:4px">開始日期</div>
+                <input type="month" class="date-picker-input" id="pj-date-start" onchange="syncManualFromPickers()" />
+              </div>
+              <div class="date-range-sep">—</div>
+              <div>
+                <div class="date-range-hint" style="margin-bottom:4px">結束日期</div>
+                <input type="month" class="date-picker-input" id="pj-date-end" onchange="syncManualFromPickers()" />
+              </div>
+              <label class="date-range-ongoing">
+                <input type="checkbox" id="pj-date-ongoing" onchange="toggleOngoing()" />
+                開發中
+              </label>
+            </div>
+          </div>
+        </div>
         <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="pj-order" type="number" value="${proj?.sort_order || 0}" /></div>
       </div>
       <div class="form-row">
@@ -1207,6 +1341,7 @@ function renderProjectForm(proj) {
   const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...', true);
   if (proj?.description) descQuill.root.innerHTML = proj.description;
   makeImageUploader('pj-images-uploader', proj?.images || []);
+  initDatePickers(proj?.time_range || '');
   // Init all 5 sortable lists
   // Build sections from existing data or defaults
   const existingSections = proj?.sections && proj.sections.length ? proj.sections : [
@@ -1290,7 +1425,21 @@ function renderNoteForm(note) {
     <div class="card">
       <div class="form-row"><label class="form-label">標題</label><input class="form-input" id="nt-title" value="${note?.title || ''}" /></div>
       <div class="form-row-2">
-        <div class="form-row"><label class="form-label">日期</label><input class="form-input" id="nt-date" type="date" value="${note?.note_date || ''}" /></div>
+        <div class="form-row">
+          <label class="form-label">日期</label>
+          <div class="single-date-wrap">
+            <input class="form-input" id="nt-date"
+              value="${note?.note_date ? formatNoteDate(note.note_date) : ''}"
+              placeholder="2026/04/25（可直接輸入）"
+              oninput="syncNoteDatePickerFromManual()" />
+            <div class="single-date-row">
+              <input type="date" class="date-picker-input" id="nt-date-picker"
+                value="${note?.note_date || ''}"
+                onchange="syncNoteDateManualFromPicker()" />
+              <span class="date-range-hint">點選日曆選擇日期</span>
+            </div>
+          </div>
+        </div>
         <div class="form-row"><label class="form-label">類型</label><input class="form-input" id="nt-type" value="${note?.note_type || ''}" placeholder="讀書心得" /></div>
       </div>
       <div class="form-row">
@@ -1314,12 +1463,13 @@ function renderNoteForm(note) {
   const q = makeQuill('nt-content-editor', '在這裡撰寫文章內容...\n\n支援：標題、粗體、斜體、清單、引用、圖片上傳、影片嵌入', true);
   if (note?.content) q.root.innerHTML = note.content;
   makeImageUploader('nt-images-uploader', note?.images || []);
+  initNoteDatePicker(note?.note_date || '');
 }
 async function saveNote(id) {
   const q = quillInstances['nt-content-editor'];
   const payload = {
     title: document.getElementById('nt-title').value,
-    note_date: document.getElementById('nt-date').value,
+    note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
     note_type: document.getElementById('nt-type').value,
     content: q ? q.root.innerHTML : '',
     images: window.getImgs_nt_images_uploader ? window.getImgs_nt_images_uploader() : [],
