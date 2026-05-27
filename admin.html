@@ -215,6 +215,8 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .tag-option-new { color: var(--text-secondary); font-style: italic; }
 .tag-option-del { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:13px; padding:0 2px; }
 .tag-option-del:hover { color:var(--danger); }
+.tag-option-edit { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:12px; padding:0 4px; }
+.tag-option-edit:hover { color:var(--text); }
 .tag-empty { padding: 10px 12px; font-size: 12px; color: var(--text-tertiary); text-align: center; }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
@@ -786,12 +788,24 @@ function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入�
   const dd = document.getElementById(containerId + '-dd');
 
   function renderChips() {
-    // Remove existing chips
     wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
-    selected.forEach((val, i) => {
+    selected.forEach((val, idx) => {
       const chip = document.createElement('span');
       chip.className = 'tag-chip';
-      chip.innerHTML = `${val}<button class="tag-chip-del" onclick="tagRemoveChip('${containerId}',${i})" title="移除">×</button>`;
+      const label = document.createTextNode(val);
+      const btn = document.createElement('button');
+      btn.className = 'tag-chip-del';
+      btn.title = '移除';
+      btn.textContent = '×';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selected.splice(idx, 1);
+        syncHidden(containerId, acKey, selected);
+        renderChips();
+        renderDropdown(field ? field.value : '');
+      });
+      chip.appendChild(label);
+      chip.appendChild(btn);
       wrap.insertBefore(chip, field);
     });
   }
@@ -799,31 +813,90 @@ function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入�
   function renderDropdown(filter = '') {
     const all = acLoad(acKey);
     const filtered = filter ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase())) : all;
-    const isNew = filter && !all.includes(filter) && !selected.includes(filter);
+    const isNew = filter && !all.map(v=>v.toLowerCase()).includes(filter.toLowerCase()) && !selected.includes(filter);
 
-    let html = '';
+    dd.innerHTML = '';
     if (filtered.length) {
-      html += `<div class="tag-dropdown-hint">歷史紀錄</div>`;
-      html += filtered.map(v => {
-        const sel = selected.includes(v);
-        return `<div class="tag-option ${sel?'selected':''}" onclick="tagToggleOption('${containerId}','${acKey}','${v.replace(/'/g,"\'")}',${multi})">
-          <span class="tag-option-check">${sel ? '✓' : ''}</span>
-          <span class="tag-option-label">${v}</span>
-          <button class="tag-option-del" onclick="tagDelHistory(event,'${acKey}','${v.replace(/'/g,"\'")}','${containerId}')">×</button>
-        </div>`;
-      }).join('');
-    }
-    if (isNew) {
-      html += `<div class="tag-option tag-option-new" onclick="tagAddNew('${containerId}','${acKey}','${filter.replace(/'/g,"\'")}',${multi})">
-        <span class="tag-option-check">＋</span>
-        <span class="tag-option-label">新增「${filter}」</span>
-      </div>`;
-    }
-    if (!html) html = `<div class="tag-empty">輸入文字新增選項</div>`;
+      const hint = document.createElement('div');
+      hint.className = 'tag-dropdown-hint';
+      hint.textContent = '歷史紀錄';
+      dd.appendChild(hint);
 
-    dd.innerHTML = html;
+      filtered.forEach(v => {
+        const sel = selected.includes(v);
+        const row = document.createElement('div');
+        row.className = 'tag-option' + (sel ? ' selected' : '');
+
+        const check = document.createElement('span');
+        check.className = 'tag-option-check';
+        check.textContent = sel ? '✓' : '';
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'tag-option-label';
+        labelEl.textContent = v;
+
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'tag-option-edit';
+        editBtn.title = '編輯';
+        editBtn.textContent = '✎';
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          tagEditHistory(containerId, acKey, v, renderDropdown, selected, syncHidden, renderChips);
+        });
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = 'tag-option-del';
+        delBtn.title = '從紀錄中刪除';
+        delBtn.textContent = '×';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const all2 = acLoad(acKey).filter(x => x !== v);
+          localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all2));
+          // Also remove from selected if present
+          const si = selected.indexOf(v);
+          if (si > -1) { selected.splice(si, 1); syncHidden(containerId, acKey, selected); renderChips(); }
+          renderDropdown(field ? field.value : '');
+        });
+
+        row.appendChild(check);
+        row.appendChild(labelEl);
+        row.appendChild(editBtn);
+        row.appendChild(delBtn);
+        row.addEventListener('click', () => {
+          if (sel) {
+            state.selected = selected.filter(x => x !== v);
+          } else {
+            selected.push(v);
+          }
+          syncHidden(containerId, acKey, selected);
+          renderChips();
+          renderDropdown(field ? field.value : '');
+        });
+        dd.appendChild(row);
+      });
+    }
+
+    if (isNew) {
+      const newRow = document.createElement('div');
+      newRow.className = 'tag-option tag-option-new';
+      newRow.innerHTML = '<span class="tag-option-check">＋</span><span class="tag-option-label">新增「' + filter + '」</span>';
+      newRow.addEventListener('click', () => tagAddNew(containerId, acKey, filter, multi));
+      dd.appendChild(newRow);
+    }
+
+    if (!dd.children.length || (dd.children.length === 1 && dd.children[0].classList.contains('tag-dropdown-hint'))) {
+      const empty = document.createElement('div');
+      empty.className = 'tag-empty';
+      empty.textContent = '輸入文字新增選項';
+      dd.appendChild(empty);
+    }
+
     dd.classList.add('open');
   }
+  // expose state for renderDropdown closure
+  const state = window['_tagInput_' + containerId] || {};
 
   function closeDropdown() { dd.classList.remove('open'); }
 
@@ -870,11 +943,9 @@ function tagToggleOption(containerId, acKey, val, multi) {
   if (state.selected.includes(val)) {
     state.selected = state.selected.filter(v => v !== val);
   } else {
-    if (!multi) state.selected = [val];
-    else state.selected.push(val);
+    state.selected.push(val);
   }
   const field = document.getElementById(containerId + '-field');
-  if (!multi) { field.value = ''; document.getElementById(containerId + '-dd').classList.remove('open'); }
   syncHidden(containerId, acKey, state.selected);
   state.renderChips();
   state.renderDropdown(field ? field.value : '');
@@ -891,7 +962,6 @@ function tagAddNew(containerId, acKey, val, multi) {
   acSave(acKey, [val]);
   const field = document.getElementById(containerId + '-field');
   if (field) field.value = '';
-  if (!multi) document.getElementById(containerId + '-dd').classList.remove('open');
   syncHidden(containerId, acKey, state.selected);
   state.renderChips();
   state.renderDropdown('');
@@ -912,6 +982,19 @@ function tagDelHistory(e, acKey, val, containerId) {
   localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
   const state = window['_tagInput_' + containerId];
   if (state) state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
+}
+
+function tagEditHistory(containerId, acKey, oldVal, renderDropdown, selected, syncHidden, renderChips) {
+  const newVal = prompt('編輯標籤', oldVal);
+  if (!newVal || newVal.trim() === oldVal) return;
+  const trimmed = newVal.trim();
+  // Update history
+  const all = acLoad(acKey).map(v => v === oldVal ? trimmed : v);
+  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
+  // Update selected if needed
+  const si = selected.indexOf(oldVal);
+  if (si > -1) { selected[si] = trimmed; syncHidden(containerId, acKey, selected); renderChips(); }
+  renderDropdown(document.getElementById(containerId + '-field')?.value || '');
 }
 
 function acKey_for(containerId) {
@@ -1727,7 +1810,7 @@ function renderProjectForm(proj) {
   makeImageUploader('pj-images-uploader', proj?.images || []);
   initDatePickers(proj?.time_range || '');
   makeTagInput('pj-tags-ti', 'tags', { multi: true, placeholder: '輸入標籤，按 Enter 新增' });
-  makeTagInput('pj-role-ti', 'role', { multi: false, placeholder: '輸入角色' });
+  makeTagInput('pj-role-ti', 'role', { multi: true, placeholder: '輸入角色，按 Enter 新增' });
   makeTagInput('pj-members-ti', 'members', { multi: true, placeholder: '輸入成員，按 Enter 新增' });
   // Init all 5 sortable lists
   // Build sections from existing data or defaults
@@ -1748,7 +1831,7 @@ async function saveProject(id) {
     title: document.getElementById('pj-title').value,
     time_range: document.getElementById('pj-time').value,
     tags: getTagInputValue('pj-tags-ti'),
-    role: (getTagInputValue('pj-role-ti')[0] || ''),
+    role: getTagInputValue('pj-role-ti').join(' · ') || '',
     members: getTagInputValue('pj-members-ti').join(' · '),
     published: document.getElementById('pj-published').checked,
     sort_order: parseInt(document.getElementById('pj-order').value) || 0,
@@ -1779,7 +1862,7 @@ async function saveProject(id) {
     // Save tag/role/member history
     acSave('tags', getSortList ? [] : []);
     const tagsVal = getTagInputValue('pj-tags-ti');
-    const roleVal = getTagInputValue('pj-role-ti')[0] || '';
+    const roleVal = getTagInputValue('pj-role-ti').join(' · ') || '';
     const membersVal = getTagInputValue('pj-members-ti');
     if (tagsVal.length) acSave('tags', tagsVal);
     if (roleVal) acSave('role', [roleVal]);
@@ -1885,14 +1968,14 @@ function renderNoteForm(note) {
   if (note?.content) q.root.innerHTML = note.content;
   makeImageUploader('nt-images-uploader', note?.images || []);
   initNoteDatePicker(note?.note_date || '');
-  makeTagInput('nt-type-ti', 'note_type', { multi: false, placeholder: '輸入類型，如：讀書心得' });
+  makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
 async function saveNote(id) {
   const q = quillInstances['nt-content-editor'];
   const payload = {
     title: document.getElementById('nt-title').value,
     note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
-    note_type: getTagInputValue('nt-type-ti')[0] || '',
+    note_type: getTagInputValue('nt-type-ti').join(' · ') || '',
     content: q ? q.root.innerHTML : '',
     images: window.getImgs_nt_images_uploader ? window.getImgs_nt_images_uploader() : [],
     published: document.getElementById('nt-published').checked,
@@ -1907,7 +1990,7 @@ async function saveNote(id) {
       error = res.error;
     }
     if (error) { toast('儲存失敗：' + error.message, 5000); console.error('saveNote error:', error); return; }
-    const noteTypeVal = getTagInputValue('nt-type-ti')[0] || '';
+    const noteTypeVal = getTagInputValue('nt-type-ti').join(' · ') || '';
     if (noteTypeVal) acSave('note_type', [noteTypeVal]);
     toast('✓ 隨筆已儲存');
     renderNotesPage();
