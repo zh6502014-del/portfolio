@@ -163,6 +163,37 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-textarea { resize: vertical; min-height: 80px; line-height: 1.7; }
 .form-select option { background: var(--bg); }
 .form-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+/* ── Autocomplete ── */
+.ac-wrap { position: relative; }
+.ac-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--bg); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md); z-index: 200;
+  max-height: 200px; overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  display: none;
+}
+.ac-dropdown.open { display: block; }
+.ac-item {
+  padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; transition: background .1s;
+  display: flex; align-items: center; gap: 8px;
+}
+.ac-item:hover, .ac-item.focused { background: var(--bg-secondary); color: var(--text); }
+.ac-item-label { flex: 1; }
+.ac-empty { padding: 10px 12px; font-size: 12px; color: var(--text-tertiary); }
+/* Tag suggestions row */
+.ac-tags-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 8px;
+}
+.ac-tag-chip {
+  font-size: 11px; padding: 3px 10px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 100px; color: var(--text-secondary);
+  cursor: pointer; transition: border-color .1s, color .1s;
+}
+.ac-tag-chip:hover { border-color: var(--border-strong); color: var(--text); }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
@@ -280,17 +311,18 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .uploading-bar .fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
 
 /* ── Project list ── */
-.project-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid var(--border);
-  transition: background 0.1s;
+.item-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 12px; transition: border-color .15s;
 }
-.project-item:last-child { border-bottom: none; }
-.project-item:hover { background: var(--bg-secondary); }
-.project-item-left { flex: 1; }
-.project-item-title { font-size: 14px; font-weight: 500; }
-.project-item-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
-.project-item-actions { display: flex; gap: 6px; }
+.item-card:last-child { margin-bottom: 0; }
+.item-card:hover { border-color: var(--border-strong); }
+.item-card-left { flex: 1; min-width: 0; }
+.item-card-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.item-card-meta { font-size: 12px; color: var(--text-tertiary); }
+.item-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .tag-badge {
   display: inline-block; font-size: 10px; padding: 2px 7px;
   background: var(--bg-secondary); border: 1px solid var(--border);
@@ -689,6 +721,117 @@ function initNoteDatePicker(dateStr) {
   const picker = document.getElementById('nt-date-picker');
   if (manual) manual.value = formatNoteDate(dateStr || '');
   if (picker) picker.value = dateStr || '';
+}
+
+// ── Autocomplete / Tag history ──
+const AC_KEYS = { tags: 'ac_tags', role: 'ac_roles', members: 'ac_members' };
+
+function acLoad(key) {
+  try { return JSON.parse(localStorage.getItem(AC_KEYS[key]) || '[]'); } catch { return []; }
+}
+function acSave(key, values) {
+  const existing = acLoad(key);
+  const merged = [...new Set([...values, ...existing])].slice(0, 60);
+  localStorage.setItem(AC_KEYS[key], JSON.stringify(merged));
+}
+function acSaveFromProject(proj) {
+  if (proj?.tags?.length) acSave('tags', proj.tags);
+  if (proj?.role) acSave('role', [proj.role]);
+  if (proj?.members) acSave('members', proj.members.split('·').map(m=>m.trim()).filter(Boolean));
+}
+
+// Save history when project saved
+const _origSaveProject = typeof saveProject !== 'undefined' ? saveProject : null;
+
+// ── Single-line autocomplete (role field) ──
+function makeAcInput(inputId, acKey) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const wrap = input.parentElement;
+  wrap.style.position = 'relative';
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'ac-dropdown';
+  dropdown.id = inputId + '-ac';
+  wrap.appendChild(dropdown);
+
+  function showDropdown(filter = '') {
+    const all = acLoad(acKey);
+    const filtered = filter
+      ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase()))
+      : all;
+    if (!filtered.length) { dropdown.classList.remove('open'); return; }
+    dropdown.innerHTML = filtered.map((v, i) => `
+      <div class="ac-item" data-val="${v.replace(/"/g,'&quot;')}" onclick="acPickSingle('${inputId}','${v.replace(/'/g,"\'")}')">
+        <span class="ac-item-label">${v}</span>
+      </div>`).join('');
+    dropdown.classList.add('open');
+  }
+
+  input.addEventListener('input', () => showDropdown(input.value));
+  input.addEventListener('focus', () => showDropdown(input.value));
+  document.addEventListener('click', e => { if (!wrap.contains(e.target)) dropdown.classList.remove('open'); });
+}
+
+function acPickSingle(inputId, val) {
+  const input = document.getElementById(inputId);
+  if (input) { input.value = val; input.dispatchEvent(new Event('input')); }
+  const dd = document.getElementById(inputId + '-ac');
+  if (dd) dd.classList.remove('open');
+}
+
+// ── Multi-line autocomplete (tags / members textarea) ──
+function makeAcTextarea(textareaId, acKey, placeholder) {
+  const ta = document.getElementById(textareaId);
+  if (!ta) return;
+
+  // Build suggestions chips below textarea
+  const wrap = ta.parentElement;
+  const hintEl = wrap.querySelector('.form-hint');
+
+  const suggestWrap = document.createElement('div');
+  suggestWrap.id = textareaId + '-suggestions';
+  suggestWrap.className = 'ac-tags-row';
+
+  function renderSuggestions() {
+    const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
+    const all = acLoad(acKey);
+    const unused = all.filter(v => !existing.includes(v));
+    if (!unused.length) { suggestWrap.innerHTML = ''; return; }
+    suggestWrap.innerHTML = unused.slice(0,20).map(v =>
+      `<span class="ac-tag-chip" onclick="acAddLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">+ ${v}</span>`
+    ).join('');
+  }
+
+  if (hintEl) hintEl.after(suggestWrap);
+  else wrap.appendChild(suggestWrap);
+
+  ta.addEventListener('input', renderSuggestions);
+  ta.addEventListener('focus', renderSuggestions);
+  renderSuggestions();
+}
+
+function acAddLine(textareaId, acKey, val) {
+  const ta = document.getElementById(textareaId);
+  if (!ta) return;
+  const lines = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
+  if (!lines.includes(val)) {
+    ta.value = [...lines, val].join('\n');
+    ta.dispatchEvent(new Event('input'));
+  }
+  // Re-render chips
+  const event = new Event('input');
+  ta.dispatchEvent(event);
+  // Refresh chips
+  const suggestWrap = document.getElementById(textareaId + '-suggestions');
+  if (suggestWrap) {
+    const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
+    const all = acLoad(acKey);
+    const unused = all.filter(v => !existing.includes(v));
+    suggestWrap.innerHTML = unused.slice(0,20).map(v =>
+      `<span class="ac-tag-chip" onclick="acAddLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">+ ${v}</span>`
+    ).join('');
+  }
 }
 
 // ── Boot ──
@@ -1246,23 +1389,21 @@ async function renderToolsPage() {
       <div><div class="page-title">使用工具</div><div class="page-desc">關於頁面的工具清單</div></div>
       <button class="btn btn-primary btn-sm" onclick="renderToolForm(null)">+ 新增工具</button>
     </div>
-    <div class="card" style="padding:0">
-      <div id="tools-list"></div>
-    </div>
+    <div id="tools-list"></div>
   `;
   loadTools();
 }
 async function loadTools() {
   const { data } = await supabase_client.from('tools').select('*').order('sort_order');
   const el = document.getElementById('tools-list');
-  if (!data || !data.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary)">尚無工具</div>'; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-tertiary);padding:32px">尚無工具，點擊「新增工具」開始</div>'; return; }
   el.innerHTML = data.map(t => `
-    <div class="project-item">
-      <div class="project-item-left">
-        <div class="project-item-title">${t.name}</div>
-        <div class="project-item-meta">${t.description || ''}</div>
+    <div class="item-card">
+      <div class="item-card-left">
+        <div class="item-card-title">${t.name}</div>
+        <div class="item-card-meta">${t.description || ''}</div>
       </div>
-      <div class="project-item-actions">
+      <div class="item-card-actions">
         <button class="btn btn-secondary btn-sm" onclick="editTool(${t.id})">編輯</button>
         <button class="btn btn-danger btn-sm" onclick="deleteTool(${t.id})">刪除</button>
       </div>
@@ -1316,21 +1457,22 @@ async function renderProjectsPage() {
       <div><div class="page-title">作品集專案</div><div class="page-desc">可新增、編輯、刪除專案</div></div>
       <button class="btn btn-primary btn-sm" onclick="renderProjectForm(null)">+ 新增專案</button>
     </div>
-    <div class="card" style="padding:0"><div id="projects-list"></div></div>
+    <div id="projects-list"></div>
   `;
   loadProjects();
 }
 async function loadProjects() {
   const { data } = await supabase_client.from('projects').select('id,title,time_range,tags,published').order('sort_order');
   const el = document.getElementById('projects-list');
-  if (!data || !data.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary)">尚無專案</div>'; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-tertiary);padding:32px">尚無專案，點擊「新增專案」開始</div>'; return; }
   el.innerHTML = data.map(p => `
-    <div class="project-item">
-      <div class="project-item-left">
-        <div class="project-item-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${p.title}</div>
-        <div class="project-item-meta">${p.time_range || ''} &nbsp; ${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
+    <div class="item-card">
+      <div class="item-card-left">
+        <div class="item-card-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${p.title}</div>
+        <div class="item-card-meta" style="margin-bottom:8px">${p.time_range || ''}</div>
+        <div>${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
       </div>
-      <div class="project-item-actions">
+      <div class="item-card-actions">
         <button class="btn btn-secondary btn-sm" onclick="editProject(${p.id})">編輯</button>
         <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})">刪除</button>
       </div>
@@ -1429,6 +1571,10 @@ function renderProjectForm(proj) {
   if (proj?.description) descQuill.root.innerHTML = proj.description;
   makeImageUploader('pj-images-uploader', proj?.images || []);
   initDatePickers(proj?.time_range || '');
+  // Init autocomplete
+  makeAcTextarea('pj-tags', 'tags');
+  makeAcInput('pj-role', 'role');
+  makeAcTextarea('pj-members', 'members');
   // Init all 5 sortable lists
   // Build sections from existing data or defaults
   const existingSections = proj?.sections && proj.sections.length ? proj.sections : [
@@ -1476,6 +1622,14 @@ async function saveProject(id) {
       console.error('saveProject error:', error);
       return;
     }
+    // Save tag/role/member history
+    acSave('tags', getSortList ? [] : []);
+    const tagsVal = document.getElementById('pj-tags')?.value.split('\n').map(t=>t.trim()).filter(Boolean) || [];
+    const roleVal = document.getElementById('pj-role')?.value.trim();
+    const membersVal = document.getElementById('pj-members')?.value.split('\n').map(m=>m.trim()).filter(Boolean) || [];
+    if (tagsVal.length) acSave('tags', tagsVal);
+    if (roleVal) acSave('role', [roleVal]);
+    if (membersVal.length) acSave('members', membersVal);
     toast('✓ 專案已儲存');
     renderProjectsPage();
   } catch (e) {
@@ -1499,21 +1653,21 @@ async function renderNotesPage() {
       <div><div class="page-title">隨筆紀錄</div><div class="page-desc">部落格文章列表</div></div>
       <button class="btn btn-primary btn-sm" onclick="renderNoteForm(null)">+ 新增隨筆</button>
     </div>
-    <div class="card" style="padding:0"><div id="notes-list"></div></div>
+    <div id="notes-list"></div>
   `;
   loadNotes();
 }
 async function loadNotes() {
   const { data } = await supabase_client.from('notes').select('id,title,note_date,note_type,published').order('sort_order');
   const el = document.getElementById('notes-list');
-  if (!data || !data.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-tertiary)">尚無隨筆</div>'; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-tertiary);padding:32px">尚無隨筆，點擊「新增隨筆」開始</div>'; return; }
   el.innerHTML = data.map(n => `
-    <div class="project-item">
-      <div class="project-item-left">
-        <div class="project-item-title">${n.published ? '' : '<span style="color:var(--text-tertiary)">[草稿] </span>'}${n.title}</div>
-        <div class="project-item-meta">${n.note_date || ''} &nbsp; ${n.note_type || ''}</div>
+    <div class="item-card">
+      <div class="item-card-left">
+        <div class="item-card-title">${n.published ? '' : '<span style="color:var(--text-tertiary)">[草稿] </span>'}${n.title}</div>
+        <div class="item-card-meta">${n.note_date ? n.note_date.replace(/-/g,'/') : ''} ${n.note_type ? '· ' + n.note_type : ''}</div>
       </div>
-      <div class="project-item-actions">
+      <div class="item-card-actions">
         <button class="btn btn-secondary btn-sm" onclick="editNote(${n.id})">編輯</button>
         <button class="btn btn-danger btn-sm" onclick="deleteNote(${n.id})">刪除</button>
       </div>
