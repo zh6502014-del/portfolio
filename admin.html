@@ -1469,7 +1469,7 @@ async function saveProject(id) {
     if (error) {
       // If sections column missing, try without it
       if (error.message && error.message.includes('sections')) {
-        toast('⚠️ 請先到 Supabase SQL Editor 執行：ALTER TABLE projects ADD COLUMN IF NOT EXISTS sections JSONB DEFAULT '[]';', 6000);
+        toast("⚠️ 請先到 Supabase SQL Editor 執行：ALTER TABLE projects ADD COLUMN IF NOT EXISTS sections JSONB DEFAULT '[]';", 6000);
         return;
       }
       toast('儲存失敗：' + error.message, 5000);
