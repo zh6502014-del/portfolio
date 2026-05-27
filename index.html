@@ -44,10 +44,38 @@
     background:transparent; border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center;
     cursor:pointer; font-size:15px; transition:background .15s, border-color .15s;
-    flex-shrink:0;
+    flex-shrink:0; position:relative;
   }
   .theme-toggle:hover { background:var(--bg-secondary); border-color:var(--border-strong); }
+  .theme-toggle::after {
+    content: attr(data-tip);
+    position:absolute; bottom:calc(100% + 8px); left:50%;
+    transform:translateX(-50%);
+    background:var(--text); color:var(--bg);
+    font-size:11px; white-space:nowrap;
+    padding:4px 8px; border-radius:6px;
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+    font-family:var(--font-sans);
+  }
+  .theme-toggle::before {
+    content:''; position:absolute; bottom:calc(100% + 4px); left:50%;
+    transform:translateX(-50%);
+    border:4px solid transparent;
+    border-top-color:var(--text);
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+  }
+  .theme-toggle:hover::after,
+  .theme-toggle:hover::before { opacity:1; }
   html { scroll-behavior: smooth; }
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: background-color 0.35s ease, color 0.35s ease,
+      border-color 0.35s ease, box-shadow 0.35s ease !important;
+  }
   body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:15px; min-height:100vh; }
 
   .nav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); backdrop-filter:blur(12px); }
@@ -441,20 +469,30 @@ function applyTheme(theme) {
   const effective = theme === 'system' ? getSystemTheme() : theme;
   document.documentElement.setAttribute('data-theme', effective);
   const btn = document.getElementById('theme-toggle');
-  if (btn) btn.textContent = effective === 'dark' ? '☀️' : '🌙';
+  if (!btn) return;
+  const isSystem = theme === 'system';
+  if (effective === 'dark') {
+    btn.textContent = '☀️';
+    btn.setAttribute('data-tip', isSystem ? '切換為亮色模式（目前跟隨系統：暗色）' : '切換為亮色模式');
+  } else {
+    btn.textContent = '🌙';
+    btn.setAttribute('data-tip', isSystem ? '切換為暗色模式（目前跟隨系統：亮色）' : '切換為暗色模式');
+  }
 }
 function toggleTheme() {
   const current = getTheme();
   const system = getSystemTheme();
-  // Cycle: system → opposite → system
   let next;
   if (current === 'system') {
     next = system === 'dark' ? 'light' : 'dark';
   } else {
     next = 'system';
   }
+  // Add transition class, apply, then remove
+  document.documentElement.classList.add('theme-transitioning');
   localStorage.setItem('theme', next);
   applyTheme(next);
+  setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
 }
 // Listen for system theme changes
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
