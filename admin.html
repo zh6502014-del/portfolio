@@ -182,6 +182,8 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ac-item:hover, .ac-item.focused { background: var(--bg-secondary); color: var(--text); }
 .ac-item-label { flex: 1; }
 .ac-empty { padding: 10px 12px; font-size: 12px; color: var(--text-tertiary); }
+.ac-item-del { font-size:14px; color:var(--text-tertiary); background:none; border:none; cursor:pointer; padding:0 2px; line-height:1; }
+.ac-item-del:hover { color:var(--danger); }
 /* Tag suggestions row */
 .ac-tags-row {
   display: flex; flex-wrap: wrap; gap: 6px;
@@ -194,6 +196,7 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
   cursor: pointer; transition: border-color .1s, color .1s;
 }
 .ac-tag-chip:hover { border-color: var(--border-strong); color: var(--text); }
+.ac-tag-chip.ac-tag-active { background: var(--bg-tertiary); border-color: var(--border-strong); color: var(--text); font-weight: 500; }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
@@ -724,7 +727,7 @@ function initNoteDatePicker(dateStr) {
 }
 
 // ── Autocomplete / Tag history ──
-const AC_KEYS = { tags: 'ac_tags', role: 'ac_roles', members: 'ac_members' };
+const AC_KEYS = { tags: 'ac_tags', role: 'ac_roles', members: 'ac_members', skill_tags: 'ac_skill_tags', note_type: 'ac_note_types' };
 
 function acLoad(key) {
   try { return JSON.parse(localStorage.getItem(AC_KEYS[key]) || '[]'); } catch { return []; }
@@ -743,7 +746,7 @@ function acSaveFromProject(proj) {
 // Save history when project saved
 const _origSaveProject = typeof saveProject !== 'undefined' ? saveProject : null;
 
-// ── Single-line autocomplete (role field) ──
+// ── Single-line autocomplete with multi-select dropdown ──
 function makeAcInput(inputId, acKey) {
   const input = document.getElementById(inputId);
   if (!input) return;
@@ -755,29 +758,55 @@ function makeAcInput(inputId, acKey) {
   dropdown.id = inputId + '-ac';
   wrap.appendChild(dropdown);
 
+  function getSelected() {
+    return input.value.trim() ? [input.value.trim()] : [];
+  }
+
   function showDropdown(filter = '') {
     const all = acLoad(acKey);
     const filtered = filter
       ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase()))
       : all;
     if (!filtered.length) { dropdown.classList.remove('open'); return; }
-    dropdown.innerHTML = filtered.map((v, i) => `
-      <div class="ac-item" data-val="${v.replace(/"/g,'&quot;')}" onclick="acPickSingle('${inputId}','${v.replace(/'/g,"\'")}')">
+    const selected = getSelected();
+    dropdown.innerHTML = filtered.map(v => {
+      const checked = selected.includes(v);
+      return `<div class="ac-item ${checked ? 'focused' : ''}" onclick="acToggleSingle('${inputId}','${acKey}','${v.replace(/'/g,"\'")}')">
+        <span style="font-size:14px;width:16px;flex-shrink:0">${checked ? '✓' : ''}</span>
         <span class="ac-item-label">${v}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     dropdown.classList.add('open');
   }
 
   input.addEventListener('input', () => showDropdown(input.value));
   input.addEventListener('focus', () => showDropdown(input.value));
   document.addEventListener('click', e => { if (!wrap.contains(e.target)) dropdown.classList.remove('open'); });
+  window[inputId + '_showAc'] = showDropdown;
 }
 
-function acPickSingle(inputId, val) {
+function acToggleSingle(inputId, acKey, val) {
   const input = document.getElementById(inputId);
-  if (input) { input.value = val; input.dispatchEvent(new Event('input')); }
-  const dd = document.getElementById(inputId + '-ac');
-  if (dd) dd.classList.remove('open');
+  if (!input) return;
+  input.value = input.value.trim() === val ? '' : val;
+  input.dispatchEvent(new Event('input'));
+  if (window[inputId + '_showAc']) window[inputId + '_showAc'](input.value);
+}
+
+function acRemoveHistory(acKey, val, inputId, e) {
+  e.stopPropagation();
+  const all = acLoad(acKey).filter(v => v !== val);
+  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
+  if (window[inputId + '_showAc']) window[inputId + '_showAc']('');
+}
+
+function acRemoveChipHistory(textareaId, acKey, val, e) {
+  e.stopPropagation();
+  const all = acLoad(acKey).filter(v => v !== val);
+  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
+  // Re-trigger to refresh
+  const ta = document.getElementById(textareaId);
+  if (ta) ta.dispatchEvent(new Event('focus'));
 }
 
 // ── Multi-line autocomplete (tags / members textarea) ──
@@ -785,7 +814,6 @@ function makeAcTextarea(textareaId, acKey, placeholder) {
   const ta = document.getElementById(textareaId);
   if (!ta) return;
 
-  // Build suggestions chips below textarea
   const wrap = ta.parentElement;
   const hintEl = wrap.querySelector('.form-hint');
 
@@ -796,11 +824,14 @@ function makeAcTextarea(textareaId, acKey, placeholder) {
   function renderSuggestions() {
     const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
     const all = acLoad(acKey);
-    const unused = all.filter(v => !existing.includes(v));
-    if (!unused.length) { suggestWrap.innerHTML = ''; return; }
-    suggestWrap.innerHTML = unused.slice(0,20).map(v =>
-      `<span class="ac-tag-chip" onclick="acAddLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">+ ${v}</span>`
-    ).join('');
+    if (!all.length) { suggestWrap.innerHTML = ''; return; }
+    // Show all history, checked ones highlighted
+    suggestWrap.innerHTML = all.slice(0,30).map(v => {
+      const active = existing.includes(v);
+      return `<span class="ac-tag-chip ${active ? 'ac-tag-active' : ''}"
+        onclick="acToggleLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">
+        ${active ? '✓ ' : '+ '}${v}</span>`;
+    }).join('');
   }
 
   if (hintEl) hintEl.after(suggestWrap);
@@ -811,26 +842,27 @@ function makeAcTextarea(textareaId, acKey, placeholder) {
   renderSuggestions();
 }
 
-function acAddLine(textareaId, acKey, val) {
+function acToggleLine(textareaId, acKey, val) {
   const ta = document.getElementById(textareaId);
   if (!ta) return;
   const lines = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
-  if (!lines.includes(val)) {
+  if (lines.includes(val)) {
+    ta.value = lines.filter(v => v !== val).join('\n');
+  } else {
     ta.value = [...lines, val].join('\n');
-    ta.dispatchEvent(new Event('input'));
   }
-  // Re-render chips
-  const event = new Event('input');
-  ta.dispatchEvent(event);
+  ta.dispatchEvent(new Event('input'));
   // Refresh chips
   const suggestWrap = document.getElementById(textareaId + '-suggestions');
   if (suggestWrap) {
     const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
     const all = acLoad(acKey);
-    const unused = all.filter(v => !existing.includes(v));
-    suggestWrap.innerHTML = unused.slice(0,20).map(v =>
-      `<span class="ac-tag-chip" onclick="acAddLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">+ ${v}</span>`
-    ).join('');
+    suggestWrap.innerHTML = all.slice(0,30).map(v => {
+      const active = existing.includes(v);
+      return `<span class="ac-tag-chip ${active ? 'ac-tag-active' : ''}"
+        onclick="acToggleLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">
+        ${active ? '✓ ' : '+ '}${v}</span>`;
+    }).join('');
   }
 }
 
@@ -1359,7 +1391,9 @@ function renderSkillForm(skill) {
         <button class="btn btn-primary" onclick="saveSkill(${skill?.id || 'null'})">${isEdit ? '儲存變更' : '新增技能'}</button>
       </div>
     </div>
-  `;
+  \`;
+
+  makeAcTextarea('sk-tags', 'skill_tags');
 }
 async function saveSkill(id) {
   const tags = document.getElementById('sk-tags').value.split('\n').map(t => t.trim()).filter(Boolean);
@@ -1370,6 +1404,7 @@ async function saveSkill(id) {
   };
   if (id) await supabase_client.from('skills').update(payload).eq('id', id);
   else await supabase_client.from('skills').insert([payload]);
+  if (tags.length) acSave('skill_tags', tags);
   toast('✓ 技能已儲存');
   renderSkillsPage();
 }
@@ -1703,7 +1738,12 @@ function renderNoteForm(note) {
             </div>
           </div>
         </div>
-        <div class="form-row"><label class="form-label">類型</label><input class="form-input" id="nt-type" value="${note?.note_type || ''}" placeholder="讀書心得" /></div>
+        <div class="form-row">
+          <label class="form-label">類型</label>
+          <div style="position:relative">
+            <input class="form-input" id="nt-type" value="${note?.note_type || ''}" placeholder="讀書心得" />
+          </div>
+        </div>
       </div>
       <div class="form-row">
         <label class="form-label">文章內容（富文字編輯器）</label>
@@ -1727,6 +1767,7 @@ function renderNoteForm(note) {
   if (note?.content) q.root.innerHTML = note.content;
   makeImageUploader('nt-images-uploader', note?.images || []);
   initNoteDatePicker(note?.note_date || '');
+  makeAcInput('nt-type', 'note_type');
 }
 async function saveNote(id) {
   const q = quillInstances['nt-content-editor'];
@@ -1748,6 +1789,8 @@ async function saveNote(id) {
       error = res.error;
     }
     if (error) { toast('儲存失敗：' + error.message, 5000); console.error('saveNote error:', error); return; }
+    const noteTypeVal = document.getElementById('nt-type')?.value.trim();
+    if (noteTypeVal) acSave('note_type', [noteTypeVal]);
     toast('✓ 隨筆已儲存');
     renderNotesPage();
   } catch (e) {
