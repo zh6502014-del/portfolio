@@ -163,40 +163,59 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-textarea { resize: vertical; min-height: 80px; line-height: 1.7; }
 .form-select option { background: var(--bg); }
 .form-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
-/* ── Autocomplete ── */
-.ac-wrap { position: relative; }
-.ac-dropdown {
+/* ── Tag Input Component ── */
+.tag-input-wrap {
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg-secondary); min-height: 42px;
+  padding: 6px 8px; display: flex; flex-wrap: wrap; gap: 6px;
+  align-items: center; cursor: text; transition: border-color .15s;
+  position: relative;
+}
+.tag-input-wrap:focus-within { border-color: var(--border-strong); }
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--bg-tertiary); border: 1px solid var(--border-strong);
+  border-radius: 100px; padding: 3px 10px 3px 12px;
+  font-size: 12px; color: var(--text); font-weight: 500; white-space: nowrap;
+}
+.tag-chip-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary); font-size: 14px; line-height: 1;
+  padding: 0; display: flex; align-items: center;
+}
+.tag-chip-del:hover { color: var(--danger); }
+.tag-input-field {
+  border: none; outline: none; background: transparent;
+  font-size: 13px; color: var(--text); font-family: inherit;
+  min-width: 120px; flex: 1; padding: 2px 4px;
+}
+.tag-input-field::placeholder { color: var(--text-tertiary); }
+.tag-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
   background: var(--bg); border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md); z-index: 200;
-  max-height: 200px; overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border-radius: var(--radius-md); z-index: 300;
+  max-height: 220px; overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   display: none;
 }
-.ac-dropdown.open { display: block; }
-.ac-item {
-  padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
-  cursor: pointer; transition: background .1s;
-  display: flex; align-items: center; gap: 8px;
+.tag-dropdown.open { display: block; }
+.tag-dropdown-hint {
+  padding: 7px 12px 4px; font-size: 11px; color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border);
 }
-.ac-item:hover, .ac-item.focused { background: var(--bg-secondary); color: var(--text); }
-.ac-item-label { flex: 1; }
-.ac-empty { padding: 10px 12px; font-size: 12px; color: var(--text-tertiary); }
-.ac-item-del { font-size:14px; color:var(--text-tertiary); background:none; border:none; cursor:pointer; padding:0 2px; line-height:1; }
-.ac-item-del:hover { color:var(--danger); }
-/* Tag suggestions row */
-.ac-tags-row {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  margin-top: 8px;
+.tag-option {
+  padding: 9px 12px; font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; display: flex; align-items: center; gap: 10px;
+  transition: background .1s;
 }
-.ac-tag-chip {
-  font-size: 11px; padding: 3px 10px;
-  background: var(--bg-secondary); border: 1px solid var(--border);
-  border-radius: 100px; color: var(--text-secondary);
-  cursor: pointer; transition: border-color .1s, color .1s;
-}
-.ac-tag-chip:hover { border-color: var(--border-strong); color: var(--text); }
-.ac-tag-chip.ac-tag-active { background: var(--bg-tertiary); border-color: var(--border-strong); color: var(--text); font-weight: 500; }
+.tag-option:hover { background: var(--bg-secondary); color: var(--text); }
+.tag-option.selected { color: var(--text); }
+.tag-option-check { width: 16px; font-size: 13px; color: var(--text); flex-shrink: 0; }
+.tag-option-label { flex: 1; }
+.tag-option-new { color: var(--text-secondary); font-style: italic; }
+.tag-option-del { background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:13px; padding:0 2px; }
+.tag-option-del:hover { color:var(--danger); }
+.tag-empty { padding: 10px 12px; font-size: 12px; color: var(--text-tertiary); text-align: center; }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
@@ -726,87 +745,183 @@ function initNoteDatePicker(dateStr) {
   if (picker) picker.value = dateStr || '';
 }
 
-// ── Autocomplete / Tag history ──
+// ── Tag Input Component ──
 const AC_KEYS = { tags: 'ac_tags', role: 'ac_roles', members: 'ac_members', skill_tags: 'ac_skill_tags', note_type: 'ac_note_types' };
 
 function acLoad(key) {
-  try { return JSON.parse(localStorage.getItem(AC_KEYS[key]) || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(AC_KEYS[key] || key) || '[]'); } catch { return []; }
 }
 function acSave(key, values) {
   const existing = acLoad(key);
-  const merged = [...new Set([...values, ...existing])].slice(0, 60);
-  localStorage.setItem(AC_KEYS[key], JSON.stringify(merged));
-}
-function acSaveFromProject(proj) {
-  if (proj?.tags?.length) acSave('tags', proj.tags);
-  if (proj?.role) acSave('role', [proj.role]);
-  if (proj?.members) acSave('members', proj.members.split('·').map(m=>m.trim()).filter(Boolean));
+  const merged = [...new Set([...values, ...existing])].filter(Boolean).slice(0, 60);
+  localStorage.setItem(AC_KEYS[key] || key, JSON.stringify(merged));
 }
 
-// Save history when project saved
-const _origSaveProject = typeof saveProject !== 'undefined' ? saveProject : null;
+// ── Single-value TagInput (role, note_type) ──
+// ── Multi-value TagInput (tags, members, skill_tags) ──
+function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入後按 Enter 新增' } = {}) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-// ── Single-line autocomplete with multi-select dropdown ──
-function makeAcInput(inputId, acKey) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  const wrap = input.parentElement;
-  wrap.style.position = 'relative';
+  let selected = [];
 
-  const dropdown = document.createElement('div');
-  dropdown.className = 'ac-dropdown';
-  dropdown.id = inputId + '-ac';
-  wrap.appendChild(dropdown);
-
-  function getSelected() {
-    return input.value.trim() ? [input.value.trim()] : [];
+  // Read initial value from hidden textarea if exists
+  const hiddenId = containerId + '-hidden';
+  const hidden = document.getElementById(hiddenId);
+  if (hidden) {
+    selected = hidden.value.split('\n').map(v=>v.trim()).filter(Boolean);
   }
 
-  function showDropdown(filter = '') {
+  // Build DOM
+  container.innerHTML = `
+    <div class="tag-input-wrap" id="${containerId}-wrap">
+      <input class="tag-input-field" id="${containerId}-field"
+        placeholder="${placeholder}" autocomplete="off" />
+      <div class="tag-dropdown" id="${containerId}-dd"></div>
+    </div>
+  `;
+
+  const wrap = document.getElementById(containerId + '-wrap');
+  const field = document.getElementById(containerId + '-field');
+  const dd = document.getElementById(containerId + '-dd');
+
+  function renderChips() {
+    // Remove existing chips
+    wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+    selected.forEach((val, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `${val}<button class="tag-chip-del" onclick="tagRemoveChip('${containerId}',${i})" title="移除">×</button>`;
+      wrap.insertBefore(chip, field);
+    });
+  }
+
+  function renderDropdown(filter = '') {
     const all = acLoad(acKey);
-    const filtered = filter
-      ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase()))
-      : all;
-    if (!filtered.length) { dropdown.classList.remove('open'); return; }
-    const selected = getSelected();
-    dropdown.innerHTML = filtered.map(v => {
-      const checked = selected.includes(v);
-      return `<div class="ac-item ${checked ? 'focused' : ''}" onclick="acToggleSingle('${inputId}','${acKey}','${v.replace(/'/g,"\'")}')">
-        <span style="font-size:14px;width:16px;flex-shrink:0">${checked ? '✓' : ''}</span>
-        <span class="ac-item-label">${v}</span>
+    const filtered = filter ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase())) : all;
+    const isNew = filter && !all.includes(filter) && !selected.includes(filter);
+
+    let html = '';
+    if (filtered.length) {
+      html += `<div class="tag-dropdown-hint">歷史紀錄</div>`;
+      html += filtered.map(v => {
+        const sel = selected.includes(v);
+        return `<div class="tag-option ${sel?'selected':''}" onclick="tagToggleOption('${containerId}','${acKey}','${v.replace(/'/g,"\'")}',${multi})">
+          <span class="tag-option-check">${sel ? '✓' : ''}</span>
+          <span class="tag-option-label">${v}</span>
+          <button class="tag-option-del" onclick="tagDelHistory(event,'${acKey}','${v.replace(/'/g,"\'")}','${containerId}')">×</button>
+        </div>`;
+      }).join('');
+    }
+    if (isNew) {
+      html += `<div class="tag-option tag-option-new" onclick="tagAddNew('${containerId}','${acKey}','${filter.replace(/'/g,"\'")}',${multi})">
+        <span class="tag-option-check">＋</span>
+        <span class="tag-option-label">新增「${filter}」</span>
       </div>`;
-    }).join('');
-    dropdown.classList.add('open');
+    }
+    if (!html) html = `<div class="tag-empty">輸入文字新增選項</div>`;
+
+    dd.innerHTML = html;
+    dd.classList.add('open');
   }
 
-  input.addEventListener('input', () => showDropdown(input.value));
-  input.addEventListener('focus', () => showDropdown(input.value));
-  document.addEventListener('click', e => { if (!wrap.contains(e.target)) dropdown.classList.remove('open'); });
-  window[inputId + '_showAc'] = showDropdown;
+  function closeDropdown() { dd.classList.remove('open'); }
+
+  field.addEventListener('focus', () => renderDropdown(field.value));
+  field.addEventListener('input', () => renderDropdown(field.value));
+  field.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = field.value.trim();
+      if (val) tagAddNew(containerId, acKey, val, multi);
+    }
+    if (e.key === 'Backspace' && !field.value && selected.length) {
+      selected.splice(selected.length - 1, 1);
+      syncHidden(containerId, acKey, selected);
+      renderChips();
+      renderDropdown('');
+    }
+    if (e.key === 'Escape') closeDropdown();
+  });
+
+  wrap.addEventListener('click', e => {
+    if (e.target === wrap) field.focus();
+  });
+
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) closeDropdown();
+  }, true);
+
+  // Store state
+  window['_tagInput_' + containerId] = { selected, renderChips, renderDropdown, multi };
+  syncHidden(containerId, acKey, selected);
+  renderChips();
 }
 
-function acToggleSingle(inputId, acKey, val) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  input.value = input.value.trim() === val ? '' : val;
-  input.dispatchEvent(new Event('input'));
-  if (window[inputId + '_showAc']) window[inputId + '_showAc'](input.value);
+function syncHidden(containerId, acKey, selected) {
+  window['_tagInput_' + containerId].selected = selected;
+  const hidden = document.getElementById(containerId + '-hidden');
+  if (hidden) hidden.value = selected.join('\n');
 }
 
-function acRemoveHistory(acKey, val, inputId, e) {
+function tagToggleOption(containerId, acKey, val, multi) {
+  const state = window['_tagInput_' + containerId];
+  if (!state) return;
+  if (state.selected.includes(val)) {
+    state.selected = state.selected.filter(v => v !== val);
+  } else {
+    if (!multi) state.selected = [val];
+    else state.selected.push(val);
+  }
+  const field = document.getElementById(containerId + '-field');
+  if (!multi) { field.value = ''; document.getElementById(containerId + '-dd').classList.remove('open'); }
+  syncHidden(containerId, acKey, state.selected);
+  state.renderChips();
+  state.renderDropdown(field ? field.value : '');
+}
+
+function tagAddNew(containerId, acKey, val, multi) {
+  val = val.trim(); if (!val) return;
+  const state = window['_tagInput_' + containerId];
+  if (!state) return;
+  if (!state.selected.includes(val)) {
+    if (!multi) state.selected = [val];
+    else state.selected.push(val);
+  }
+  acSave(acKey, [val]);
+  const field = document.getElementById(containerId + '-field');
+  if (field) field.value = '';
+  if (!multi) document.getElementById(containerId + '-dd').classList.remove('open');
+  syncHidden(containerId, acKey, state.selected);
+  state.renderChips();
+  state.renderDropdown('');
+}
+
+function tagRemoveChip(containerId, idx) {
+  const state = window['_tagInput_' + containerId];
+  if (!state) return;
+  state.selected.splice(idx, 1);
+  syncHidden(containerId, acKey_for(containerId), state.selected);
+  state.renderChips();
+  state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
+}
+
+function tagDelHistory(e, acKey, val, containerId) {
   e.stopPropagation();
   const all = acLoad(acKey).filter(v => v !== val);
   localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
-  if (window[inputId + '_showAc']) window[inputId + '_showAc']('');
+  const state = window['_tagInput_' + containerId];
+  if (state) state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
 }
 
-function acRemoveChipHistory(textareaId, acKey, val, e) {
-  e.stopPropagation();
-  const all = acLoad(acKey).filter(v => v !== val);
-  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
-  // Re-trigger to refresh
-  const ta = document.getElementById(textareaId);
-  if (ta) ta.dispatchEvent(new Event('focus'));
+function acKey_for(containerId) {
+  const map = { 'pj-tags-ti':'tags','pj-role-ti':'role','pj-members-ti':'members','sk-tags-ti':'skill_tags','nt-type-ti':'note_type' };
+  return map[containerId] || 'tags';
+}
+
+function getTagInputValue(containerId) {
+  const state = window['_tagInput_' + containerId];
+  return state ? state.selected : [];
 }
 
 // ── Multi-line autocomplete (tags / members textarea) ──
@@ -1382,21 +1497,21 @@ function renderSkillForm(skill) {
         <div class="form-row"><label class="form-label">技能名稱</label><input class="form-input" id="sk-title" value="${skill?.title || ''}" /></div>
       </div>
       <div class="form-row">
-        <label class="form-label">技能標籤（每行一個）</label>
-        <textarea class="form-textarea" id="sk-tags">${(skill?.tags || []).join('\n')}</textarea>
-        <p class="form-hint">每行輸入一個標籤，例如：Wireframe</p>
+        <label class="form-label">技能標籤</label>
+        <textarea id="sk-tags-hidden" style="display:none">${(skill?.tags || []).join('\n')}</textarea>
+        <div id="sk-tags-ti"></div>
       </div>
       <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="sk-order" type="number" value="${skill?.sort_order || 0}" /></div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveSkill(${skill?.id || 'null'})">${isEdit ? '儲存變更' : '新增技能'}</button>
       </div>
     </div>
-  \`;
+  `;
 
-  makeAcTextarea('sk-tags', 'skill_tags');
+  makeTagInput('sk-tags-ti', 'skill_tags', { multi: true, placeholder: '輸入標籤，按 Enter 新增' });
 }
 async function saveSkill(id) {
-  const tags = document.getElementById('sk-tags').value.split('\n').map(t => t.trim()).filter(Boolean);
+  const tags = getTagInputValue('sk-tags-ti');
   const payload = {
     icon: document.getElementById('sk-icon').value,
     title: document.getElementById('sk-title').value,
@@ -1559,14 +1674,19 @@ function renderProjectForm(proj) {
         <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="pj-order" type="number" value="${proj?.sort_order || 0}" /></div>
       </div>
       <div class="form-row">
-        <label class="form-label">標籤（每行一個）</label>
-        <textarea class="form-textarea" id="pj-tags" style="min-height:64px">${(proj?.tags || []).join('\n')}</textarea>
+        <label class="form-label">標籤</label>
+        <textarea id="pj-tags-hidden" style="display:none">${(proj?.tags || []).join('\n')}</textarea>
+        <div id="pj-tags-ti"></div>
       </div>
-      <div class="form-row"><label class="form-label">我的角色</label><input class="form-input" id="pj-role" value="${proj?.role || ''}" /></div>
       <div class="form-row">
-        <label class="form-label">成員（每行一個）</label>
-        <textarea class="form-textarea" id="pj-members" style="min-height:80px">${(proj?.members ? proj.members.split('·').map(m=>m.trim()).join('\n') : '')}</textarea>
-        <p class="form-hint">每行輸入一個成員，例如：設計 林艾奭</p>
+        <label class="form-label">我的角色</label>
+        <textarea id="pj-role-hidden" style="display:none">${proj?.role || ''}</textarea>
+        <div id="pj-role-ti"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">成員</label>
+        <textarea id="pj-members-hidden" style="display:none">${(proj?.members ? proj.members.split('·').map(m=>m.trim()).join('\n') : '')}</textarea>
+        <div id="pj-members-ti"></div>
       </div>
       <div class="form-row" style="display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="pj-published" ${proj?.published !== false ? 'checked' : ''} />
@@ -1606,10 +1726,9 @@ function renderProjectForm(proj) {
   if (proj?.description) descQuill.root.innerHTML = proj.description;
   makeImageUploader('pj-images-uploader', proj?.images || []);
   initDatePickers(proj?.time_range || '');
-  // Init autocomplete
-  makeAcTextarea('pj-tags', 'tags');
-  makeAcInput('pj-role', 'role');
-  makeAcTextarea('pj-members', 'members');
+  makeTagInput('pj-tags-ti', 'tags', { multi: true, placeholder: '輸入標籤，按 Enter 新增' });
+  makeTagInput('pj-role-ti', 'role', { multi: false, placeholder: '輸入角色' });
+  makeTagInput('pj-members-ti', 'members', { multi: true, placeholder: '輸入成員，按 Enter 新增' });
   // Init all 5 sortable lists
   // Build sections from existing data or defaults
   const existingSections = proj?.sections && proj.sections.length ? proj.sections : [
@@ -1628,9 +1747,9 @@ async function saveProject(id) {
   const payload = {
     title: document.getElementById('pj-title').value,
     time_range: document.getElementById('pj-time').value,
-    tags: toArr('pj-tags'),
-    role: document.getElementById('pj-role').value,
-    members: document.getElementById('pj-members').value.split('\n').map(m=>m.trim()).filter(Boolean).join(' · '),
+    tags: getTagInputValue('pj-tags-ti'),
+    role: (getTagInputValue('pj-role-ti')[0] || ''),
+    members: getTagInputValue('pj-members-ti').join(' · '),
     published: document.getElementById('pj-published').checked,
     sort_order: parseInt(document.getElementById('pj-order').value) || 0,
     description: q ? q.root.innerHTML : '',
@@ -1659,9 +1778,9 @@ async function saveProject(id) {
     }
     // Save tag/role/member history
     acSave('tags', getSortList ? [] : []);
-    const tagsVal = document.getElementById('pj-tags')?.value.split('\n').map(t=>t.trim()).filter(Boolean) || [];
-    const roleVal = document.getElementById('pj-role')?.value.trim();
-    const membersVal = document.getElementById('pj-members')?.value.split('\n').map(m=>m.trim()).filter(Boolean) || [];
+    const tagsVal = getTagInputValue('pj-tags-ti');
+    const roleVal = getTagInputValue('pj-role-ti')[0] || '';
+    const membersVal = getTagInputValue('pj-members-ti');
     if (tagsVal.length) acSave('tags', tagsVal);
     if (roleVal) acSave('role', [roleVal]);
     if (membersVal.length) acSave('members', membersVal);
@@ -1740,9 +1859,8 @@ function renderNoteForm(note) {
         </div>
         <div class="form-row">
           <label class="form-label">類型</label>
-          <div style="position:relative">
-            <input class="form-input" id="nt-type" value="${note?.note_type || ''}" placeholder="讀書心得" />
-          </div>
+          <textarea id="nt-type-hidden" style="display:none">${note?.note_type || ''}</textarea>
+          <div id="nt-type-ti"></div>
         </div>
       </div>
       <div class="form-row">
@@ -1767,14 +1885,14 @@ function renderNoteForm(note) {
   if (note?.content) q.root.innerHTML = note.content;
   makeImageUploader('nt-images-uploader', note?.images || []);
   initNoteDatePicker(note?.note_date || '');
-  makeAcInput('nt-type', 'note_type');
+  makeTagInput('nt-type-ti', 'note_type', { multi: false, placeholder: '輸入類型，如：讀書心得' });
 }
 async function saveNote(id) {
   const q = quillInstances['nt-content-editor'];
   const payload = {
     title: document.getElementById('nt-title').value,
     note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
-    note_type: document.getElementById('nt-type').value,
+    note_type: getTagInputValue('nt-type-ti')[0] || '',
     content: q ? q.root.innerHTML : '',
     images: window.getImgs_nt_images_uploader ? window.getImgs_nt_images_uploader() : [],
     published: document.getElementById('nt-published').checked,
@@ -1789,7 +1907,7 @@ async function saveNote(id) {
       error = res.error;
     }
     if (error) { toast('儲存失敗：' + error.message, 5000); console.error('saveNote error:', error); return; }
-    const noteTypeVal = document.getElementById('nt-type')?.value.trim();
+    const noteTypeVal = getTagInputValue('nt-type-ti')[0] || '';
     if (noteTypeVal) acSave('note_type', [noteTypeVal]);
     toast('✓ 隨筆已儲存');
     renderNotesPage();
