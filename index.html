@@ -172,7 +172,7 @@
 
   .modal-images { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:24px; }
   .modal-images img { width:100%; height:180px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); }
-  .note-item { display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
+  .note-item { display:flex; justify-content:space-between; align-items:flex-start; padding:22px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
   .note-item:hover { opacity:0.75; }
   .note-content { font-size:14px; color:var(--text-secondary); line-height:1.85; }
   .note-content h1 { font-size:20px; font-weight:600; margin:18px 0 8px; color:var(--text); }
@@ -191,8 +191,8 @@
   .notes-list { display:flex; flex-direction:column; }
   .note-item:first-child { border-top:1px solid var(--border); }
   .note-date { font-size:12px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
-  .note-title { font-size:14px; color:var(--text); flex:1; }
-  .note-type { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-tertiary); white-space:nowrap; }
+  .note-title { font-size:14px; color:var(--text); }
+  .note-type { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-secondary); white-space:nowrap; }
 
   footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
   .footer-name { font-family:var(--font-sans); font-size:14px; color:var(--text-secondary); }
@@ -420,11 +420,11 @@ function renderNotes(data) {
     <div class="note-item" onclick="openNote(${n.id})" role="button" tabindex="0"
       onkeydown="if(event.key==='Enter')openNote(${n.id})">
       <span class="note-date">${formatDate(n.note_date)}</span>
-      <span class="note-title">${n.title}</span>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-        <span class="note-type">${n.note_type || ''}</span>
-        <span style="font-size:14px;color:var(--text-tertiary)">→</span>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <span class="note-title">${n.title}</span>
+        ${n.note_type ? `<div><span class="note-type">${n.note_type}</span></div>` : ''}
       </div>
+      <span style="font-size:14px;color:var(--text-tertiary);flex-shrink:0;margin-top:2px">→</span>
     </div>
   `).join('');
 }
@@ -440,9 +440,9 @@ function openNote(id) {
     : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + n.title + '</h2>' +
-    '<div class="modal-meta" style="margin-top:8px">' +
-      (n.note_type ? '<span class="note-type">' + n.note_type + '</span>' : '') +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:6px">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
+      (n.note_type ? '<div><span class="note-type">' + n.note_type + '</span></div>' : '') +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml + imgsHtml;
   document.getElementById('modal-overlay').classList.add('open');
