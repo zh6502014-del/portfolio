@@ -124,7 +124,7 @@
   .project-cover-empty { width:160px; height:90px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
   .project-cover-empty-icon { font-size:20px; opacity:0.25; }
   .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
-  .modal-cover-wrap { margin:-28px -28px 24px; overflow:hidden; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-cover-wrap { margin:-28px 0 24px; overflow:hidden; border-radius:var(--radius-md); }
   .modal-cover-wrap img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
   .project-row-right-inner { display:flex; flex-direction:column; align-items:flex-end; gap:10px; padding-top:4px; }
   .projects-grid { border-top:1px solid var(--border); }
@@ -363,27 +363,54 @@ function renderTools(data) {
 let allProjects = [];
 function renderProjects(data) {
   allProjects = data;
-  document.getElementById('projects-grid').innerHTML = data.map((p, i) => `
-    <div class="project-row" onclick="openModal(${p.id})" role="button" tabindex="0"
-      onkeydown="if(event.key==='Enter')openModal(${p.id})">
-      <div>
-        <p class="project-row-num">${String(i+1).padStart(2,'0')}</p>
-        <h2 class="project-row-title">${p.title}</h2>
-        <p class="project-row-desc">${stripHtml(p.description || '')}</p>
-        <div class="project-tags">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-      </div>
-      <div class="project-row-right">
-        <div class="project-row-right-inner">
-          <span class="project-time">${p.time_range || ''}</span>
-          <span class="project-arrow">→</span>
-        </div>
-        ${parseImgArr(p.images)[0]
-          ? `<img class="project-cover" src="${parseImgArr(p.images)[0]}" alt="${p.title} 封面" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\"project-cover-empty\"><span class=\"project-cover-empty-icon\">🖼</span></div>'">`
-          : `<div class="project-cover-empty"><span class="project-cover-empty-icon">🖼</span></div>`
-        }
-      </div>
-    </div>
-  `).join('');
+  const grid = document.getElementById('projects-grid');
+  grid.innerHTML = '';
+  data.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'project-row';
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
+    row.onclick = () => openModal(p.id);
+    row.onkeydown = (e) => { if (e.key === 'Enter') openModal(p.id); };
+
+    const coverUrl = parseImgArr(p.images)[0] || '';
+    const coverEl = document.createElement(coverUrl ? 'img' : 'div');
+    if (coverUrl) {
+      coverEl.className = 'project-cover';
+      coverEl.src = coverUrl;
+      coverEl.alt = p.title + ' 封面';
+      coverEl.loading = 'lazy';
+      coverEl.onerror = function() {
+        const e = document.createElement('div');
+        e.className = 'project-cover-empty';
+        e.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
+        this.parentNode.replaceChild(e, this);
+      };
+    } else {
+      coverEl.className = 'project-cover-empty';
+      coverEl.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
+    }
+
+    const tags = (p.tags||[]).map(t => {
+      const s = document.createElement('span');
+      s.className = 'tag'; s.textContent = t; return s.outerHTML;
+    }).join('');
+
+    const right = document.createElement('div');
+    right.className = 'project-row-right';
+    right.innerHTML = '<div class="project-row-right-inner"><span class="project-time">' +
+      (p.time_range || '') + '</span><span class="project-arrow">→</span></div>';
+    right.appendChild(coverEl);
+
+    row.innerHTML = '<div>' +
+      '<p class="project-row-num">' + String(i+1).padStart(2,'0') + '</p>' +
+      '<h2 class="project-row-title">' + p.title + '</h2>' +
+      '<p class="project-row-desc">' + stripHtml(p.description || '') + '</p>' +
+      '<div class="project-tags">' + tags + '</div>' +
+      '</div>';
+    row.appendChild(right);
+    grid.appendChild(row);
+  });
 }
 
 let allNotes = [];
