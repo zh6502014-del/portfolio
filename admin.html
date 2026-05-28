@@ -1715,6 +1715,9 @@ async function deleteTool(id) {
 // ─────────────────────────────────────────────
 // PROJECTS PAGE
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// PROJECTS PAGE
+// ─────────────────────────────────────────────
 async function renderProjectsPage() {
   const el = document.getElementById('page-projects');
   el.innerHTML = `
@@ -1726,31 +1729,53 @@ async function renderProjectsPage() {
   `;
   loadProjects();
 }
+
 async function loadProjects() {
-  const { data } = await supabase_client.from('projects').select('id,title,time_range,tags,published').order('sort_order');
   const el = document.getElementById('projects-list');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:20px;color:var(--text-tertiary);font-size:13px">載入中...</div>';
+  const { data, error } = await supabase_client.from('projects').select('id,title,time_range,tags,published,images').order('sort_order');
+  if (error) { el.innerHTML = '<div class="card" style="color:var(--danger);padding:20px">載入失敗：' + error.message + '</div>'; return; }
   if (!data || !data.length) { el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-tertiary);padding:32px">尚無專案，點擊「新增專案」開始</div>'; return; }
-  el.innerHTML = data.map(p => `
-    <div class="item-card">
-      <div class="item-card-left">
-        <div class="item-card-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${p.title}</div>
-        <div class="item-card-meta" style="margin-bottom:8px">${p.time_range || ''}</div>
-        <div>${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
+  el.innerHTML = '';
+  data.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    const imgs = parseImgArr(p.images);
+    const coverHtml = imgs[0]
+      ? `<img src="${imgs[0]}" style="width:80px;height:52px;object-fit:cover;border-radius:var(--radius-md);border:1px solid var(--border);flex-shrink:0" alt="">`
+      : `<div style="width:80px;height:52px;border-radius:var(--radius-md);border:1px dashed var(--border);background:var(--bg-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0.3">🖼</div>`;
+    card.innerHTML = `
+      <div class="item-card-left" style="display:flex;gap:14px;align-items:flex-start">
+        ${coverHtml}
+        <div>
+          <div class="item-card-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${p.title}</div>
+          <div class="item-card-meta" style="margin-bottom:6px">${p.time_range || ''}</div>
+          <div>${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
+        </div>
       </div>
       <div class="item-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="editProject(${p.id})">編輯</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})">刪除</button>
+        <button class="btn btn-secondary btn-sm">編輯</button>
+        <button class="btn btn-danger btn-sm">刪除</button>
       </div>
-    </div>
-  `).join('');
+    `;
+    card.querySelector('.btn-secondary').onclick = () => editProject(p.id);
+    card.querySelector('.btn-danger').onclick = () => deleteProject(p.id);
+    el.appendChild(card);
+  });
 }
+
 async function editProject(id) {
-  const { data } = await supabase_client.from('projects').select('*').eq('id', id).single();
+  const { data, error } = await supabase_client.from('projects').select('*').eq('id', id).single();
+  if (error) { toast('載入失敗：' + error.message, 4000); return; }
   renderProjectForm(data);
 }
+
 function renderProjectForm(proj) {
   const el = document.getElementById('page-projects');
   const isEdit = !!proj;
+  const projId = proj?.id || null;
+
   el.innerHTML = `
     <div class="page-header">
       <div><div class="page-title">${isEdit ? '編輯專案' : '新增專案'}</div></div>
@@ -1760,13 +1785,16 @@ function renderProjectForm(proj) {
     <div class="card">
       <div class="card-title">基本資訊</div>
       <div class="card-desc">專案的標題、時間與標籤</div>
-      <div class="form-row"><label class="form-label">專案名稱</label><input class="form-input" id="pj-title" value="${proj?.title || ''}" /></div>
+      <div class="form-row">
+        <label class="form-label">專案名稱</label>
+        <input class="form-input" id="pj-title" value="${(proj?.title || '').replace(/"/g,'&quot;')}" placeholder="專案名稱" />
+      </div>
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">時間範圍</label>
           <div class="date-range-wrap">
             <input class="form-input date-range-manual" id="pj-time"
-              value="${proj?.time_range || ''}"
+              value="${(proj?.time_range || '').replace(/"/g,'&quot;')}"
               placeholder="2022/02 — 開發中（可直接輸入）"
               oninput="syncDatePickersFromManual()" />
             <div class="date-range-pickers">
@@ -1786,7 +1814,10 @@ function renderProjectForm(proj) {
             </div>
           </div>
         </div>
-        <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="pj-order" type="number" value="${proj?.sort_order || 0}" /></div>
+        <div class="form-row">
+          <label class="form-label">排列順序</label>
+          <input class="form-input" id="pj-order" type="number" value="${proj?.sort_order || 0}" />
+        </div>
       </div>
       <div class="form-row">
         <label class="form-label">標籤</label>
@@ -1794,7 +1825,7 @@ function renderProjectForm(proj) {
       </div>
       <div class="form-row">
         <label class="form-label">我的角色</label>
-        <div id="pj-role-ti" data-init="${proj?.role || ''}"></div>
+        <div id="pj-role-ti" data-init="${(proj?.role || '').replace(/"/g,'&quot;')}"></div>
       </div>
       <div class="form-row">
         <label class="form-label">成員</label>
@@ -1804,6 +1835,12 @@ function renderProjectForm(proj) {
         <input type="checkbox" id="pj-published" ${proj?.published !== false ? 'checked' : ''} />
         <label for="pj-published" class="form-label" style="margin:0">公開顯示</label>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">封面與圖片</div>
+      <div class="card-desc">第一張圖片為封面，顯示在專案列表與彈窗頂部</div>
+      <div id="pj-img-area"></div>
     </div>
 
     <div class="card">
@@ -1819,14 +1856,8 @@ function renderProjectForm(proj) {
     </div>
 
     <div class="card">
-      <div class="card-title">專案圖片</div>
-      <div class="card-desc">上傳後會自動儲存到雲端，支援多張</div>
-      <div id="pj-images-uploader"></div>
-    </div>
-
-    <div class="card">
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveProject(${proj?.id || 'null'})">
+        <button class="btn btn-primary" id="pj-save-btn">
           ${isEdit ? '儲存變更' : '新增專案'}
         </button>
         <button class="btn btn-secondary" onclick="renderProjectsPage()">取消</button>
@@ -1834,41 +1865,143 @@ function renderProjectForm(proj) {
     </div>
   `;
 
-  const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...', true);
-  if (proj?.description) descQuill.root.innerHTML = proj.description;
-  makeImageUploader('pj-images-uploader', parseImgArr(proj?.images));
-  initDatePickers(proj?.time_range || '');
-  makeTagInput('pj-tags-ti', 'tags', { multi: true, placeholder: '輸入標籤，按 Enter 新增' });
-  makeTagInput('pj-role-ti', 'role', { multi: true, placeholder: '輸入角色，按 Enter 新增' });
-  makeTagInput('pj-members-ti', 'members', { multi: true, placeholder: '輸入成員，按 Enter 新增' });
-  // Init all 5 sortable lists
-  // Build sections from existing data or defaults
-  const existingSections = proj?.sections && proj.sections.length ? proj.sections : [
-    { title: '我做了什麼', items: proj?.work_items || [] },
-    { title: '接觸的產品', items: proj?.products || [] },
-    { title: '專案目標',   items: proj?.goals || [] },
-    { title: '專案挑戰',   items: proj?.challenges || [] },
-    { title: '分析方法',   items: proj?.methods || [] },
-    { title: '我的角色',   items: proj?.role ? [proj.role] : [] },
-  ];
-  makeGroupEditor('pj-sections', existingSections);
+  // ── Init after DOM is ready ──
+  requestAnimationFrame(() => {
+    // Image uploader
+    initProjectImageArea(projId, parseImgArr(proj?.images));
+
+    // Quill
+    const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...', true);
+    if (proj?.description) descQuill.root.innerHTML = proj.description;
+
+    // Date pickers
+    initDatePickers(proj?.time_range || '');
+
+    // Tag inputs
+    makeTagInput('pj-tags-ti', 'tags', { multi: true, placeholder: '輸入標籤，按 Enter 新增' });
+    makeTagInput('pj-role-ti', 'role', { multi: true, placeholder: '輸入角色，按 Enter 新增' });
+    makeTagInput('pj-members-ti', 'members', { multi: true, placeholder: '輸入成員，按 Enter 新增' });
+
+    // Sections
+    const existingSections = proj?.sections && proj.sections.length ? proj.sections : [
+      { title: '我做了什麼', items: proj?.work_items || [] },
+      { title: '接觸的產品', items: proj?.products || [] },
+      { title: '專案目標',   items: proj?.goals || [] },
+      { title: '專案挑戰',   items: proj?.challenges || [] },
+      { title: '分析方法',   items: proj?.methods || [] },
+      { title: '我的角色',   items: proj?.role ? [proj.role] : [] },
+    ];
+    makeGroupEditor('pj-sections', existingSections);
+
+    // Save button
+    document.getElementById('pj-save-btn').onclick = () => saveProject(projId);
+  });
 }
+
+// ── Dedicated image area for projects ──
+let _projImgUrls = [];
+
+function initProjectImageArea(projId, existingUrls) {
+  _projImgUrls = [...existingUrls];
+  renderProjectImageArea();
+}
+
+function renderProjectImageArea() {
+  const area = document.getElementById('pj-img-area');
+  if (!area) return;
+  area.innerHTML = '';
+
+  // Upload button
+  const uploadWrap = document.createElement('div');
+  uploadWrap.className = 'img-upload-area';
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.multiple = true;
+  fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
+  uploadWrap.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳封面圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB。第一張為封面。</div>';
+  uploadWrap.appendChild(fileInput);
+
+  const progressBar = document.createElement('div');
+  progressBar.className = 'uploading-bar';
+  progressBar.innerHTML = '<div class="fill" id="pj-img-fill"></div>';
+
+  fileInput.onchange = async (e) => {
+    const files = Array.from(e.target.files);
+    progressBar.style.display = 'block';
+    const fill = document.getElementById('pj-img-fill');
+    for (let i = 0; i < files.length; i++) {
+      if (fill) fill.style.width = ((i / files.length) * 100) + '%';
+      const f = files[i];
+      if (f.size > 5 * 1024 * 1024) { toast(f.name + ' 超過 5MB，略過'); continue; }
+      try {
+        toast('上傳中...');
+        const url = await uploadImage(f);
+        _projImgUrls.push(url);
+        toast('✓ 圖片已上傳');
+      } catch (err) { toast('上傳失敗：' + err.message, 4000); }
+    }
+    if (fill) fill.style.width = '100%';
+    setTimeout(() => { progressBar.style.display = 'none'; }, 600);
+    e.target.value = '';
+    renderProjectImageArea();
+  };
+
+  area.appendChild(uploadWrap);
+  area.appendChild(progressBar);
+
+  // Preview grid
+  if (_projImgUrls.length === 0) {
+    const empty = document.createElement('p');
+    empty.style.cssText = 'font-size:12px;color:var(--text-tertiary);margin-top:10px';
+    empty.textContent = '尚未上傳圖片';
+    area.appendChild(empty);
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'img-preview-grid';
+    grid.style.marginTop = '12px';
+    _projImgUrls.forEach((url, i) => {
+      const item = document.createElement('div');
+      item.className = 'img-preview-item';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = i === 0 ? '封面' : '圖片 ' + (i + 1);
+      img.onerror = () => { item.style.background = 'var(--bg-tertiary)'; img.style.display = 'none'; };
+      const badge = document.createElement('span');
+      badge.className = 'img-preview-badge';
+      badge.textContent = i === 0 ? '封面' : (i + 1);
+      const btn = document.createElement('button');
+      btn.className = 'img-remove';
+      btn.title = '移除';
+      btn.textContent = '✕';
+      btn.onclick = () => { _projImgUrls.splice(i, 1); renderProjectImageArea(); };
+      item.appendChild(img);
+      item.appendChild(badge);
+      item.appendChild(btn);
+      grid.appendChild(item);
+    });
+    area.appendChild(grid);
+  }
+}
+
 async function saveProject(id) {
   const q = quillInstances['pj-desc-editor'];
-  const toArr = (id) => document.getElementById(id).value.split('\n').map(t => t.trim()).filter(Boolean);
   const payload = {
-    title: document.getElementById('pj-title').value,
-    time_range: document.getElementById('pj-time').value,
+    title: document.getElementById('pj-title')?.value?.trim() || '',
+    time_range: document.getElementById('pj-time')?.value || '',
     tags: getTagInputValue('pj-tags-ti'),
     role: getTagInputValue('pj-role-ti').join(' · ') || '',
     members: getTagInputValue('pj-members-ti').join(' · '),
-    published: document.getElementById('pj-published').checked,
-    sort_order: parseInt(document.getElementById('pj-order').value) || 0,
+    published: document.getElementById('pj-published')?.checked ?? true,
+    sort_order: parseInt(document.getElementById('pj-order')?.value) || 0,
     description: q ? q.root.innerHTML : '',
     sections: getGroupSections(),
-    images: window.getImgs_pj_images_uploader ? window.getImgs_pj_images_uploader() : [],
+    images: [..._projImgUrls],
     updated_at: new Date().toISOString()
   };
+
+  if (!payload.title) { toast('請填入專案名稱', 3000); return; }
+
   try {
     let error;
     if (id) {
@@ -1878,34 +2011,26 @@ async function saveProject(id) {
       const res = await supabase_client.from('projects').insert([payload]);
       error = res.error;
     }
-    if (error) {
-      // If sections column missing, try without it
-      if (error.message && error.message.includes('sections')) {
-        toast("⚠️ 請先到 Supabase SQL Editor 執行：ALTER TABLE projects ADD COLUMN IF NOT EXISTS sections JSONB DEFAULT '[]';", 6000);
-        return;
-      }
-      toast('儲存失敗：' + error.message, 5000);
-      console.error('saveProject error:', error);
-      return;
-    }
-    // Save tag/role/member history
-    const tagsVal = getTagInputValue('pj-tags-ti');
-    const roleVal = getTagInputValue('pj-role-ti').join(' · ') || '';
-    const membersVal = getTagInputValue('pj-members-ti');
-    if (tagsVal.length) acSave('tags', tagsVal);
-    if (roleVal) acSave('role', [roleVal]);
-    if (membersVal.length) acSave('members', membersVal);
+    if (error) { toast('儲存失敗：' + error.message, 5000); console.error(error); return; }
+
+    // Save history
+    if (payload.tags.length) acSave('tags', payload.tags);
+    if (payload.role) acSave('role', [payload.role]);
+    if (payload.members) acSave('members', payload.members.split('·').map(m=>m.trim()).filter(Boolean));
+
     toast('✓ 專案已儲存');
     renderProjectsPage();
   } catch (e) {
     toast('儲存失敗：' + e.message, 5000);
-    console.error('saveProject exception:', e);
+    console.error(e);
   }
 }
+
 async function deleteProject(id) {
   if (!confirm('確定要刪除此專案？')) return;
   await supabase_client.from('projects').delete().eq('id', id);
-  toast('已刪除'); loadProjects();
+  toast('已刪除');
+  loadProjects();
 }
 
 // ─────────────────────────────────────────────
