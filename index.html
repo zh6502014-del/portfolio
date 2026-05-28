@@ -120,12 +120,12 @@
 
   .projects-grid { display:flex; flex-direction:column; }
   .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
-  .project-cover { width:160px; height:90px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
-  .project-cover-empty { width:160px; height:90px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
+  .project-cover { width:160px; height:45px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
+  .project-cover-empty { width:160px; height:45px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
   .project-cover-empty-icon { font-size:20px; opacity:0.25; }
   .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
-  .modal-cover-wrap { margin:-28px 0 24px; overflow:hidden; border-radius:var(--radius-md); }
-  .modal-cover-wrap img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .modal-cover-wrap { margin:0 0 20px; overflow:hidden; border-radius:var(--radius-md); }
+  .modal-cover-wrap img { width:100%; aspect-ratio:32/9; object-fit:cover; display:block; }
   .project-row-right-inner { display:flex; flex-direction:column; align-items:flex-end; gap:10px; padding-top:4px; }
   .projects-grid { border-top:1px solid var(--border); }
   .project-row:hover .project-row-title { color:var(--text); }
@@ -438,15 +438,13 @@ function openNote(id) {
   const contentHtml = n.content
     ? `<div class="note-content">${n.content}</div>`
     : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
-  document.getElementById('modal-content').innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-      <span class="note-type">${n.note_type || ''}</span>
-      <span style="font-size:12px;color:var(--text-tertiary)">${formatDate(n.note_date)}</span>
-    </div>
-    <h2 class="modal-title" style="font-size:20px;margin-bottom:20px">${n.title}</h2>
-    ${contentHtml}
-    ${imgsHtml}
-  `;
+  document.getElementById('modal-header-content').innerHTML =
+    '<h2 class="modal-title">' + n.title + '</h2>' +
+    '<div class="modal-meta" style="margin-top:8px">' +
+      (n.note_type ? '<span class="note-type">' + n.note_type + '</span>' : '') +
+      (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
+    '</div>';
+  document.getElementById('modal-content').innerHTML = contentHtml + imgsHtml;
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -463,11 +461,11 @@ function openModal(id) {
   const membersHtml = p.members ? p.members.split('·').map(m => { const s=document.createElement('span'); s.className='tag'; s.textContent=m.trim(); return s.outerHTML; }).filter(Boolean).join('') : '';
 
   document.getElementById('modal-header-content').innerHTML =
-    '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">' + tagsHtml + '</div>' +
     '<h2 class="modal-title">' + p.title + '</h2>' +
-    '<div class="modal-meta">' +
+    '<div class="modal-meta" style="margin-top:8px">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
       membersHtml +
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;width:100%">' + tagsHtml + '</div>' +
     '</div>';
 
   // Body: cover → description → sections → rest images
@@ -486,20 +484,12 @@ function openModal(id) {
     body.appendChild(coverWrap);
   }
 
-  // Description
-  if (p.description) {
-    const desc = document.createElement('div');
-    desc.className = 'modal-desc';
-    if (coverUrl) desc.style.marginTop = '20px';
-    desc.innerHTML = p.description;
-    body.appendChild(desc);
-  }
-
-  // Sections (new format)
+  // Sections first
   const sections = (p.sections && p.sections.length) ? p.sections : [];
   if (sections.length) {
     const grid = document.createElement('div');
     grid.className = 'modal-grid';
+    if (coverUrl) grid.style.marginTop = '20px';
     sections.forEach(s => {
       if (!s.title) return;
       const block = document.createElement('div');
@@ -510,6 +500,15 @@ function openModal(id) {
       grid.appendChild(block);
     });
     body.appendChild(grid);
+  }
+
+  // Description after sections
+  if (p.description) {
+    const desc = document.createElement('div');
+    desc.className = 'modal-desc';
+    desc.style.marginTop = '20px';
+    desc.innerHTML = p.description;
+    body.appendChild(desc);
   }
 
 
