@@ -126,18 +126,15 @@
   .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
   .modal-cover-wrap { margin:0 0 20px; overflow:hidden; border-radius:var(--radius-md); }
   .modal-cover-wrap img { width:100%; aspect-ratio:32/9; object-fit:cover; display:block; }
-  .project-row-right-inner { display:flex; flex-direction:column; align-items:flex-end; gap:10px; padding-top:4px; }
   .projects-grid { border-top:1px solid var(--border); }
   .project-row:hover .project-row-title { color:var(--text); }
-  .project-row:hover .project-arrow { opacity:1; transform:translateX(2px); }
   .project-row-num { font-size:11px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
   .project-row-title { font-size:18px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:13px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; }
   .project-tags { display:flex; flex-wrap:wrap; gap:5px; }
   .tag { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-secondary); }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
-  .project-time { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
-  .project-arrow { font-size:16px; color:var(--text-tertiary); opacity:0; transition:opacity .15s,transform .15s; }
+  .project-time { font-size:12px; color:var(--text-tertiary); white-space:nowrap; }
 
   .modal-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.45); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
   .modal-overlay.open { opacity:1; pointer-events:all; }
@@ -398,13 +395,12 @@ function renderProjects(data) {
 
     const right = document.createElement('div');
     right.className = 'project-row-right';
-    right.innerHTML = '<div class="project-row-right-inner"><span class="project-time">' +
-      (p.time_range || '') + '</span><span class="project-arrow">→</span></div>';
     right.appendChild(coverEl);
 
     row.innerHTML = '<div>' +
       '<p class="project-row-num">' + String(i+1).padStart(2,'0') + '</p>' +
       '<h2 class="project-row-title">' + p.title + '</h2>' +
+      (p.time_range ? '<p class="project-time" style="margin-bottom:8px">' + p.time_range + '</p>' : '') +
       '<p class="project-row-desc">' + stripHtml(p.description || '') + '</p>' +
       '<div class="project-tags">' + tags + '</div>' +
       '</div>';
@@ -422,9 +418,9 @@ function renderNotes(data) {
       <span class="note-date">${formatDate(n.note_date)}</span>
       <div style="flex:1;display:flex;flex-direction:column;gap:6px">
         <span class="note-title">${n.title}</span>
-        ${n.note_type ? `<div><span class="note-type">${n.note_type}</span></div>` : ''}
+        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:4px">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
       </div>
-      <span style="font-size:14px;color:var(--text-tertiary);flex-shrink:0;margin-top:2px">→</span>
+
     </div>
   `).join('');
 }
@@ -442,7 +438,7 @@ function openNote(id) {
     '<h2 class="modal-title">' + n.title + '</h2>' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:6px">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
-      (n.note_type ? '<div><span class="note-type">' + n.note_type + '</span></div>' : '') +
+      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:4px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml + imgsHtml;
   document.getElementById('modal-overlay').classList.add('open');
