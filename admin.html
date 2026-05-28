@@ -1087,6 +1087,15 @@ function toast(msg, duration = 2200) {
 }
 
 // ── Image Upload ──
+function parseImgArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === 'string') {
+    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed.filter(Boolean) : []; }
+    catch { return []; }
+  }
+  return [];
+}
 async function uploadImage(file, bucket = 'portfolio-images') {
   const ext = file.name.split('.').pop();
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -1804,7 +1813,7 @@ function renderProjectForm(proj) {
 
   const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...', true);
   if (proj?.description) descQuill.root.innerHTML = proj.description;
-  makeImageUploader('pj-images-uploader', proj?.images || []);
+  makeImageUploader('pj-images-uploader', parseImgArr(proj?.images));
   initDatePickers(proj?.time_range || '');
   makeTagInput('pj-tags-ti', 'tags', { multi: true, placeholder: '輸入標籤，按 Enter 新增' });
   makeTagInput('pj-role-ti', 'role', { multi: true, placeholder: '輸入角色，按 Enter 新增' });
@@ -1961,7 +1970,7 @@ function renderNoteForm(note) {
   `;
   const q = makeQuill('nt-content-editor', '在這裡撰寫文章內容...\n\n支援：標題、粗體、斜體、清單、引用、圖片上傳、影片嵌入', true);
   if (note?.content) q.root.innerHTML = note.content;
-  makeImageUploader('nt-images-uploader', note?.images || []);
+  makeImageUploader('nt-images-uploader', parseImgArr(note?.images));
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
