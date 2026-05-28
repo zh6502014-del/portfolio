@@ -314,35 +314,24 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 /* ── Image upload ── */
 .img-upload-area {
   border: 2px dashed var(--border-strong);
-  border-radius: var(--radius-md); padding: 24px;
+  border-radius: var(--radius-md); padding: 28px;
   text-align: center; cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
   position: relative;
 }
 .img-upload-area:hover { border-color: var(--accent); background: var(--bg-secondary); }
-.img-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .img-upload-icon { font-size: 24px; margin-bottom: 8px; opacity: 0.4; }
 .img-upload-text { font-size: 13px; color: var(--text-secondary); }
 .img-upload-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
-.img-preview-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-.img-preview-item {
-  position: relative; width: 100px; height: 80px;
-  border-radius: var(--radius-md); overflow: hidden;
-  border: 1px solid var(--border);
-}
-.img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
-.img-preview-item .img-remove {
-  position: absolute; top: 4px; right: 4px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: rgba(0,0,0,0.6); color: white;
-  font-size: 11px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border: none;
-}
-.uploading-bar {
-  height: 3px; background: var(--bg-tertiary);
-  border-radius: 2px; overflow: hidden; margin-top: 8px; display: none;
-}
+.uploading-bar { height: 3px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; margin-top: 8px; display: none; }
 .uploading-bar .fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+.img-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+.img-empty-state { font-size: 12px; color: var(--text-tertiary); padding: 12px; grid-column: 1/-1; }
+.img-preview-item { position: relative; aspect-ratio: 16/9; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); background: var(--bg-secondary); }
+.img-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.img-preview-badge { position: absolute; bottom: 6px; left: 6px; font-size: 10px; font-weight: 600; padding: 2px 6px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 4px; }
+.img-remove { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; transition: background 0.15s; }
+.img-remove:hover { background: var(--danger); }
 
 /* ── Project list ── */
 .item-card {
@@ -1107,75 +1096,109 @@ async function uploadImage(file, bucket = 'portfolio-images') {
 
 function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
   const container = document.getElementById(containerId);
-  let urls = [...existingUrls];
+  if (!container) return;
+  let urls = parseImgArr(existingUrls);
 
   function render() {
-    container.innerHTML = `
-      <div class="img-upload-area" id="${containerId}-drop">
-        <input type="file" accept="image/*" multiple id="${containerId}-input" />
-        <div class="img-upload-icon">📁</div>
-        <div class="img-upload-text">點擊或拖拉上傳圖片</div>
-        <div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB</div>
-      </div>
-      <div class="uploading-bar" id="${containerId}-bar"><div class="fill" id="${containerId}-fill"></div></div>
-      <div class="img-preview-grid" id="${containerId}-preview"></div>
-    `;
+    container.innerHTML = '';
 
-    document.getElementById(`${containerId}-input`).addEventListener('change', async (e) => {
+    // ── Upload area ──
+    const uploadArea = document.createElement('div');
+    uploadArea.className = 'img-upload-area';
+    uploadArea.id = containerId + '-drop';
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
+
+    const bar = document.createElement('div');
+    bar.className = 'uploading-bar';
+    bar.id = containerId + '-bar';
+    bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
+
+    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB</div>';
+    uploadArea.appendChild(fileInput);
+    container.appendChild(uploadArea);
+    container.appendChild(bar);
+
+    fileInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
-      const bar = document.getElementById(`${containerId}-bar`);
-      const fill = document.getElementById(`${containerId}-fill`);
-      bar.style.display = 'block';
+      const barEl = document.getElementById(containerId + '-bar');
+      const fillEl = document.getElementById(containerId + '-fill');
+      if (barEl) barEl.style.display = 'block';
       for (let i = 0; i < files.length; i++) {
-        fill.style.width = ((i / files.length) * 100) + '%';
+        if (fillEl) fillEl.style.width = ((i / files.length) * 100) + '%';
         const file = files[i];
-        if (file.size > 5 * 1024 * 1024) {
-          toast(`${file.name} 超過 5MB 上限，已略過`);
-          continue;
-        }
+        if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超過 5MB，已略過'); continue; }
         try {
           const url = await uploadImage(file);
           urls.push(url);
           if (onChangeCallback) onChangeCallback(urls);
         } catch (err) { toast('上傳失敗：' + err.message); }
       }
-      fill.style.width = '100%';
-      setTimeout(() => { bar.style.display = 'none'; fill.style.width = '0%'; }, 600);
+      if (fillEl) fillEl.style.width = '100%';
+      setTimeout(() => { if (barEl) barEl.style.display = 'none'; if (fillEl) fillEl.style.width = '0%'; }, 600);
       renderPreviews();
     });
+
     renderPreviews();
   }
 
   function renderPreviews() {
-    const grid = document.getElementById(`${containerId}-preview`);
-    if (!grid) return;
-    grid.innerHTML = '';
-    urls.forEach((url, i) => {
-      const item = document.createElement('div');
-      item.className = 'img-preview-item';
-      const img = document.createElement('img');
-      img.src = url; img.alt = '';
-      const btn = document.createElement('button');
-      btn.className = 'img-remove';
-      btn.textContent = '✕';
-      btn.onclick = () => {
-        urls.splice(i, 1);
-        if (onChangeCallback) onChangeCallback(urls);
-        renderPreviews();
-      };
-      item.appendChild(img);
-      item.appendChild(btn);
-      grid.appendChild(item);
-    });
+    // Remove existing preview grid
+    const old = document.getElementById(containerId + '-preview');
+    if (old) old.remove();
+
+    const grid = document.createElement('div');
+    grid.className = 'img-preview-grid';
+    grid.id = containerId + '-preview';
+
+    if (urls.length === 0) {
+      // Empty state
+      const empty = document.createElement('div');
+      empty.className = 'img-empty-state';
+      empty.textContent = '尚未上傳圖片';
+      grid.appendChild(empty);
+    } else {
+      urls.forEach((url, i) => {
+        const item = document.createElement('div');
+        item.className = 'img-preview-item';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '圖片 ' + (i + 1);
+        img.onerror = () => { img.style.display = 'none'; item.style.background = 'var(--bg-tertiary)'; };
+
+        const badge = document.createElement('span');
+        badge.className = 'img-preview-badge';
+        badge.textContent = i === 0 ? '封面' : (i + 1);
+
+        const btn = document.createElement('button');
+        btn.className = 'img-remove';
+        btn.title = '移除';
+        btn.textContent = '✕';
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          urls.splice(i, 1);
+          if (onChangeCallback) onChangeCallback(urls);
+          renderPreviews();
+        };
+
+        item.appendChild(img);
+        item.appendChild(badge);
+        item.appendChild(btn);
+        grid.appendChild(item);
+      });
+    }
+
+    const bar = document.getElementById(containerId + '-bar');
+    if (bar) bar.after(grid);
+    else container.appendChild(grid);
   }
 
-  window[`getImgs_${containerId}`] = () => [...urls];
-  window[`removeImg_${containerId}`] = (idx) => {
-    urls.splice(idx, 1);
-    if (onChangeCallback) onChangeCallback(urls);
-    renderPreviews();
-  };
-
+  window['getImgs_' + containerId] = () => [...urls];
   render();
 }
 

@@ -123,6 +123,9 @@
   .project-cover { width:160px; height:90px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
   .project-cover-empty { width:160px; height:90px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
   .project-cover-empty-icon { font-size:20px; opacity:0.25; }
+  .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
+  .modal-cover-wrap { margin:-28px -28px 24px; overflow:hidden; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-cover-wrap img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
   .project-row-right-inner { display:flex; flex-direction:column; align-items:flex-end; gap:10px; padding-top:4px; }
   .projects-grid { border-top:1px solid var(--border); }
   .project-row:hover .project-row-title { color:var(--text); }
@@ -375,7 +378,7 @@ function renderProjects(data) {
           <span class="project-arrow">→</span>
         </div>
         ${parseImgArr(p.images)[0]
-          ? `<img class="project-cover" src="${parseImgArr(p.images)[0]}" alt="${p.title} 封面" loading="lazy">`
+          ? `<img class="project-cover" src="${parseImgArr(p.images)[0]}" alt="${p.title} 封面" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\"project-cover-empty\"><span class=\"project-cover-empty-icon\">🖼</span></div>'">`
           : `<div class="project-cover-empty"><span class="project-cover-empty-icon">🖼</span></div>`
         }
       </div>
