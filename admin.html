@@ -1582,8 +1582,7 @@ function renderSkillForm(skill) {
       </div>
       <div class="form-row">
         <label class="form-label">技能標籤</label>
-        <textarea id="sk-tags-hidden" style="display:none">${(skill?.tags || []).join('\n')}</textarea>
-        <div id="sk-tags-ti"></div>
+        <div id="sk-tags-ti" data-init="${(skill?.tags || []).join('||')}"></div>
       </div>
       <div class="form-row"><label class="form-label">排列順序</label><input class="form-input" id="sk-order" type="number" value="${skill?.sort_order || 0}" /></div>
       <div class="form-actions">
@@ -1759,8 +1758,7 @@ function renderProjectForm(proj) {
       </div>
       <div class="form-row">
         <label class="form-label">標籤</label>
-        <textarea id="pj-tags-hidden" style="display:none">${(proj?.tags || []).join('\n')}</textarea>
-        <div id="pj-tags-ti"></div>
+        <div id="pj-tags-ti" data-init="${(proj?.tags || []).join('||')}"></div>
       </div>
       <div class="form-row">
         <label class="form-label">我的角色</label>
@@ -1768,8 +1766,7 @@ function renderProjectForm(proj) {
       </div>
       <div class="form-row">
         <label class="form-label">成員</label>
-        <textarea id="pj-members-hidden" style="display:none">${(proj?.members ? proj.members.split('·').map(m=>m.trim()).join('\n') : '')}</textarea>
-        <div id="pj-members-ti"></div>
+        <div id="pj-members-ti" data-init="${proj?.members ? proj.members.split('·').map(m=>m.trim()).join('||') : ''}"></div>
       </div>
       <div class="form-row" style="display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="pj-published" ${proj?.published !== false ? 'checked' : ''} />

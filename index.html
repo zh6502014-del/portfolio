@@ -120,7 +120,9 @@
 
   .projects-grid { display:flex; flex-direction:column; }
   .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
-  .project-cover { width:140px; height:96px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; margin-top:4px; }
+  .project-cover { width:160px; height:90px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
+  .project-cover-empty { width:160px; height:90px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
+  .project-cover-empty-icon { font-size:20px; opacity:0.25; }
   .project-row-right-inner { display:flex; flex-direction:column; align-items:flex-end; gap:10px; padding-top:4px; }
   .projects-grid { border-top:1px solid var(--border); }
   .project-row:hover .project-row-title { color:var(--text); }
@@ -372,7 +374,10 @@ function renderProjects(data) {
           <span class="project-time">${p.time_range || ''}</span>
           <span class="project-arrow">→</span>
         </div>
-        ${p.images && p.images[0] ? `<img class="project-cover" src="${p.images[0]}" alt="${p.title} 封面" loading="lazy">` : ''}
+        ${p.images && p.images[0]
+          ? `<img class="project-cover" src="${p.images[0]}" alt="${p.title} 封面" loading="lazy">`
+          : `<div class="project-cover-empty"><span class="project-cover-empty-icon">🖼</span></div>`
+        }
       </div>
     </div>
   `).join('');
