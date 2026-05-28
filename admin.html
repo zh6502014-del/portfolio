@@ -1085,10 +1085,74 @@ function parseImgArr(val) {
   }
   return [];
 }
+
+// ── Image processing: crop to 16:9 + compress ──
+async function processImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.onload = () => {
+        // Target dimensions
+        const TARGET_W = 1280;
+        const TARGET_H = 720;
+        const TARGET_RATIO = 16 / 9;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = TARGET_W;
+        canvas.height = TARGET_H;
+        const ctx = canvas.getContext('2d');
+
+        // Fill white background (for PNG transparency)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, TARGET_W, TARGET_H);
+
+        // Calculate source crop area (center crop to 16:9)
+        const srcRatio = img.width / img.height;
+        let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+
+        if (srcRatio > TARGET_RATIO) {
+          // Image is wider than 16:9 → crop sides
+          srcW = Math.round(img.height * TARGET_RATIO);
+          srcX = Math.round((img.width - srcW) / 2);
+        } else if (srcRatio < TARGET_RATIO) {
+          // Image is taller than 16:9 → crop top/bottom, center vertically
+          srcH = Math.round(img.width / TARGET_RATIO);
+          srcY = Math.round((img.height - srcH) / 2);
+        }
+
+        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, TARGET_W, TARGET_H);
+
+        // Compress: try quality from 0.9, reduce until under 500KB
+        const MAX_BYTES = 500 * 1024;
+        let quality = 0.9;
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(file); return; }
+            if (blob.size <= MAX_BYTES || quality <= 0.5) {
+              // Done
+              const processed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+              resolve(processed);
+            } else {
+              quality -= 0.1;
+              tryCompress();
+            }
+          }, 'image/jpeg', quality);
+        };
+        tryCompress();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function uploadImage(file, bucket = 'portfolio-images') {
-  const ext = file.name.split('.').pop();
+  // Process image before upload (crop 16:9 + compress)
+  const processed = await processImage(file);
+  const ext = 'jpg';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase_client.storage.from(bucket).upload(path, file);
+  const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType: 'image/jpeg' });
   if (error) throw error;
   const { data } = supabase_client.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
@@ -1899,10 +1963,11 @@ function renderProjectForm(proj) {
 }
 
 // ── Dedicated image area for projects ──
-let _projImgUrls = [];
+// ── Single cover image for project ──
+let _projCoverUrl = '';
 
 function initProjectImageArea(projId, existingUrls) {
-  _projImgUrls = [...existingUrls];
+  _projCoverUrl = parseImgArr(existingUrls)[0] || '';
   renderProjectImageArea();
 }
 
@@ -1911,76 +1976,89 @@ function renderProjectImageArea() {
   if (!area) return;
   area.innerHTML = '';
 
-  // Upload button
-  const uploadWrap = document.createElement('div');
-  uploadWrap.className = 'img-upload-area';
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  fileInput.multiple = true;
-  fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
-  uploadWrap.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳封面圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB。第一張為封面。</div>';
-  uploadWrap.appendChild(fileInput);
+  if (_projCoverUrl) {
+    // Show current cover with replace/remove options
+    const preview = document.createElement('div');
+    preview.style.cssText = 'position:relative;display:inline-block;';
 
-  const progressBar = document.createElement('div');
-  progressBar.className = 'uploading-bar';
-  progressBar.innerHTML = '<div class="fill" id="pj-img-fill"></div>';
+    const img = document.createElement('img');
+    img.src = _projCoverUrl;
+    img.alt = '封面';
+    img.style.cssText = 'width:100%;max-width:320px;aspect-ratio:16/9;object-fit:cover;border-radius:var(--radius-md);border:1px solid var(--border);display:block;';
+    img.onerror = () => { img.style.display='none'; };
 
-  fileInput.onchange = async (e) => {
-    const files = Array.from(e.target.files);
-    progressBar.style.display = 'block';
-    const fill = document.getElementById('pj-img-fill');
-    for (let i = 0; i < files.length; i++) {
-      if (fill) fill.style.width = ((i / files.length) * 100) + '%';
-      const f = files[i];
-      if (f.size > 5 * 1024 * 1024) { toast(f.name + ' 超過 5MB，略過'); continue; }
+    const badge = document.createElement('span');
+    badge.className = 'img-preview-badge';
+    badge.textContent = '封面';
+    badge.style.cssText = 'position:absolute;bottom:8px;left:8px;';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'img-remove';
+    removeBtn.title = '移除封面';
+    removeBtn.textContent = '✕';
+    removeBtn.style.cssText = 'position:absolute;top:8px;right:8px;';
+    removeBtn.onclick = () => { _projCoverUrl = ''; renderProjectImageArea(); };
+
+    preview.appendChild(img);
+    preview.appendChild(badge);
+    preview.appendChild(removeBtn);
+    area.appendChild(preview);
+
+    // Replace button
+    const replaceWrap = document.createElement('div');
+    replaceWrap.style.marginTop = '10px';
+    const replaceInput = document.createElement('input');
+    replaceInput.type = 'file';
+    replaceInput.accept = 'image/*';
+    replaceInput.style.display = 'none';
+    replaceInput.onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
-        _projImgUrls.push(url);
-        toast('✓ 圖片已上傳');
+        _projCoverUrl = url;
+        toast('✓ 封面已更換');
+        renderProjectImageArea();
       } catch (err) { toast('上傳失敗：' + err.message, 4000); }
-    }
-    if (fill) fill.style.width = '100%';
-    setTimeout(() => { progressBar.style.display = 'none'; }, 600);
-    e.target.value = '';
-    renderProjectImageArea();
-  };
+      e.target.value = '';
+    };
+    const replaceBtn = document.createElement('button');
+    replaceBtn.className = 'btn btn-secondary btn-sm';
+    replaceBtn.textContent = '更換封面';
+    replaceBtn.onclick = () => replaceInput.click();
+    replaceWrap.appendChild(replaceInput);
+    replaceWrap.appendChild(replaceBtn);
+    area.appendChild(replaceWrap);
 
-  area.appendChild(uploadWrap);
-  area.appendChild(progressBar);
-
-  // Preview grid
-  if (_projImgUrls.length === 0) {
-    const empty = document.createElement('p');
-    empty.style.cssText = 'font-size:12px;color:var(--text-tertiary);margin-top:10px';
-    empty.textContent = '尚未上傳圖片';
-    area.appendChild(empty);
   } else {
-    const grid = document.createElement('div');
-    grid.className = 'img-preview-grid';
-    grid.style.marginTop = '12px';
-    _projImgUrls.forEach((url, i) => {
-      const item = document.createElement('div');
-      item.className = 'img-preview-item';
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = i === 0 ? '封面' : '圖片 ' + (i + 1);
-      img.onerror = () => { item.style.background = 'var(--bg-tertiary)'; img.style.display = 'none'; };
-      const badge = document.createElement('span');
-      badge.className = 'img-preview-badge';
-      badge.textContent = i === 0 ? '封面' : (i + 1);
-      const btn = document.createElement('button');
-      btn.className = 'img-remove';
-      btn.title = '移除';
-      btn.textContent = '✕';
-      btn.onclick = () => { _projImgUrls.splice(i, 1); renderProjectImageArea(); };
-      item.appendChild(img);
-      item.appendChild(badge);
-      item.appendChild(btn);
-      grid.appendChild(item);
-    });
-    area.appendChild(grid);
+    // No cover - show upload area
+    const uploadWrap = document.createElement('div');
+    uploadWrap.className = 'img-upload-area';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
+    fileInput.onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
+      try {
+        toast('上傳中...');
+        const url = await uploadImage(f);
+        _projCoverUrl = url;
+        toast('✓ 封面已上傳');
+        renderProjectImageArea();
+      } catch (err) { toast('上傳失敗：' + err.message, 4000); }
+      e.target.value = '';
+    };
+    uploadWrap.innerHTML = '<div class="img-upload-icon">🖼</div><div class="img-upload-text">點擊上傳封面圖片</div><div class="img-upload-hint">建議比例 16:9，系統會自動裁切並壓縮</div>';
+    uploadWrap.appendChild(fileInput);
+    area.appendChild(uploadWrap);
+
+    const empty = document.createElement('p');
+    empty.style.cssText = 'font-size:12px;color:var(--text-tertiary);margin-top:8px';
+    empty.textContent = '尚未上傳封面';
+    area.appendChild(empty);
   }
 }
 
@@ -1996,7 +2074,7 @@ async function saveProject(id) {
     sort_order: parseInt(document.getElementById('pj-order')?.value) || 0,
     description: q ? q.root.innerHTML : '',
     sections: getGroupSections(),
-    images: [..._projImgUrls],
+    images: _projCoverUrl ? [_projCoverUrl] : [],
     updated_at: new Date().toISOString()
   };
 
