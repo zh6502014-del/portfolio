@@ -2220,8 +2220,8 @@ async function saveNote(id) {
       error = res.error;
     }
     if (error) { toast('儲存失敗：' + error.message, 5000); console.error('saveNote error:', error); return; }
-    const noteTypeVal = getTagInputValue('nt-type-ti').join(' · ') || '';
-    if (noteTypeVal) acSave('note_type', [noteTypeVal]);
+    const noteTypeVals = getTagInputValue('nt-type-ti');
+    if (noteTypeVals.length) acSave('note_type', noteTypeVals);
     toast('✓ 隨筆已儲存');
     renderNotesPage();
   } catch (e) {
