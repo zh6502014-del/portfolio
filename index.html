@@ -136,7 +136,7 @@
   .modal-overlay.open { opacity:1; pointer-events:all; }
   .modal { background:var(--bg); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--border); border-bottom:none; }
   .modal-overlay.open .modal { transform:translateY(0); }
-  .modal-header { position:sticky; top:0; z-index:10; background:var(--bg); border-bottom:1px solid var(--border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; }
+  .modal-header { position:sticky; top:0; z-index:10; background:var(--bg); border-bottom:1px solid var(--border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
   .modal-header-left { flex:1; min-width:0; }
   .modal-close { width:32px; height:32px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; color:var(--text-secondary); transition:background .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { background:var(--bg-tertiary); }

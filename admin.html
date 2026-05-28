@@ -1152,8 +1152,13 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
       bar.style.display = 'block';
       for (let i = 0; i < files.length; i++) {
         fill.style.width = ((i / files.length) * 100) + '%';
+        const file = files[i];
+        if (file.size > 5 * 1024 * 1024) {
+          toast(`${file.name} 超過 5MB 上限，已略過`);
+          continue;
+        }
         try {
-          const url = await uploadImage(files[i]);
+          const url = await uploadImage(file);
           urls.push(url);
           if (onChangeCallback) onChangeCallback(urls);
         } catch (err) { toast('上傳失敗：' + err.message); }
@@ -1168,17 +1173,32 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
   function renderPreviews() {
     const grid = document.getElementById(`${containerId}-preview`);
     if (!grid) return;
-    grid.innerHTML = urls.map((url, i) => `
-      <div class="img-preview-item">
-        <img src="${url}" alt="" />
-        <button class="img-remove" onclick="removeImg('${containerId}',${i})">✕</button>
-      </div>
-    `).join('');
+    grid.innerHTML = '';
+    urls.forEach((url, i) => {
+      const item = document.createElement('div');
+      item.className = 'img-preview-item';
+      const img = document.createElement('img');
+      img.src = url; img.alt = '';
+      const btn = document.createElement('button');
+      btn.className = 'img-remove';
+      btn.textContent = '✕';
+      btn.onclick = () => {
+        urls.splice(i, 1);
+        if (onChangeCallback) onChangeCallback(urls);
+        renderPreviews();
+      };
+      item.appendChild(img);
+      item.appendChild(btn);
+      grid.appendChild(item);
+    });
   }
 
-  window[`removeImg_${containerId}`] = (idx) => { urls.splice(idx, 1); if (onChangeCallback) onChangeCallback(urls); render(); };
-  window[`removeImg`] = (cid, idx) => { if (cid !== containerId) return; urls.splice(idx, 1); if (onChangeCallback) onChangeCallback(urls); render(); };
-  window[`getImgs_${containerId}`] = () => urls;
+  window[`getImgs_${containerId}`] = () => [...urls];
+  window[`removeImg_${containerId}`] = (idx) => {
+    urls.splice(idx, 1);
+    if (onChangeCallback) onChangeCallback(urls);
+    renderPreviews();
+  };
 
   render();
 }
@@ -1339,9 +1359,10 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
       input.onchange = async () => {
         const file = input.files[0]; if (!file) return;
         try {
+          if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
           toast('圖片上傳中...');
           const url = await uploadImage(file);
-          const range = q.getSelection(true);
+          const range = q.getSelection(true) || { index: q.getLength() - 1 };
           q.insertEmbed(range.index, 'image', url);
           q.setSelection(range.index + 1);
           toast('✓ 圖片已插入');
@@ -1873,7 +1894,6 @@ async function saveProject(id) {
       return;
     }
     // Save tag/role/member history
-    acSave('tags', getSortList ? [] : []);
     const tagsVal = getTagInputValue('pj-tags-ti');
     const roleVal = getTagInputValue('pj-role-ti').join(' · ') || '';
     const membersVal = getTagInputValue('pj-members-ti');
