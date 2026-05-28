@@ -120,6 +120,8 @@
 
   .projects-grid { display:flex; flex-direction:column; }
   .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .project-cover { width:140px; height:96px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; margin-top:4px; }
+  .project-row-right-inner { display:flex; flex-direction:column; align-items:flex-end; gap:10px; padding-top:4px; }
   .projects-grid { border-top:1px solid var(--border); }
   .project-row:hover .project-row-title { color:var(--text); }
   .project-row:hover .project-arrow { opacity:1; transform:translateX(2px); }
@@ -163,8 +165,8 @@
   .modal-block li { font-size:13px; color:var(--text-secondary); padding:3px 0; display:flex; gap:8px; }
   .modal-block li::before { content:'—'; color:var(--text-tertiary); flex-shrink:0; }
 
-  .modal-images { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
-  .modal-images img { width:160px; height:110px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); }
+  .modal-images { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:24px; }
+  .modal-images img { width:100%; height:180px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); }
   .note-item { display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
   .note-item:hover { opacity:0.75; }
   .note-content { font-size:14px; color:var(--text-secondary); line-height:1.85; }
@@ -366,8 +368,11 @@ function renderProjects(data) {
         <div class="project-tags">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
       </div>
       <div class="project-row-right">
-        <span class="project-time">${p.time_range || ''}</span>
-        <span class="project-arrow">→</span>
+        <div class="project-row-right-inner">
+          <span class="project-time">${p.time_range || ''}</span>
+          <span class="project-arrow">→</span>
+        </div>
+        ${p.images && p.images[0] ? `<img class="project-cover" src="${p.images[0]}" alt="${p.title} 封面" loading="lazy">` : ''}
       </div>
     </div>
   `).join('');

@@ -777,11 +777,11 @@ function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入�
 
   let selected = [];
 
-  // Read initial value from hidden textarea if exists
-  const hiddenId = containerId + '-hidden';
-  const hidden = document.getElementById(hiddenId);
-  if (hidden) {
-    selected = hidden.value.split('\n').map(v=>v.trim()).filter(Boolean);
+  // Read initial values from data-init attribute
+  const containerEl = document.getElementById(containerId);
+  const dataInit = containerEl ? containerEl.getAttribute('data-init') : '';
+  if (dataInit) {
+    selected = dataInit.split('||').map(v=>v.trim()).filter(Boolean);
   }
 
   // Build DOM
@@ -943,8 +943,6 @@ function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入�
 
 function syncHidden(containerId, acKey, selected) {
   window['_tagInput_' + containerId].selected = selected;
-  const hidden = document.getElementById(containerId + '-hidden');
-  if (hidden) hidden.value = selected.join('\n');
 }
 
 function tagToggleOption(containerId, acKey, val, multi) {
@@ -1018,37 +1016,6 @@ function getTagInputValue(containerId) {
 }
 
 // ── Multi-line autocomplete (tags / members textarea) ──
-function makeAcTextarea(textareaId, acKey, placeholder) {
-  const ta = document.getElementById(textareaId);
-  if (!ta) return;
-
-  const wrap = ta.parentElement;
-  const hintEl = wrap.querySelector('.form-hint');
-
-  const suggestWrap = document.createElement('div');
-  suggestWrap.id = textareaId + '-suggestions';
-  suggestWrap.className = 'ac-tags-row';
-
-  function renderSuggestions() {
-    const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
-    const all = acLoad(acKey);
-    if (!all.length) { suggestWrap.innerHTML = ''; return; }
-    // Show all history, checked ones highlighted
-    suggestWrap.innerHTML = all.slice(0,30).map(v => {
-      const active = existing.includes(v);
-      return `<span class="ac-tag-chip ${active ? 'ac-tag-active' : ''}"
-        onclick="acToggleLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">
-        ${active ? '✓ ' : '+ '}${v}</span>`;
-    }).join('');
-  }
-
-  if (hintEl) hintEl.after(suggestWrap);
-  else wrap.appendChild(suggestWrap);
-
-  ta.addEventListener('input', renderSuggestions);
-  ta.addEventListener('focus', renderSuggestions);
-  renderSuggestions();
-}
 
 function acToggleLine(textareaId, acKey, val) {
   const ta = document.getElementById(textareaId);
@@ -1797,8 +1764,7 @@ function renderProjectForm(proj) {
       </div>
       <div class="form-row">
         <label class="form-label">我的角色</label>
-        <textarea id="pj-role-hidden" style="display:none">${proj?.role || ''}</textarea>
-        <div id="pj-role-ti"></div>
+        <div id="pj-role-ti" data-init="${proj?.role || ''}"></div>
       </div>
       <div class="form-row">
         <label class="form-label">成員</label>
@@ -1975,8 +1941,7 @@ function renderNoteForm(note) {
         </div>
         <div class="form-row">
           <label class="form-label">類型</label>
-          <textarea id="nt-type-hidden" style="display:none">${note?.note_type || ''}</textarea>
-          <div id="nt-type-ti"></div>
+          <div id="nt-type-ti" data-init="${note?.note_type || ''}"></div>
         </div>
       </div>
       <div class="form-row">
