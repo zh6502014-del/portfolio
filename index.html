@@ -477,9 +477,7 @@ function openModal(id) {
       if (!s.title) return;
       const block = document.createElement('div');
       block.className = 'modal-block';
-      const lines = (s.items||[]).join('
-').split('
-').map(l=>l.trim()).filter(Boolean);
+      const lines = (s.items||[]).flatMap(x => x ? x.split('\n') : []).map(l=>l.trim()).filter(Boolean);
       block.innerHTML = '<p class="modal-block-label">' + s.title + '</p>' +
         (lines.length ? '<ul>' + lines.map(l=>'<li>'+l+'</li>').join('') + '</ul>' : '');
       grid.appendChild(block);
