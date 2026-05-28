@@ -427,27 +427,68 @@ function openNote(id) {
 function openModal(id) {
   const p = allProjects.find(x => x.id === id);
   if (!p) return;
-  const liHtml = arr => (arr||[]).map(item=>`<li>${item}</li>`).join('');
-  const imgsHtml = parseImgArr(p.images).length ? `<div class="modal-images">${parseImgArr(p.images).map(u=>`<img src="${u}" alt="" loading="lazy">`).join('')}</div>` : '';
-  document.getElementById('modal-content').innerHTML = `
-    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-    <h2 class="modal-title">${p.title}</h2>
-    <div class="modal-meta">
-      ${p.time_range ? `<span class="modal-time">${p.time_range}</span>` : ''}
-      ${p.members ? p.members.split('·').map(m=>m.trim()).filter(Boolean).map(m=>`<span class="tag">${m}</span>`).join('') : ''}
-    </div>
-    <div class="modal-desc">${p.description || ''}</div>
-    <div class="modal-grid">
-      <div class="modal-block"><p class="modal-block-label">專案目標</p><ul>${liHtml(p.goals)}</ul></div>
-      <div class="modal-block"><p class="modal-block-label">專案挑戰</p><ul>${liHtml(p.challenges)}</ul></div>
-      <div class="modal-block"><p class="modal-block-label">分析方法</p><ul>${liHtml(p.methods)}</ul></div>
-      <div class="modal-block"><p class="modal-block-label">我的角色</p><ul><li>${p.role||''}</li></ul></div>
-      ${p.work_items?.length ? `<div class="modal-block"><p class="modal-block-label">我做了什麼</p><ul>${liHtml(p.work_items)}</ul></div>` : ''}
-      ${p.products?.length ? `<div class="modal-block"><p class="modal-block-label">接觸的產品</p><ul>${liHtml(p.products)}</ul></div>` : ''}
-    </div>
-    ${p.insight ? `<div class="modal-insight"><p class="modal-insight-label">設計洞察</p>${p.insight}</div>` : ''}
-    ${imgsHtml}
-  `;
+
+  const imgs = parseImgArr(p.images);
+  const coverUrl = imgs[0] || '';
+
+  // Header: tags + title + meta
+  const tagsHtml = (p.tags||[]).map(t => { const s = document.createElement('span'); s.className='tag'; s.textContent=t; return s.outerHTML; }).join('');
+  const membersHtml = p.members ? p.members.split('·').map(m => { const s=document.createElement('span'); s.className='tag'; s.textContent=m.trim(); return s.outerHTML; }).filter(Boolean).join('') : '';
+
+  document.getElementById('modal-header-content').innerHTML =
+    '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">' + tagsHtml + '</div>' +
+    '<h2 class="modal-title">' + p.title + '</h2>' +
+    '<div class="modal-meta">' +
+      (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
+      membersHtml +
+    '</div>';
+
+  // Body: cover → description → sections → rest images
+  const body = document.getElementById('modal-content');
+  body.innerHTML = '';
+
+  // Cover image full width
+  if (coverUrl) {
+    const coverWrap = document.createElement('div');
+    coverWrap.className = 'modal-cover-wrap';
+    const coverImg = document.createElement('img');
+    coverImg.src = coverUrl;
+    coverImg.alt = p.title;
+    coverImg.loading = 'lazy';
+    coverWrap.appendChild(coverImg);
+    body.appendChild(coverWrap);
+  }
+
+  // Description
+  if (p.description) {
+    const desc = document.createElement('div');
+    desc.className = 'modal-desc';
+    if (coverUrl) desc.style.marginTop = '20px';
+    desc.innerHTML = p.description;
+    body.appendChild(desc);
+  }
+
+  // Sections (new format)
+  const sections = (p.sections && p.sections.length) ? p.sections : [];
+  if (sections.length) {
+    const grid = document.createElement('div');
+    grid.className = 'modal-grid';
+    sections.forEach(s => {
+      if (!s.title) return;
+      const block = document.createElement('div');
+      block.className = 'modal-block';
+      const lines = (s.items||[]).join('
+').split('
+').map(l=>l.trim()).filter(Boolean);
+      block.innerHTML = '<p class="modal-block-label">' + s.title + '</p>' +
+        (lines.length ? '<ul>' + lines.map(l=>'<li>'+l+'</li>').join('') + '</ul>' : '');
+      grid.appendChild(block);
+    });
+    body.appendChild(grid);
+  }
+
+
+
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
