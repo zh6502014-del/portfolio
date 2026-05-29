@@ -50,6 +50,12 @@
       --overlay-bg: rgba(0,0,0,0.6);
       --orb-1: rgba(66,153,225,0.18);
       --orb-2: rgba(72,187,120,0.14);
+      --glass-pill-bg: rgba(255,255,255,0.06);
+      --glass-pill-border: rgba(255,255,255,0.1);
+      --glass-indicator-bg: rgba(255,255,255,0.12);
+      --glass-shine-top: rgba(255,255,255,0.18);
+      --glass-shine-bottom: rgba(255,255,255,0.06);
+      --glass-pill-shadow: rgba(0,0,0,0.3);
     }
   }
   [data-theme="dark"] {
@@ -143,10 +149,67 @@
   .nav { position:sticky; top:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
   .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
   .nav-logo { font-family:var(--font-sans); font-size:18px; font-weight:500; color:var(--text); text-decoration:none; }
-  .nav-links { display:flex; gap:4px; }
-  .nav-link { font-size:16px; color:var(--text-secondary); text-decoration:none; padding:6px 12px; border-radius:var(--radius-md); transition:background .15s,color .15s; border:1px solid transparent; }
-  .nav-link:hover { background:var(--bg-secondary); color:var(--text); }
-  .nav-link.active { background:var(--bg-secondary); border-color:var(--border); color:var(--text); }
+  /* ── Glass Nav ── */
+  .nav-links {
+    position: relative;
+    display: flex;
+    gap: 0;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 99em;
+    background: var(--glass-pill-bg);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-pill-border),
+      inset 1.8px 3px 0px -2px var(--glass-shine-top),
+      inset -2px -2px 0px -2px var(--glass-shine-bottom),
+      0px 2px 12px 0px var(--glass-pill-shadow);
+  }
+  .nav-links::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    width: var(--pill-w, 52px);
+    height: calc(100% - 12px);
+    border-radius: 99em;
+    background: var(--glass-indicator-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-pill-border),
+      inset 2px 1px 0px -1px var(--glass-shine-top),
+      inset -1.5px -1px 0px -1px var(--glass-shine-bottom),
+      0px 2px 8px 0px var(--glass-pill-shadow);
+    z-index: 0;
+    translate: var(--pill-x, 0px) 0;
+    transition:
+      translate 400ms cubic-bezier(1, 0.0, 0.4, 1),
+      width 400ms cubic-bezier(1, 0.0, 0.4, 1);
+    animation: none;
+  }
+  .nav-links.slide-left::after  { animation: pillStretch 400ms cubic-bezier(1, 0.0, 0.4, 1); }
+  .nav-links.slide-right::after { animation: pillStretchRight 400ms cubic-bezier(1, 0.0, 0.4, 1); }
+  @keyframes pillStretch      { 0%,100%{scale:1 1} 45%{scale:1.18 1} }
+  @keyframes pillStretchRight { 0%,100%{scale:1 1} 45%{scale:1.18 1} }
+  .nav-link {
+    position: relative; z-index: 1;
+    font-size: 16px; color: var(--text-secondary);
+    text-decoration: none; padding: 6px 14px;
+    border-radius: 99em; border: none;
+    transition: color 200ms;
+    white-space: nowrap;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--text); font-weight: 500; }
+  /* Glass pill variables - light */
+  :root {
+    --glass-pill-bg: rgba(0,0,0,0.06);
+    --glass-pill-border: rgba(0,0,0,0.08);
+    --glass-indicator-bg: rgba(255,255,255,0.72);
+    --glass-shine-top: rgba(255,255,255,0.9);
+    --glass-shine-bottom: rgba(255,255,255,0.5);
+    --glass-pill-shadow: rgba(0,0,0,0.08);
+  }
 
   .wrapper { max-width:860px; margin:0 auto; padding:0 40px; }
   section { padding:80px 0; }
@@ -297,7 +360,13 @@
   <div class="nav-inner">
     <a href="#hero" class="nav-logo" id="nav-name">林艾奭</a>
     <div style="display:flex;align-items:center;gap:8px">
-      <div class="nav-links">
+      <div class="nav-links" id="nav-links">
+        <svg style="position:absolute;width:0;height:0;overflow:hidden">
+          <filter id="glass-distort" primitiveUnits="objectBoundingBox">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.008" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+        </svg>
         <a href="#about" class="nav-link active" data-section="about">關於</a>
         <a href="#projects" class="nav-link" data-section="projects">作品集</a>
         <a href="#notes" class="nav-link" data-section="notes">隨筆</a>
@@ -674,12 +743,59 @@ applyTheme(getTheme());
 // Nav scroll highlight
 const sections = ['about','projects','notes'];
 const navLinks = document.querySelectorAll('.nav-link[data-section]');
+// ── Glass Nav pill indicator ──
+function getPillMetrics(link) {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl || !link) return null;
+  const navRect = navEl.getBoundingClientRect();
+  const linkRect = link.getBoundingClientRect();
+  return {
+    x: linkRect.left - navRect.left - 8,
+    w: linkRect.width,
+  };
+}
+
+let _prevActiveIndex = 0;
+function updateNavPill(activeLink) {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl || !activeLink) return;
+  const m = getPillMetrics(activeLink);
+  if (!m) return;
+
+  const links = Array.from(navEl.querySelectorAll('.nav-link'));
+  const newIndex = links.indexOf(activeLink);
+  const dir = newIndex > _prevActiveIndex ? 'right' : 'left';
+
+  navEl.classList.remove('slide-left', 'slide-right');
+  void navEl.offsetWidth; // reflow
+  navEl.classList.add('slide-' + dir);
+  navEl.style.setProperty('--pill-x', m.x + 'px');
+  navEl.style.setProperty('--pill-w', m.w + 'px');
+  _prevActiveIndex = newIndex;
+}
+
 function updateNav() {
   let current = 'about';
   sections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 100) current = id; });
   navLinks.forEach(link => link.classList.toggle('active', link.dataset.section === current));
+  const activeLink = document.querySelector('.nav-link.active');
+  if (activeLink) updateNavPill(activeLink);
 }
 window.addEventListener('scroll', updateNav, { passive: true });
+
+// Init pill position on load
+window.addEventListener('load', () => {
+  updateNav();
+  const activeLink = document.querySelector('.nav-link.active');
+  if (activeLink) {
+    const m = getPillMetrics(activeLink);
+    const navEl = document.getElementById('nav-links');
+    if (m && navEl) {
+      navEl.style.setProperty('--pill-x', m.x + 'px');
+      navEl.style.setProperty('--pill-w', m.w + 'px');
+    }
+  }
+});
 
 loadData();
 </script>
@@ -699,9 +815,6 @@ loadData();
       const glassCard = { refraction: 0.025, edge: 0.06, patina: 0.15, frost: 0.35, shadow: true, shadowIntensity: 0.08, tilt: true, tiltIntensity: 0.4 };
       const glassPill = { refraction: 0.01, edge: 0.1, patina: 0.08, frost: 0.18, shadow: false, tilt: false };
       const glassBtn  = { refraction: 0.012, edge: 0.12, patina: 0.1, frost: 0.22, shadow: false, tilt: false };
-
-      // ── Nav ──
-      if (document.querySelector('.nav')) liquidGL({ target: '.nav', ...glassBase, frost: 0.25 });
 
       // ── Nav links (active) ──
       document.querySelectorAll('.nav-link').forEach(el => liquidGL({ target: el, ...glassPill }));
