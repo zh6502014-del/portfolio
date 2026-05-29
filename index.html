@@ -174,14 +174,11 @@
       0px 2px 8px 0px var(--glass-pill-shadow);
     z-index: 0;
     translate: var(--pill-x, 0px) 0;
-    opacity: 0;
     transition:
-      translate 300ms cubic-bezier(1, 0.0, 0.4, 1),
-      width 300ms cubic-bezier(1, 0.0, 0.4, 1),
-      opacity 150ms ease;
+      translate 400ms cubic-bezier(1, 0.0, 0.4, 1),
+      width 400ms cubic-bezier(1, 0.0, 0.4, 1);
   }
-  .nav-links:hover::after { opacity: 1; }
-  .nav-links.sliding::after { animation: pillStretch 320ms cubic-bezier(1, 0.0, 0.4, 1); }
+  .nav-links.hover-slide::after { animation: pillStretch 360ms cubic-bezier(1, 0.0, 0.4, 1); }
   @keyframes pillStretch { 0%,100%{scale:1 1} 45%{scale:1.2 1} }
   .nav-link {
     position: relative; z-index: 1;
@@ -735,7 +732,7 @@ applyTheme(getTheme());
 // Nav scroll highlight
 const sections = ['about','projects','notes'];
 const navLinks = document.querySelectorAll('.nav-link[data-section]');
-// ── Glass Nav pill - hover only ──
+// ── Glass Nav pill ──
 function getPillMetrics(link) {
   const navEl = document.getElementById('nav-links');
   if (!navEl || !link) return null;
@@ -744,38 +741,52 @@ function getPillMetrics(link) {
   return { x: linkRect.left - navRect.left - 4, w: linkRect.width };
 }
 
-function movePillTo(link) {
+// Move pill without stretch (scroll)
+function setPillPosition(link) {
   const navEl = document.getElementById('nav-links');
   const m = getPillMetrics(link);
   if (!m || !navEl) return;
-  navEl.classList.remove('sliding');
-  void navEl.offsetWidth;
-  navEl.classList.add('sliding');
   navEl.style.setProperty('--pill-x', m.x + 'px');
   navEl.style.setProperty('--pill-w', m.w + 'px');
 }
 
-// Init hover behaviour
+// Move pill with stretch animation (hover)
+function movePillTo(link) {
+  const navEl = document.getElementById('nav-links');
+  const m = getPillMetrics(link);
+  if (!m || !navEl) return;
+  navEl.classList.remove('hover-slide');
+  void navEl.offsetWidth;
+  navEl.classList.add('hover-slide');
+  navEl.style.setProperty('--pill-x', m.x + 'px');
+  navEl.style.setProperty('--pill-w', m.w + 'px');
+}
+
+// Hover behaviour
 document.addEventListener('DOMContentLoaded', () => {
   const navEl = document.getElementById('nav-links');
   if (!navEl) return;
-  const links = navEl.querySelectorAll('.nav-link');
-
-  links.forEach(link => {
+  navEl.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('mouseenter', () => movePillTo(link));
   });
-
-  // On mouse leave - snap pill back to active link
   navEl.addEventListener('mouseleave', () => {
     const active = navEl.querySelector('.nav-link.active');
     if (active) movePillTo(active);
   });
+  // Init pill position
+  setTimeout(() => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) setPillPosition(active);
+  }, 100);
 });
 
 function updateNav() {
   let current = 'about';
   sections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 100) current = id; });
   navLinks.forEach(link => link.classList.toggle('active', link.dataset.section === current));
+  // Update pill position on scroll (no stretch)
+  const active = document.querySelector('.nav-link.active');
+  if (active) setPillPosition(active);
 }
 window.addEventListener('scroll', updateNav, { passive: true });
 
