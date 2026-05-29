@@ -165,13 +165,12 @@
 
   .sec-label { font-size:13px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:32px; }
   .skill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:56px; }
-  .skill-card { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-lg); padding:20px; backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%); box-shadow:0 2px 12px var(--glass-shadow), inset 0 1px 0 var(--glass-shine); transition:box-shadow .2s, border-color .2s; }
-  .skill-card:hover { box-shadow:0 4px 24px var(--glass-shadow), inset 0 1px 0 var(--glass-shine); border-color:var(--glass-border-strong); }
+  .skill-card { background:transparent; border:1px solid var(--glass-border); border-radius:var(--radius-lg); padding:20px; transition:border-color .2s; }
   .skill-card:hover { border-color:var(--border-strong); }
   .skill-card-icon { width:36px; height:36px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
   .skill-card-title { font-size:16px; font-weight:500; margin-bottom:10px; }
   .skill-tag-list { display:flex; flex-wrap:wrap; gap:6px; }
-  .skill-tag { font-size:13px; padding:3px 10px; background:var(--glass-tag-bg); border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .skill-tag { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); }
   .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
   .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:8px 16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-secondary); transition:border-color .15s; }
   .tool-item:hover { border-color:var(--border-strong); }
@@ -192,15 +191,15 @@
   .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
-  .tag { font-size:13px; padding:3px 10px; background:var(--glass-tag-bg); border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .tag { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
   .project-time { font-size:14px; color:var(--text-tertiary); white-space:nowrap; }
 
   .modal-overlay { position:fixed; inset:0; z-index:200; background:var(--overlay-bg); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
   .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { background:var(--glass-modal-bg); backdrop-filter:blur(40px) saturate(200%); -webkit-backdrop-filter:blur(40px) saturate(200%); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-shadow), inset 0 1px 0 var(--glass-shine); }
+  .modal { background:transparent; border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; }
   .modal-overlay.open .modal { transform:translateY(0); }
-  .modal-header { position:sticky; top:0; z-index:10; background:var(--glass-header-bg); backdrop-filter:blur(40px) saturate(200%); -webkit-backdrop-filter:blur(40px) saturate(200%); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-header { position:sticky; top:0; z-index:10; background:transparent; border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
   .modal-header-left { flex:1; min-width:0; }
   .modal-close { width:32px; height:32px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:background .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { background:var(--bg-tertiary); }
@@ -269,7 +268,7 @@
   .note-item:first-child { border-top:1px solid var(--border); }
   .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:18px; color:var(--text); }
-  .note-type { font-size:13px; padding:3px 10px; background:var(--glass-tag-bg); border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); white-space:nowrap; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .note-type { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); white-space:nowrap; }
 
   footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
   .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
@@ -684,5 +683,101 @@ window.addEventListener('scroll', updateNav, { passive: true });
 
 loadData();
 </script>
+  <!-- liquidGL dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="./liquidGL.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait for fonts and images to load
+      window.addEventListener('load', () => {
+        initLiquidGL();
+      });
+    });
+
+    function initLiquidGL() {
+      // ── Nav glass ──
+      if (document.querySelector('.nav-inner')) {
+        liquidGL({
+          target: '.nav',
+          refraction: 0.015,
+          edge: 0.04,
+          patina: 0.12,
+          frost: 0.3,
+          shadow: false,
+          tilt: false,
+        });
+      }
+
+      // ── Skill cards ──
+      document.querySelectorAll('.skill-card').forEach((el, i) => {
+        liquidGL({
+          target: el,
+          refraction: 0.025,
+          edge: 0.06,
+          patina: 0.15,
+          frost: 0.35,
+          shadow: true,
+          shadowIntensity: 0.08,
+          tilt: true,
+          tiltIntensity: 0.4,
+        });
+      });
+
+      // ── Tag pills ──
+      document.querySelectorAll('.tag, .skill-tag, .note-type').forEach(el => {
+        liquidGL({
+          target: el,
+          refraction: 0.012,
+          edge: 0.08,
+          patina: 0.1,
+          frost: 0.2,
+          shadow: false,
+          tilt: false,
+        });
+      });
+    }
+
+    // Re-init glass on modal open for modal header
+    const _origOpenModal = openModal;
+    function openModal(id) {
+      _origOpenModal(id);
+      setTimeout(() => {
+        liquidGL({
+          target: '.modal-header',
+          refraction: 0.018,
+          edge: 0.05,
+          patina: 0.12,
+          frost: 0.4,
+          shadow: false,
+          tilt: false,
+        });
+        liquidGL({
+          target: '.modal',
+          refraction: 0.02,
+          edge: 0.04,
+          patina: 0.1,
+          frost: 0.45,
+          shadow: true,
+          shadowIntensity: 0.15,
+          tilt: false,
+        });
+      }, 100);
+    }
+    const _origOpenNote = openNote;
+    function openNote(id) {
+      _origOpenNote(id);
+      setTimeout(() => {
+        liquidGL({
+          target: '.modal-header',
+          refraction: 0.018,
+          edge: 0.05,
+          patina: 0.12,
+          frost: 0.4,
+          shadow: false,
+          tilt: false,
+        });
+      }, 100);
+    }
+  </script>
 </body>
 </html>
