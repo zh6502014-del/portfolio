@@ -18,7 +18,7 @@
     --font-sans:'Noto Sans TC',system-ui,sans-serif;
     --font-serif:'Noto Sans TC',system-ui,sans-serif;
     /* ── Liquid Glass (Light) ── */
-    --nav-bg: rgba(255,255,255,0.72);
+    --nav-bg: rgba(255,255,255,0.65);
     --glass-bg: rgba(255,255,255,0.55);
     --glass-modal-bg: rgba(255,255,255,0.78);
     --glass-header-bg: rgba(255,255,255,0.85);
@@ -28,6 +28,9 @@
     --glass-shine: rgba(255,255,255,0.9);
     --glass-shadow: rgba(0,0,0,0.08);
     --overlay-bg: rgba(0,0,0,0.3);
+    --orb-1: rgba(99,179,237,0.25);
+    --orb-2: rgba(154,230,180,0.2);
+    --orb-opacity: 1;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -45,6 +48,8 @@
       --glass-shine: rgba(255,255,255,0.06);
       --glass-shadow: rgba(0,0,0,0.4);
       --overlay-bg: rgba(0,0,0,0.6);
+      --orb-1: rgba(66,153,225,0.18);
+      --orb-2: rgba(72,187,120,0.14);
     }
   }
   [data-theme="dark"] {
@@ -63,6 +68,9 @@
     --glass-shine: rgba(255,255,255,0.06);
     --glass-shadow: rgba(0,0,0,0.4);
     --overlay-bg: rgba(0,0,0,0.6);
+    --orb-1: rgba(66,153,225,0.18);
+    --orb-2: rgba(72,187,120,0.14);
+    --orb-opacity: 1;
   }
   [data-theme="light"] {
     --bg:#ffffff; --bg-secondary:#f8f8f7; --bg-tertiary:#f3f2ef;
@@ -103,6 +111,10 @@
   .theme-toggle:hover::after,
   .theme-toggle:hover::before { opacity:1; }
   html { scroll-behavior: smooth; }
+  :root { --orb-opacity: 0; }
+  body { }
+  body::before { opacity:var(--orb-1-opacity, 1); }
+  body::after  { opacity:var(--orb-2-opacity, 1); }
   html.theme-transitioning,
   html.theme-transitioning *,
   html.theme-transitioning *::before,
@@ -111,7 +123,22 @@
       color 0.5s cubic-bezier(0.4,0,0.2,1),
       border-color 0.5s cubic-bezier(0.4,0,0.2,1) !important;
   }
-  body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:20px; min-height:100vh; }
+  body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:20px; min-height:100vh; position:relative; }
+  /* ── Background orbs for glass effect ── */
+  body::before, body::after {
+    content:''; position:fixed; pointer-events:none; z-index:0; border-radius:50%;
+    filter:blur(80px); opacity:1; transition:opacity 0.5s;
+  }
+  body::before {
+    width:600px; height:600px; top:-100px; right:-100px;
+    background:radial-gradient(circle, var(--orb-1) 0%, transparent 70%);
+  }
+  body::after {
+    width:500px; height:500px; bottom:10%; left:-80px;
+    background:radial-gradient(circle, var(--orb-2) 0%, transparent 70%);
+  }
+  .wrapper, .nav-inner, footer { position:relative; z-index:1; }
+  section { position:relative; z-index:1; }
 
   .nav { position:sticky; top:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
   .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
@@ -302,7 +329,7 @@
     <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
   </section>
 
-  <section id="about">
+  <section id="about" style="position:relative">
     <p class="sec-label">設計技能</p>
     <div class="skill-grid" id="skills-grid">
       <div class="skill-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title"><span class="skeleton" style="width:120px;height:14px"></span></div></div>
