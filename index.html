@@ -161,10 +161,10 @@
   .nav-links::after {
     content: '';
     position: absolute;
-    top: 6px;
-    left: 8px;
+    top: 4px;
+    left: 4px;
     width: var(--pill-w, 52px);
-    height: calc(100% - 12px);
+    height: calc(100% - 8px);
     border-radius: 99em;
     background: var(--glass-indicator-bg);
     box-shadow:
@@ -174,15 +174,15 @@
       0px 2px 8px 0px var(--glass-pill-shadow);
     z-index: 0;
     translate: var(--pill-x, 0px) 0;
+    opacity: 0;
     transition:
-      translate 400ms cubic-bezier(1, 0.0, 0.4, 1),
-      width 400ms cubic-bezier(1, 0.0, 0.4, 1);
-    animation: none;
+      translate 300ms cubic-bezier(1, 0.0, 0.4, 1),
+      width 300ms cubic-bezier(1, 0.0, 0.4, 1),
+      opacity 150ms ease;
   }
-  .nav-links.slide-left::after  { animation: pillStretch 400ms cubic-bezier(1, 0.0, 0.4, 1); }
-  .nav-links.slide-right::after { animation: pillStretchRight 400ms cubic-bezier(1, 0.0, 0.4, 1); }
-  @keyframes pillStretch      { 0%,100%{scale:1 1} 45%{scale:1.18 1} }
-  @keyframes pillStretchRight { 0%,100%{scale:1 1} 45%{scale:1.18 1} }
+  .nav-links:hover::after { opacity: 1; }
+  .nav-links.sliding::after { animation: pillStretch 320ms cubic-bezier(1, 0.0, 0.4, 1); }
+  @keyframes pillStretch { 0%,100%{scale:1 1} 45%{scale:1.2 1} }
   .nav-link {
     position: relative; z-index: 1;
     font-size: 16px; color: var(--text-secondary);
@@ -735,59 +735,49 @@ applyTheme(getTheme());
 // Nav scroll highlight
 const sections = ['about','projects','notes'];
 const navLinks = document.querySelectorAll('.nav-link[data-section]');
-// ── Glass Nav pill indicator ──
+// ── Glass Nav pill - hover only ──
 function getPillMetrics(link) {
   const navEl = document.getElementById('nav-links');
   if (!navEl || !link) return null;
   const navRect = navEl.getBoundingClientRect();
   const linkRect = link.getBoundingClientRect();
-  return {
-    x: linkRect.left - navRect.left - 8,
-    w: linkRect.width,
-  };
+  return { x: linkRect.left - navRect.left - 4, w: linkRect.width };
 }
 
-let _prevActiveIndex = 0;
-function updateNavPill(activeLink) {
+function movePillTo(link) {
   const navEl = document.getElementById('nav-links');
-  if (!navEl || !activeLink) return;
-  const m = getPillMetrics(activeLink);
-  if (!m) return;
-
-  const links = Array.from(navEl.querySelectorAll('.nav-link'));
-  const newIndex = links.indexOf(activeLink);
-  const dir = newIndex > _prevActiveIndex ? 'right' : 'left';
-
-  navEl.classList.remove('slide-left', 'slide-right');
-  void navEl.offsetWidth; // reflow
-  navEl.classList.add('slide-' + dir);
+  const m = getPillMetrics(link);
+  if (!m || !navEl) return;
+  navEl.classList.remove('sliding');
+  void navEl.offsetWidth;
+  navEl.classList.add('sliding');
   navEl.style.setProperty('--pill-x', m.x + 'px');
   navEl.style.setProperty('--pill-w', m.w + 'px');
-  _prevActiveIndex = newIndex;
 }
+
+// Init hover behaviour
+document.addEventListener('DOMContentLoaded', () => {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl) return;
+  const links = navEl.querySelectorAll('.nav-link');
+
+  links.forEach(link => {
+    link.addEventListener('mouseenter', () => movePillTo(link));
+  });
+
+  // On mouse leave - snap pill back to active link
+  navEl.addEventListener('mouseleave', () => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) movePillTo(active);
+  });
+});
 
 function updateNav() {
   let current = 'about';
   sections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 100) current = id; });
   navLinks.forEach(link => link.classList.toggle('active', link.dataset.section === current));
-  const activeLink = document.querySelector('.nav-link.active');
-  if (activeLink) updateNavPill(activeLink);
 }
 window.addEventListener('scroll', updateNav, { passive: true });
-
-// Init pill position on load
-window.addEventListener('load', () => {
-  updateNav();
-  const activeLink = document.querySelector('.nav-link.active');
-  if (activeLink) {
-    const m = getPillMetrics(activeLink);
-    const navEl = document.getElementById('nav-links');
-    if (m && navEl) {
-      navEl.style.setProperty('--pill-x', m.x + 'px');
-      navEl.style.setProperty('--pill-w', m.w + 'px');
-    }
-  }
-});
 
 loadData();
 </script>
