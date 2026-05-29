@@ -110,7 +110,7 @@
   .skill-card:hover { border-color:var(--border-strong); }
   .skill-card-icon { width:36px; height:36px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
   .skill-card-title { font-size:13px; font-weight:500; margin-bottom:10px; }
-  .skill-tag-list { display:flex; flex-wrap:wrap; gap:5px; }
+  .skill-tag-list { display:flex; flex-wrap:wrap; gap:6px; }
   .skill-tag { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-secondary); }
   .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
   .tool-item { display:flex; align-items:center; gap:8px; font-size:13px; padding:8px 16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-secondary); transition:border-color .15s; }
@@ -131,7 +131,7 @@
   .project-row-num { font-size:11px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
   .project-row-title { font-size:18px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:13px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; }
-  .project-tags { display:flex; flex-wrap:wrap; gap:5px; }
+  .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
   .tag { font-size:11px; padding:2px 8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; color:var(--text-secondary); }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
   .project-time { font-size:12px; color:var(--text-tertiary); white-space:nowrap; }
@@ -418,7 +418,7 @@ function renderNotes(data) {
       <span class="note-date">${formatDate(n.note_date)}</span>
       <div style="flex:1;display:flex;flex-direction:column;gap:6px">
         <span class="note-title">${n.title}</span>
-        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:4px">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
+        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
       </div>
 
     </div>
@@ -438,7 +438,7 @@ function openNote(id) {
     '<h2 class="modal-title">' + n.title + '</h2>' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:6px">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
-      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:4px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml + imgsHtml;
   document.getElementById('modal-overlay').classList.add('open');
@@ -461,7 +461,7 @@ function openModal(id) {
     '<div class="modal-meta" style="margin-top:8px">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
       membersHtml +
-      '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;width:100%">' + tagsHtml + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;width:100%">' + tagsHtml + '</div>' +
     '</div>';
 
   // Body: cover → description → sections → rest images
