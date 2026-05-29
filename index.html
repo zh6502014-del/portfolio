@@ -428,9 +428,7 @@ function renderNotes(data) {
 function openNote(id) {
   const n = allNotes.find(x => x.id === id);
   if (!n) return;
-  const imgsHtml = parseImgArr(n.images).length
-    ? `<div class="modal-images">${parseImgArr(n.images).map(u=>`<img src="${u}" alt="" loading="lazy">`).join('')}</div>`
-    : '';
+  const imgsHtml = '';
   const contentHtml = n.content
     ? `<div class="note-content">${n.content}</div>`
     : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
@@ -440,7 +438,7 @@ function openNote(id) {
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
       (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
     '</div>';
-  document.getElementById('modal-content').innerHTML = contentHtml + imgsHtml;
+  document.getElementById('modal-content').innerHTML = contentHtml;
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
