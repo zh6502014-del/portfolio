@@ -695,46 +695,36 @@ loadData();
     });
 
     function initLiquidGL() {
-      // ── Nav glass ──
-      if (document.querySelector('.nav-inner')) {
-        liquidGL({
-          target: '.nav',
-          refraction: 0.015,
-          edge: 0.04,
-          patina: 0.12,
-          frost: 0.3,
-          shadow: false,
-          tilt: false,
-        });
-      }
+      const glassBase = { refraction: 0.015, edge: 0.06, patina: 0.12, frost: 0.3, shadow: false, tilt: false };
+      const glassCard = { refraction: 0.025, edge: 0.06, patina: 0.15, frost: 0.35, shadow: true, shadowIntensity: 0.08, tilt: true, tiltIntensity: 0.4 };
+      const glassPill = { refraction: 0.01, edge: 0.1, patina: 0.08, frost: 0.18, shadow: false, tilt: false };
+      const glassBtn  = { refraction: 0.012, edge: 0.12, patina: 0.1, frost: 0.22, shadow: false, tilt: false };
+
+      // ── Nav ──
+      if (document.querySelector('.nav')) liquidGL({ target: '.nav', ...glassBase, frost: 0.25 });
+
+      // ── Nav links (active) ──
+      document.querySelectorAll('.nav-link').forEach(el => liquidGL({ target: el, ...glassPill }));
+
+      // ── Hero badge ──
+      const badge = document.querySelector('.hero-badge');
+      if (badge) liquidGL({ target: badge, ...glassPill });
+
+      // ── Contact items ──
+      document.querySelectorAll('.contact-item').forEach(el => liquidGL({ target: el, ...glassBtn }));
 
       // ── Skill cards ──
-      document.querySelectorAll('.skill-card').forEach((el, i) => {
-        liquidGL({
-          target: el,
-          refraction: 0.025,
-          edge: 0.06,
-          patina: 0.15,
-          frost: 0.35,
-          shadow: true,
-          shadowIntensity: 0.08,
-          tilt: true,
-          tiltIntensity: 0.4,
-        });
-      });
+      document.querySelectorAll('.skill-card').forEach(el => liquidGL({ target: el, ...glassCard }));
 
-      // ── Tag pills ──
-      document.querySelectorAll('.tag, .skill-tag, .note-type').forEach(el => {
-        liquidGL({
-          target: el,
-          refraction: 0.012,
-          edge: 0.08,
-          patina: 0.1,
-          frost: 0.2,
-          shadow: false,
-          tilt: false,
-        });
-      });
+      // ── All tag pills ──
+      document.querySelectorAll('.tag, .skill-tag, .note-type, .hero-badge').forEach(el => liquidGL({ target: el, ...glassPill }));
+
+      // ── Tool items ──
+      document.querySelectorAll('.tool-item').forEach(el => liquidGL({ target: el, ...glassPill }));
+
+      // ── Modal close button ──
+      const closeBtn = document.querySelector('.modal-close');
+      if (closeBtn) liquidGL({ target: closeBtn, ...glassBtn });
     }
 
     // Re-init glass on modal open for modal header
@@ -742,40 +732,23 @@ loadData();
     function openModal(id) {
       _origOpenModal(id);
       setTimeout(() => {
-        liquidGL({
-          target: '.modal-header',
-          refraction: 0.018,
-          edge: 0.05,
-          patina: 0.12,
-          frost: 0.4,
-          shadow: false,
-          tilt: false,
-        });
-        liquidGL({
-          target: '.modal',
-          refraction: 0.02,
-          edge: 0.04,
-          patina: 0.1,
-          frost: 0.45,
-          shadow: true,
-          shadowIntensity: 0.15,
-          tilt: false,
-        });
+        const gBase = { refraction: 0.018, edge: 0.05, patina: 0.12, frost: 0.4, shadow: false, tilt: false };
+        liquidGL({ target: '.modal', refraction: 0.02, edge: 0.04, patina: 0.1, frost: 0.45, shadow: true, shadowIntensity: 0.12, tilt: false });
+        liquidGL({ target: '.modal-header', ...gBase });
+        const closeBtn = document.querySelector('.modal-close');
+        if (closeBtn) liquidGL({ target: closeBtn, refraction: 0.012, edge: 0.12, patina: 0.1, frost: 0.22, shadow: false, tilt: false });
+        document.querySelectorAll('.modal .tag, .modal .note-type').forEach(el =>
+          liquidGL({ target: el, refraction: 0.01, edge: 0.1, patina: 0.08, frost: 0.18, shadow: false, tilt: false })
+        );
       }, 100);
     }
     const _origOpenNote = openNote;
     function openNote(id) {
       _origOpenNote(id);
       setTimeout(() => {
-        liquidGL({
-          target: '.modal-header',
-          refraction: 0.018,
-          edge: 0.05,
-          patina: 0.12,
-          frost: 0.4,
-          shadow: false,
-          tilt: false,
-        });
+        liquidGL({ target: '.modal-header', refraction: 0.018, edge: 0.05, patina: 0.12, frost: 0.4, shadow: false, tilt: false });
+        const closeBtn = document.querySelector('.modal-close');
+        if (closeBtn) liquidGL({ target: closeBtn, refraction: 0.012, edge: 0.12, patina: 0.1, frost: 0.22, shadow: false, tilt: false });
       }, 100);
     }
   </script>
