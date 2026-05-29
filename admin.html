@@ -2260,10 +2260,6 @@ function renderNoteForm(note) {
         <label class="form-label">文章內容（富文字編輯器）</label>
         <div id="nt-content-editor"></div>
       </div>
-      <div class="form-row">
-        <label class="form-label">文章圖片</label>
-        <div id="nt-images-uploader"></div>
-      </div>
       <div class="form-row" style="display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="nt-published" ${note?.published !== false ? 'checked' : ''} />
         <label for="nt-published" class="form-label" style="margin:0">公開顯示</label>
@@ -2276,7 +2272,6 @@ function renderNoteForm(note) {
   `;
   const q = makeQuill('nt-content-editor', '在這裡撰寫文章內容...\n\n支援：標題、粗體、斜體、清單、引用、圖片上傳、影片嵌入', true);
   if (note?.content) q.root.innerHTML = note.content;
-  makeImageUploader('nt-images-uploader', parseImgArr(note?.images));
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
@@ -2287,7 +2282,6 @@ async function saveNote(id) {
     note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
     note_type: getTagInputValue('nt-type-ti').join(' · ') || '',
     content: q ? q.root.innerHTML : '',
-    images: window.getImgs_nt_images_uploader ? window.getImgs_nt_images_uploader() : [],
     published: document.getElementById('nt-published').checked,
   };
   try {
