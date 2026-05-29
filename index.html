@@ -56,6 +56,8 @@
       --glass-shine-top: rgba(255,255,255,0.18);
       --glass-shine-bottom: rgba(255,255,255,0.06);
       --glass-pill-shadow: rgba(0,0,0,0.3);
+      --glass-el-bg: rgba(255,255,255,0.07);
+      --glass-el-border: rgba(255,255,255,0.12);
     }
   }
   [data-theme="dark"] {
@@ -205,27 +207,54 @@
   section + section { border-top:none; }
 
   .hero { padding-top:96px; padding-bottom:88px; }
-  .hero-badge { display:inline-flex; align-items:center; gap:6px; font-size:14px; color:var(--text-tertiary); background:var(--bg-secondary); border:1px solid var(--border); border-radius:100px; padding:5px 14px; margin-bottom:28px; white-space:nowrap; }
+
+  /* ── Glass element mixin ── */
+  .glass-el {
+    background: var(--glass-el-bg);
+    border: 1px solid var(--glass-el-border);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-shine-top),
+      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
+      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
+      0px 2px 12px 0px var(--glass-pill-shadow);
+    transition: box-shadow .2s, border-color .2s, scale .3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .glass-el:hover {
+    scale: 1.03;
+    box-shadow:
+      inset 0 0 0 1px var(--glass-shine-top),
+      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
+      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
+      0px 6px 24px 0px var(--glass-pill-shadow);
+  }
+  /* Card gets slightly more scale */
+  .glass-card:hover { scale: 1.02; }
+  /* Light mode glass vars */
+  :root {
+    --glass-el-bg: rgba(255,255,255,0.6);
+    --glass-el-border: rgba(0,0,0,0.08);
+  }
+  .hero-badge { display:inline-flex; align-items:center; gap:6px; font-size:14px; color:var(--text-tertiary); border-radius:100px; padding:5px 14px; margin-bottom:28px; white-space:nowrap; }
   .hero-badge-dot { width:6px; height:6px; min-width:6px; background:#22c55e; border-radius:50%; display:inline-block; }
   .hero-title { font-family:var(--font-sans); font-size:clamp(44px,6vw,68px); font-weight:700; line-height:1.15; letter-spacing:-.02em; margin-bottom:24px; }
   .hero-title em { font-style:normal; color:var(--text); }
   .hero-desc { font-size:22px; color:var(--text-secondary); max-width:560px; line-height:1.9; margin-bottom:44px; }
   .hero-contacts { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:32px; }
-  .contact-item { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--text-secondary); background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:7px 14px; text-decoration:none; transition:border-color .15s,color .15s; }
-  .contact-item:hover { border-color:var(--border-strong); color:var(--text); }
+  .contact-item { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--text-secondary); border-radius:var(--radius-md); padding:7px 14px; text-decoration:none; }
+  .contact-item:hover { color:var(--text); }
   .hero-note { font-size:14px; color:var(--text-tertiary); padding:10px 14px; border-left:2px solid var(--border-strong); background:var(--bg-secondary); border-radius:0 var(--radius-sm) var(--radius-sm) 0; max-width:420px; }
 
   .sec-label { font-size:13px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:32px; }
   .skill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:56px; }
-  .skill-card { background:transparent; border:1px solid var(--glass-border); border-radius:var(--radius-lg); padding:20px; transition:border-color .2s; }
-  .skill-card:hover { border-color:var(--border-strong); }
+  .skill-card { border-radius:var(--radius-lg); padding:20px; }
   .skill-card-icon { width:36px; height:36px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
   .skill-card-title { font-size:16px; font-weight:500; margin-bottom:10px; }
   .skill-tag-list { display:flex; flex-wrap:wrap; gap:6px; }
   .skill-tag { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); }
   .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
-  .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:8px 16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-secondary); transition:border-color .15s; }
-  .tool-item:hover { border-color:var(--border-strong); }
+  .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:8px 16px; border-radius:var(--radius-md); color:var(--text-secondary); }
   .tool-name { font-weight:500; color:var(--text); font-size:16px; }
   .tool-desc { font-size:13px; color:var(--text-tertiary); }
 
@@ -370,15 +399,15 @@
 
 
   <section class="hero" id="hero">
-    <div class="hero-badge"><i class="hero-badge-dot"></i><span id="hero-status">目前在職 · 金融業數位設計</span></div>
+    <div class="hero-badge glass-el"><i class="hero-badge-dot"></i><span id="hero-status">目前在職 · 金融業數位設計</span></div>
     <h1 class="hero-title"><span id="hero-greeting">您好，我是</span><em id="hero-name">林艾奭</em></h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
-      <a href="mailto:zh6502014@gmail.com" class="contact-item">
+      <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
         zh6502014@gmail.com
       </a>
-      <span class="contact-item">
+      <span class="contact-item glass-el">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         0911-585-420
       </span>
@@ -471,8 +500,8 @@ function renderProfile(p) {
   document.getElementById('hero-note').textContent = p.note || '';
   const contacts = document.getElementById('hero-contacts');
   contacts.innerHTML = '';
-  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
-  if (p.phone) contacts.innerHTML += `<span class="contact-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
+  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
+  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
   document.getElementById('footer-email').href = 'mailto:' + (p.email || '');
 }
 
@@ -684,7 +713,7 @@ function renderFallback() {
     <div class="skill-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="skill-tag">字型學</span><span class="skill-tag">色彩學</span><span class="skill-tag">版面構成</span></div></div>
     <div class="skill-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="skill-tag">Web UI（RWD）</span><span class="skill-tag">Mobile UI</span><span class="skill-tag">Design System</span></div></div>
   `;
-  document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item"><div class="tool-name">${n}</div></div>`).join('');
+  document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
 }
 
 // ── Theme toggle ──
