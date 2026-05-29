@@ -498,12 +498,12 @@ function openModal(id) {
     body.appendChild(grid);
   }
 
-  // Description after sections
-  if (p.description) {
+  // Content (rich text) after sections
+  if (p.content) {
     const desc = document.createElement('div');
     desc.className = 'modal-desc';
     desc.style.marginTop = '20px';
-    desc.innerHTML = p.description;
+    desc.innerHTML = p.content;
     body.appendChild(desc);
   }
 
