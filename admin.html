@@ -143,6 +143,14 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
   margin-top: auto; padding: 12px 8px;
   border-top: 1px solid var(--border);
 }
+/* Storage widget */
+.storage-widget { padding: 10px 10px 4px; }
+.storage-label { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 8px; display: flex; justify-content: space-between; }
+.storage-bar-wrap { background: var(--bg-tertiary); border-radius: 4px; height: 5px; overflow: hidden; margin-bottom: 6px; }
+.storage-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.4s ease; }
+.storage-bar-fill.warn { background: #f59e0b; }
+.storage-bar-fill.danger { background: var(--danger); }
+.storage-detail { font-size: 10px; color: var(--text-tertiary); display: flex; justify-content: space-between; margin-bottom: 8px; }
 
 /* ── Main area ── */
 .main { flex: 1; overflow-y: auto; background: var(--bg-secondary); }
@@ -573,6 +581,19 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
         </button>
       </div>
       <div class="sidebar-footer">
+        <div class="storage-widget" id="storage-widget">
+          <div class="storage-label">
+            <span>儲存空間</span>
+            <span id="storage-pct">—</span>
+          </div>
+          <div class="storage-bar-wrap">
+            <div class="storage-bar-fill" id="storage-bar" style="width:0%"></div>
+          </div>
+          <div class="storage-detail">
+            <span id="storage-used">載入中...</span>
+            <span id="storage-total">1 GB 上限</span>
+          </div>
+        </div>
         <button class="nav-item" onclick="doLogout()" style="color:var(--text-tertiary)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           登出
@@ -1030,6 +1051,57 @@ function acToggleLine(textareaId, acKey, val) {
   }
 }
 
+// ── Storage usage ──
+async function checkStorageUsage() {
+  try {
+    // Query total size of all files in storage.objects
+    const { data, error } = await supabase_client.rpc('get_storage_usage');
+    let usedBytes = 0;
+
+    if (error || !data) {
+      // Fallback: query storage.objects directly
+      const { data: objs } = await supabase_client
+        .from('objects')
+        .select('metadata')
+        .schema('storage');
+      if (objs) {
+        usedBytes = objs.reduce((sum, obj) => {
+          const size = obj?.metadata?.size || 0;
+          return sum + size;
+        }, 0);
+      }
+    } else {
+      usedBytes = data;
+    }
+
+    const LIMIT = 1 * 1024 * 1024 * 1024; // 1 GB
+    const pct = Math.min(100, (usedBytes / LIMIT) * 100);
+
+    const fmt = (b) => {
+      if (b < 1024) return b + ' B';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+      if (b < 1024 * 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
+      return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    };
+
+    const bar = document.getElementById('storage-bar');
+    const pctEl = document.getElementById('storage-pct');
+    const usedEl = document.getElementById('storage-used');
+
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.className = 'storage-bar-fill' +
+        (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+    }
+    if (pctEl) pctEl.textContent = pct.toFixed(1) + '%';
+    if (usedEl) usedEl.textContent = fmt(usedBytes) + ' 已使用';
+
+  } catch (e) {
+    const usedEl = document.getElementById('storage-used');
+    if (usedEl) usedEl.textContent = '無法讀取';
+  }
+}
+
 // ── Boot ──
 async function boot() {
   const cfg = getConfig();
@@ -1056,6 +1128,8 @@ function showApp() {
   const btn = document.querySelector(`.nav-item[onclick*="'${page}'"]`);
   if (btn) showPage(page, btn);
   else renderProfilePage();
+  // Check storage usage
+  checkStorageUsage();
 }
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
