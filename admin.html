@@ -2009,9 +2009,13 @@ function renderProjectForm(proj) {
     // Image uploader
     initProjectImageArea(projId, parseImgArr(proj?.images));
 
-    // Quill
-    const descQuill = makeQuill('pj-desc-editor', '專案概覽描述...', true);
-    if (proj?.description) descQuill.root.innerHTML = proj.description;
+    // Content Quill (彈窗完整內容)
+    const contentQuill = makeQuill('pj-content-editor', '在這裡輸入專案完整內容...', true);
+    if (proj?.content) contentQuill.root.innerHTML = proj.content;
+
+    // Auto-resize description textarea
+    const descTa = document.getElementById('pj-desc');
+    if (descTa) { descTa.style.height = 'auto'; descTa.style.height = descTa.scrollHeight + 'px'; }
 
     // Date pickers
     initDatePickers(proj?.time_range || '');
@@ -2138,7 +2142,7 @@ function renderProjectImageArea() {
 }
 
 async function saveProject(id) {
-  const q = quillInstances['pj-desc-editor'];
+  const q = quillInstances['pj-content-editor'];
   const payload = {
     title: document.getElementById('pj-title')?.value?.trim() || '',
     time_range: document.getElementById('pj-time')?.value || '',
