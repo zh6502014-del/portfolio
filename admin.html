@@ -1677,7 +1677,8 @@ async function saveProfile() {
     name: document.getElementById('p-name').value,
     status: document.getElementById('p-status').value,
     tagline: document.getElementById('p-tagline').value,
-    description: q ? q.root.innerHTML : '',
+    description: document.getElementById('pj-desc')?.value?.trim() || '',
+    content: q ? q.root.innerHTML : '',
     email: document.getElementById('p-email').value,
     phone: document.getElementById('p-phone').value,
     note: document.getElementById('p-note').value,
@@ -1980,8 +1981,17 @@ function renderProjectForm(proj) {
 
     <div class="card">
       <div class="card-title">專案介紹</div>
-      <div class="card-desc">作品集卡片上顯示的描述文字</div>
-      <div id="pj-desc-editor"></div>
+      <div class="card-desc">顯示在前台專案列表，最多 3 行</div>
+      <textarea class="form-textarea" id="pj-desc"
+        style="min-height:60px;resize:none;overflow:hidden"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+        placeholder="簡短描述此專案...">${proj?.description ? proj.description.replace(/<[^>]+>/g,'') : ''}</textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">專案內容</div>
+      <div class="card-desc">顯示在前台彈窗的完整內容</div>
+      <div id="pj-content-editor"></div>
     </div>
 
     <div class="card">
@@ -2137,7 +2147,8 @@ async function saveProject(id) {
     members: getTagInputValue('pj-members-ti').join(' · '),
     published: document.getElementById('pj-published')?.checked ?? true,
     sort_order: parseInt(document.getElementById('pj-order')?.value) || 0,
-    description: q ? q.root.innerHTML : '',
+    description: document.getElementById('pj-desc')?.value?.trim() || '',
+    content: q ? q.root.innerHTML : '',
     sections: getGroupSections(),
     images: _projCoverUrl ? [_projCoverUrl] : [],
     updated_at: new Date().toISOString()
