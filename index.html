@@ -283,9 +283,9 @@
 
   .modal-overlay { position:fixed; inset:0; z-index:200; background:var(--overlay-bg); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
   .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { background:transparent; border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; }
+  .modal { background:var(--glass-modal-bg); backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
   .modal-overlay.open .modal { transform:translateY(0); }
-  .modal-header { position:sticky; top:0; z-index:10; background:transparent; border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-header { position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
   .modal-header-left { flex:1; min-width:0; }
   .modal-close { width:32px; height:32px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:background .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { background:var(--bg-tertiary); }
@@ -326,7 +326,7 @@
   .modal-desc a { color:var(--text); text-decoration:underline; }
   .modal-desc iframe, .modal-desc .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
   .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:28px; }
-  .modal-block { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; }
+  .modal-block { border-radius:var(--radius-md); padding:16px; }
   .modal-block-label { font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px; }
   .modal-block ul { list-style:none; }
   .modal-block li { font-size:16px; color:var(--text-secondary); padding:3px 0; display:flex; gap:8px; }
@@ -464,7 +464,7 @@
   <div class="modal">
     <div class="modal-header" id="modal-header">
       <div class="modal-header-left" id="modal-header-content"></div>
-      <button class="modal-close" onclick="closeModal()" aria-label="關閉">✕</button>
+      <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
     </div>
     <div class="modal-body" id="modal-content"></div>
   </div>
@@ -658,7 +658,7 @@ function openModal(id) {
     sections.forEach(s => {
       if (!s.title) return;
       const block = document.createElement('div');
-      block.className = 'modal-block';
+      block.className = 'modal-block glass-el';
       const lines = (s.items||[]).flatMap(x => x ? x.split('\n') : []).map(l=>l.trim()).filter(Boolean);
       block.innerHTML = '<p class="modal-block-label">' + s.title + '</p>' +
         (lines.length ? '<ul>' + lines.map(l=>'<li>'+l+'</li>').join('') + '</ul>' : '');
