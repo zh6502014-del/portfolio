@@ -1648,7 +1648,6 @@ async function renderProfilePage() {
           <label class="form-label">姓名（前台顯示為大標題）</label>
           <input class="title-input" id="p-name" placeholder="您的姓名" />
         </div>
-        <div class="form-row"><label class="form-label">目前狀態</label><input class="form-input" id="p-status" placeholder="目前在職 · 金融業數位設計" /></div>
       </div>
       <div class="form-row"><label class="form-label">標語</label><input class="form-input" id="p-tagline" placeholder="UI / UX Designer · 4 年經驗" /></div>
       <div class="form-row"><label class="form-label">自我介紹（支援基本格式）</label><div id="p-desc-editor"></div></div>
@@ -1663,7 +1662,6 @@ async function renderProfilePage() {
   const { data } = await supabase_client.from('profile').select('*').single();
   if (data) {
     document.getElementById('p-name').value = data.name || '';
-    document.getElementById('p-status').value = data.status || '';
     document.getElementById('p-tagline').value = data.tagline || '';
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
@@ -1675,7 +1673,6 @@ async function saveProfile() {
   const q = quillInstances['p-desc-editor'];
   const payload = {
     name: document.getElementById('p-name').value,
-    status: document.getElementById('p-status').value,
     tagline: document.getElementById('p-tagline').value,
     description: document.getElementById('pj-desc')?.value?.trim() || '',
     content: q ? q.root.innerHTML : '',
