@@ -1650,6 +1650,8 @@ async function renderProfilePage() {
         </div>
       </div>
       <div class="form-row"><label class="form-label">標語</label><input class="form-input" id="p-tagline" placeholder="UI / UX Designer · 4 年經驗" /></div>
+      <div class="form-row"><label class="form-label">Hero 招呼語</label><input class="form-input" id="p-greeting" placeholder="您好，我是" /></div>
+      <div class="form-row"><label class="form-label">表頭顯示名稱（左上角）</label><input class="form-input" id="p-navname" placeholder="與姓名相同則留空" /></div>
       <div class="form-row"><label class="form-label">自我介紹（支援基本格式）</label><div id="p-desc-editor"></div></div>
       <div class="form-row-2">
         <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="p-email" type="email" /></div>
@@ -1663,6 +1665,8 @@ async function renderProfilePage() {
   if (data) {
     document.getElementById('p-name').value = data.name || '';
     document.getElementById('p-tagline').value = data.tagline || '';
+    document.getElementById('p-greeting').value = data.greeting || '';
+    document.getElementById('p-navname').value = data.nav_name || '';
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
@@ -1673,6 +1677,8 @@ async function saveProfile() {
   const q = quillInstances['p-desc-editor'];
   const payload = {
     name: document.getElementById('p-name').value,
+    greeting: document.getElementById('p-greeting').value,
+    nav_name: document.getElementById('p-navname').value,
     tagline: document.getElementById('p-tagline').value,
     description: document.getElementById('pj-desc')?.value?.trim() || '',
     content: q ? q.root.innerHTML : '',
