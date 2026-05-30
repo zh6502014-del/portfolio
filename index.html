@@ -509,7 +509,6 @@ async function loadData() {
 }
 
 function renderProfile(p) {
-  document.getElementById('hero-status').textContent = (p.status || '目前在職 · 金融業數位設計').split('').filter(c => c.charCodeAt(0) > 31 || c === ' ').join('').trim();
   const name = (p.name || '林艾奭').trim();
   document.getElementById('hero-name').textContent = name;
   document.getElementById('nav-name').textContent = name;
