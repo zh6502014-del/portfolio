@@ -511,7 +511,8 @@ async function loadData() {
 function renderProfile(p) {
   const name = (p.name || '林艾奭').trim();
   document.getElementById('hero-name').textContent = name;
-  document.getElementById('nav-name').textContent = name;
+  document.getElementById('nav-name').textContent = (p.nav_name && p.nav_name.trim()) || name;
+  if (p.greeting) document.getElementById('hero-greeting').textContent = p.greeting;
   document.getElementById('footer-name').textContent = name + ' · UI/UX Designer';
   document.getElementById('hero-desc').innerHTML = p.description || '';
   document.getElementById('hero-note').textContent = p.note || '';
