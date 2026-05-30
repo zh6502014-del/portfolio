@@ -418,7 +418,7 @@
 
 
   <section class="hero" id="hero">
-    <h1 class="hero-title"><span id="hero-greeting">您好，我是</span><em id="hero-name">林艾奭</em></h1>
+    <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
       <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
@@ -509,11 +509,11 @@ async function loadData() {
 }
 
 function renderProfile(p) {
-  const name = (p.name || '林艾奭').trim();
-  document.getElementById('hero-name').textContent = name;
-  document.getElementById('nav-name').textContent = (p.nav_name && p.nav_name.trim()) || name;
-  if (p.greeting) document.getElementById('hero-greeting').textContent = p.greeting;
-  document.getElementById('footer-name').textContent = name + ' · UI/UX Designer';
+  const heroTitle = (p.name || '您好，我是林艾奭').trim();
+  const navName = (p.nav_name && p.nav_name.trim()) || '林艾奭';
+  document.getElementById('hero-title').textContent = heroTitle;
+  document.getElementById('nav-name').textContent = navName;
+  document.getElementById('footer-name').textContent = navName + ' · UI/UX Designer';
   document.getElementById('hero-desc').innerHTML = p.description || '';
   document.getElementById('hero-note').textContent = p.note || '';
   const contacts = document.getElementById('hero-contacts');
