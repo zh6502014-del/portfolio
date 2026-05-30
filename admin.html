@@ -1645,13 +1645,12 @@ async function renderProfilePage() {
     <div class="card">
       <div class="form-row-2">
         <div class="form-row">
-          <label class="form-label">姓名（前台顯示為大標題）</label>
+          <label class="form-label">Hero 標題</label>
           <input class="title-input" id="p-name" placeholder="您的姓名" />
         </div>
       </div>
-      <div class="form-row"><label class="form-label">標語</label><input class="form-input" id="p-tagline" placeholder="UI / UX Designer · 4 年經驗" /></div>
+      <div class="form-row"><label class="form-label">表頭顯示名稱（左上角）</label><input class="form-input" id="p-navname" placeholder="與 Hero 標題相同則留空" /></div>
       <div class="form-row"><label class="form-label">Hero 招呼語</label><input class="form-input" id="p-greeting" placeholder="您好，我是" /></div>
-      <div class="form-row"><label class="form-label">表頭顯示名稱（左上角）</label><input class="form-input" id="p-navname" placeholder="與姓名相同則留空" /></div>
       <div class="form-row"><label class="form-label">自我介紹（支援基本格式）</label><div id="p-desc-editor"></div></div>
       <div class="form-row-2">
         <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="p-email" type="email" /></div>
@@ -1664,7 +1663,6 @@ async function renderProfilePage() {
   const { data } = await supabase_client.from('profile').select('*').single();
   if (data) {
     document.getElementById('p-name').value = data.name || '';
-    document.getElementById('p-tagline').value = data.tagline || '';
     document.getElementById('p-greeting').value = data.greeting || '';
     document.getElementById('p-navname').value = data.nav_name || '';
     document.getElementById('p-email').value = data.email || '';
@@ -1679,7 +1677,6 @@ async function saveProfile() {
     name: document.getElementById('p-name').value,
     greeting: document.getElementById('p-greeting').value,
     nav_name: document.getElementById('p-navname').value,
-    tagline: document.getElementById('p-tagline').value,
     description: document.getElementById('pj-desc')?.value?.trim() || '',
     content: q ? q.root.innerHTML : '',
     email: document.getElementById('p-email').value,
