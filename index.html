@@ -247,7 +247,7 @@
   .hero-title em { font-style:normal; color:var(--text); }
   .hero-desc { font-size:22px; color:var(--text-secondary); max-width:560px; line-height:1.9; margin-bottom:44px; }
   .hero-contacts { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:32px; }
-  .contact-item { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--text-secondary); border-radius:var(--radius-md); padding:7px 14px; text-decoration:none; }
+  .contact-item { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--text-secondary); border-radius:100px; padding:8px 18px; text-decoration:none; }
   .contact-item:hover { color:var(--text); }
   .hero-note { font-size:14px; color:var(--text-tertiary); padding:10px 14px; border-left:2px solid var(--border-strong); background:var(--bg-secondary); border-radius:0 var(--radius-sm) var(--radius-sm) 0; max-width:420px; }
 
@@ -257,7 +257,6 @@
   .skill-card-icon { width:36px; height:36px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
   .skill-card-title { font-size:16px; font-weight:500; margin-bottom:10px; }
   .skill-tag-list { display:flex; flex-wrap:wrap; gap:6px; }
-  .skill-tag { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); }
   .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
   .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:14px 18px; border-radius:var(--radius-md); color:var(--text-secondary); }
   .tool-name { font-weight:500; color:var(--text); font-size:16px; }
@@ -277,7 +276,23 @@
   .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
-  .tag { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); }
+  .tag, .skill-tag, .note-type {
+    font-size:13px; padding:4px 12px; border-radius:100px; color:var(--text-secondary);
+    background: var(--glass-el-bg);
+    border: 1px solid var(--glass-el-border);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-shine-top),
+      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
+      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
+      0px 2px 8px 0px var(--glass-pill-shadow);
+    transition: box-shadow .2s;
+    display: inline-block;
+  }
+  .tag:hover, .skill-tag:hover, .note-type:hover {
+    animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
   .project-time { font-size:14px; color:var(--text-tertiary); white-space:nowrap; }
 
@@ -354,7 +369,6 @@
   .note-item:first-child { border-top:1px solid var(--border); }
   .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:18px; color:var(--text); }
-  .note-type { font-size:13px; padding:3px 10px; background:transparent; border:1px solid var(--glass-border); border-radius:100px; color:var(--text-secondary); white-space:nowrap; }
 
   footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
   .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
@@ -404,7 +418,6 @@
 
 
   <section class="hero" id="hero">
-    <div class="hero-badge glass-el"><i class="hero-badge-dot"></i><span id="hero-status">目前在職 · 金融業數位設計</span></div>
     <h1 class="hero-title"><span id="hero-greeting">您好，我是</span><em id="hero-name">林艾奭</em></h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
@@ -627,10 +640,10 @@ function openModal(id) {
 
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + p.title + '</h2>' +
-    '<div class="modal-meta" style="margin-top:8px">' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:8px">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
-      membersHtml +
-      '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;width:100%">' + tagsHtml + '</div>' +
+      (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + membersHtml + '</div>' : '') +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px">' + tagsHtml + '</div>' +
     '</div>';
 
   // Body: cover → description → sections → rest images
