@@ -1674,8 +1674,7 @@ async function saveProfile() {
   const payload = {
     name: document.getElementById('p-name').value,
     nav_name: document.getElementById('p-navname').value,
-    description: document.getElementById('pj-desc')?.value?.trim() || '',
-    content: q ? q.root.innerHTML : '',
+    description: q ? q.root.innerHTML : '',
     email: document.getElementById('p-email').value,
     phone: document.getElementById('p-phone').value,
     note: document.getElementById('p-note').value,
