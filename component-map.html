@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Portfolio 元件對照表</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC','Helvetica Neue',system-ui,sans-serif;background:#f5f4f1;color:#1a1917;font-size:13px;line-height:1.6;display:flex;flex-direction:column}
+.hdr{background:#18181b;color:#fff;flex-shrink:0}
+.hdr-top{height:46px;display:flex;align-items:center;padding:0 18px;gap:8px}
+.hdr-t{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.hdr-s{font-size:11px;opacity:.4;margin-left:6px}
+/* tab bar */
+.tabs{display:flex;padding:0 12px 0;gap:2px;border-top:1px solid rgba(255,255,255,.08);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{display:flex;align-items:center;gap:6px;padding:0 14px;height:40px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;flex-shrink:0}
+.tab .ic{font-size:15px}
+.tab:hover{color:rgba(255,255,255,.8)}
+.tab.on{color:#fff;border-bottom-color:#fff}
+.wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.main{flex:1;overflow-y:auto;overflow-x:hidden}
+.pg{display:none;padding:22px 24px 60px}
+.pg.on{display:block}
+.pgh{margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid rgba(0,0,0,.1)}
+.pgh-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.pgh-ic{font-size:22px}
+.pgh-t{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.pgh-d{font-size:12px;color:#9b9a97}
+.srch{position:relative;margin-top:10px}
+.srch svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#9b9a97;pointer-events:none}
+.srch input{width:100%;max-width:300px;padding:7px 10px 7px 30px;font-size:12px;font-family:inherit;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:7px;color:#1a1917;outline:none}
+.srch input:focus{border-color:rgba(0,0,0,.25)}
+.sub{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9b9a97;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(0,0,0,.08)}
+.sub:first-of-type{margin-top:0}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:22px}
+table{width:100%;min-width:480px;border-collapse:collapse;font-size:12px}
+th{background:#eeecea;padding:6px 10px;text-align:left;font-weight:600;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5c5b58;border-bottom:1px solid rgba(0,0,0,.12);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid rgba(0,0,0,.07);vertical-align:top}
+tr:hover td{background:#f5f4f1}
+.m{font-family:'Courier New',monospace;font-size:11px;color:#18181b}
+.b{display:inline-block;padding:1px 6px;border-radius:100px;font-size:10px;font-weight:500;white-space:nowrap}
+.bi{background:#dbeafe;color:#1e40af}.ba{background:#dcfce7;color:#166534}.bb{background:#fef3c7;color:#92400e}
+.emp{display:none;text-align:center;padding:28px;color:#9b9a97;font-size:12px}
+.emp svg{display:block;margin:0 auto 8px;opacity:.3}
+.demo{border:1px solid rgba(0,0,0,.09);border-radius:9px;overflow:hidden;margin-bottom:22px}
+.demo-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9b9a97;padding:7px 14px;background:#eeecea;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:6px}
+.demo-lbl::before{content:'';width:5px;height:5px;border-radius:50%;background:#22c55e;display:inline-block}
+.demo-bd{padding:16px 18px;background:#fff;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.orb{position:relative;border-radius:8px;overflow:hidden;padding:16px 18px;isolation:isolate}
+.orb::before,.orb::after{content:'';position:absolute;pointer-events:none;z-index:0;border-radius:50%}
+.orb::before{width:200px;height:200px;top:-60px;right:-40px;background:radial-gradient(circle,rgba(99,179,237,.45) 0%,transparent 70%);filter:blur(32px)}
+.orb::after{width:180px;height:180px;bottom:-40px;left:-30px;background:radial-gradient(circle,rgba(154,230,180,.4) 0%,transparent 70%);filter:blur(32px)}
+.orb > *{position:relative;z-index:1}
+.orb.dk{background:#0e0d0c}
+.orb.dk::before{background:radial-gradient(circle,rgba(66,153,225,.38) 0%,transparent 70%)}
+.orb.dk::after{background:radial-gradient(circle,rgba(72,187,120,.34) 0%,transparent 70%)}
+.qt{width:100%;min-width:540px;border-collapse:collapse;font-size:12.5px}
+.qt th{background:#18181b;color:#fff;padding:8px 12px;text-align:left;font-weight:500;font-size:11px;letter-spacing:.04em}
+.qt td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.07);vertical-align:top}
+.qt tr:hover td{background:#f5f4f1}
+.qt td:first-child{font-weight:600;white-space:nowrap;color:#18181b;width:150px}
+.qt td:nth-child(2){font-family:'Courier New',monospace;font-size:11px;color:#5c5b58}
+.qt td:nth-child(3){font-size:11.5px;color:#9b9a97}
+.warn{color:#dc2626;font-weight:600}
+
+/* 前台 CSS 1:1 */
+.ix{--bg:#ffffff;--bg2:#f4f3f0;--bg3:#eceae5;--text:#111110;--text2:#4a4945;--text3:#88867f;--brd:rgba(0,0,0,.13);--brd2:rgba(0,0,0,.28);--rsm:6px;--rmd:8px;--rlg:12px;--gelbg:rgba(255,255,255,.6);--gelbrd:rgba(0,0,0,.08);--gsht:rgba(255,255,255,.9);--gshb:rgba(255,255,255,.5);--gpsh:rgba(0,0,0,.08);--gind:rgba(255,255,255,.72);--gnav:rgba(255,255,255,.65);--gbrd:rgba(0,0,0,.1);font-family:'Noto Sans TC',system-ui,sans-serif;color:var(--text);font-size:15px}
+.ix.dk{--bg:#0e0d0c;--bg2:#1c1a18;--bg3:#252320;--text:#f0ede8;--text2:#b8b5b0;--text3:#706d68;--brd:rgba(255,255,255,.1);--brd2:rgba(255,255,255,.22);--gelbg:rgba(255,255,255,.07);--gelbrd:rgba(255,255,255,.12);--gsht:rgba(255,255,255,.18);--gshb:rgba(255,255,255,.06);--gpsh:rgba(0,0,0,.3);--gind:rgba(255,255,255,.12);--gnav:rgba(14,13,12,.7);--gbrd:rgba(255,255,255,.12)}
+.ix .gel{background:var(--gelbg);border:1px solid var(--gelbrd);backdrop-filter:blur(12px) saturate(160%);-webkit-backdrop-filter:blur(12px) saturate(160%);box-shadow:inset 0 0 0 1px var(--gsht),inset 1.5px 2px 0 -1.5px var(--gsht),inset -1.5px -2px 0 -1.5px var(--gshb),0 2px 12px 0 var(--gpsh);transition:box-shadow .2s}
+.ix .gel:hover{animation:gst 360ms cubic-bezier(1,0,.4,1)}
+.ix .gcard:hover{animation:gstc 360ms cubic-bezier(1,0,.4,1)}
+@keyframes gst{0%,100%{scale:1 1}45%{scale:1.08 1}}
+@keyframes gstc{0%,100%{scale:1 1}45%{scale:1.04 1}}
+@keyframes npst{0%,100%{scale:1 1}45%{scale:1.2 1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ix .tag,.ix .ntype{font-size:13px;padding:4px 12px;border-radius:100px;color:var(--text2);display:inline-block;background:var(--gelbg);border:1px solid var(--gelbrd);backdrop-filter:blur(12px) saturate(160%);-webkit-backdrop-filter:blur(12px) saturate(160%);box-shadow:inset 0 0 0 1px var(--gsht),inset 1.5px 2px 0 -1.5px var(--gsht),inset -1.5px -2px 0 -1.5px var(--gshb),0 2px 8px 0 var(--gpsh);transition:box-shadow .2s}
+.ix .tag:hover,.ix .ntype:hover{animation:gst 360ms cubic-bezier(1,0,.4,1)}
+.ix .hbadge{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text3);border-radius:100px;padding:5px 14px;white-space:nowrap}
+.ix .hbdot{width:6px;height:6px;background:#22c55e;border-radius:50%;display:inline-block;flex-shrink:0}
+.ix .citem{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--text2);border-radius:100px;padding:8px 18px;text-decoration:none;cursor:pointer}
+.ix .scard{border-radius:var(--rlg);padding:18px}
+.ix .sic{width:34px;height:34px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rmd);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:17px}
+.ix .stl{font-size:15px;font-weight:500;margin-bottom:8px}
+.ix .stlst{display:flex;flex-wrap:wrap;gap:6px}
+.ix .titem{display:flex;align-items:center;gap:8px;font-size:15px;padding:12px 16px;border-radius:var(--rmd);color:var(--text2)}
+.ix .tname{font-weight:500;color:var(--text);font-size:15px}
+.ix .tdesc{font-size:12px;color:var(--text3)}
+.ix .prow{display:grid;grid-template-columns:1fr auto;align-items:start;gap:14px;padding:20px 0;border-bottom:1px solid var(--brd);cursor:pointer}
+.ix .pnum{font-size:13px;color:var(--text3);margin-bottom:5px}
+.ix .ptl{font-size:19px;font-weight:600;margin-bottom:6px;color:var(--text);transition:color .15s}
+.ix .pdsc{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:9px}
+.ix .ptags{display:flex;flex-wrap:wrap;gap:6px}
+.ix .pemp{width:130px;height:73px;border-radius:var(--rmd);border:1px dashed var(--brd);display:flex;align-items:center;justify-content:center;background:var(--bg2)}
+.ix .nitem{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--brd);gap:14px;cursor:pointer;transition:opacity .15s}
+.ix .nitem:first-child{border-top:1px solid var(--brd)}
+.ix .nitem:hover{opacity:.75}
+.ix .ndt{font-size:13px;color:var(--text3);white-space:nowrap}
+.ix .ntl{font-size:16px;color:var(--text)}
+.ix .hnote{font-size:13px;color:var(--text3);padding:9px 12px;border-left:2px solid var(--brd2);background:var(--bg2);border-radius:0 var(--rsm) var(--rsm) 0}
+.ix .skel{background:var(--bg2);border-radius:var(--rsm);display:inline-block;animation:pulse 1.4s ease-in-out infinite}
+.ix .mblock{border-radius:var(--rmd);padding:14px}
+.ix .mblbl{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.ix .mblock ul{list-style:none}
+.ix .mblock li{font-size:14px;color:var(--text2);padding:3px 0;display:flex;gap:7px}
+.ix .mblock li::before{content:"—";color:var(--text3);flex-shrink:0}
+.ix .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ix .mclose{width:30px;height:30px;border-radius:50%;background:var(--bg2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);transition:background .15s}
+.ix .mclose:hover{background:var(--bg3)}
+.ix .navd{background:var(--gnav);border-bottom:1px solid var(--gbrd);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:0 1px 0 var(--gbrd),inset 0 1px 0 var(--gsht);display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 18px;border-radius:8px;overflow:visible;position:relative}
+.ix .nlogo{font-size:15px;font-weight:500;color:var(--text);text-decoration:none}
+.ix .nlinks{position:relative;display:flex;align-items:center;padding:4px;border-radius:99em}
+.ix .nlinks::after{content:"";position:absolute;top:4px;left:4px;width:var(--pw,50px);height:calc(100% - 8px);border-radius:99em;background:var(--gind);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),inset 2px 1px 0 -1px var(--gsht),inset -1.5px -1px 0 -1px var(--gshb),0 2px 8px 0 var(--gpsh);z-index:0;translate:var(--px,0px) 0;transition:translate 400ms cubic-bezier(1,0,.4,1),width 400ms cubic-bezier(1,0,.4,1)}
+.ix .nlinks.hs::after{animation:npst 360ms cubic-bezier(1,0,.4,1)}
+.ix .nlink{position:relative;z-index:1;font-size:13px;color:var(--text2);text-decoration:none;padding:5px 11px;border-radius:99em;border:none;background:none;cursor:pointer;transition:color 200ms;white-space:nowrap;font-family:inherit}
+.ix .nlink:hover{color:var(--text)}
+.ix .nlink.on{color:var(--text);font-weight:500}
+
+/* 後台 CSS 1:1 */
+.adm{--bg:#fff;--bg2:#f8f8f7;--bg3:#f1f0ed;--text:#1a1917;--text2:#5c5b58;--text3:#9b9a97;--brd:rgba(0,0,0,.1);--brd2:rgba(0,0,0,.2);--acc:#18181b;--acct:#fff;--danger:#dc2626;--success:#16a34a;--rsm:6px;--rmd:8px;--rlg:12px;font-family:'Noto Sans TC',system-ui,sans-serif;color:var(--text);font-size:13px}
+.adm .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 14px;border-radius:var(--rmd);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:opacity .15s,background .15s;border:1px solid transparent}
+.adm .bp{background:var(--acc);color:var(--acct)}.adm .bp:hover{opacity:.85}
+.adm .bs{background:var(--bg);color:var(--text2);border-color:var(--brd)}.adm .bs:hover{background:var(--bg2)}
+.adm .bd{background:var(--danger);color:#fff}.adm .bd:hover{opacity:.85}
+.adm .bsm{padding:4px 9px;font-size:11.5px}
+.adm .fi{width:100%;padding:8px 11px;font-size:13px;font-family:inherit;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rmd);color:var(--text);transition:border-color .15s;outline:none}
+.adm .fi:focus{border-color:var(--brd2)}
+.adm .fl{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.adm .fh{font-size:11px;color:var(--text3);margin-top:4px}
+.adm .card{background:var(--bg);border:1px solid var(--brd);border-radius:var(--rlg);padding:18px}
+.adm .ct{font-size:14px;font-weight:500;margin-bottom:3px}
+.adm .cd{font-size:12px;color:var(--text3);margin-bottom:14px}
+.adm .ic{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border-radius:var(--rmd);border:1px solid var(--brd);gap:10px}
+.adm .icl{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.adm .ict{font-size:13px;font-weight:500}
+.adm .icm{font-size:11px;color:var(--text3)}
+.adm .ica{display:flex;gap:5px;flex-shrink:0}
+.adm .tiw{border:1px solid var(--brd);border-radius:var(--rmd);background:var(--bg2);min-height:38px;padding:5px 7px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.adm .tc{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--brd2);border-radius:100px;padding:2px 9px;font-size:12px;color:var(--text);font-weight:500;white-space:nowrap}
+.adm .tcd{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;line-height:1;padding:0}
+.adm .tif{border:none;outline:none;background:transparent;font-size:12.5px;color:var(--text);font-family:inherit;min-width:90px;flex:1;padding:2px 4px}
+.adm .tif::placeholder{color:var(--text3)}
+.adm .gcrd{background:var(--bg);border:1px solid var(--brd);border-radius:var(--rlg);overflow:hidden}
+.adm .ghdr{display:flex;align-items:center;gap:7px;padding:9px 13px;background:var(--bg2);border-bottom:1px solid var(--brd)}
+.adm .gdrag{color:var(--text3);font-size:13px;cursor:grab}
+.adm .gti{flex:1;background:transparent;border:none;outline:none;font-size:13px;font-weight:500;color:var(--text);font-family:inherit}
+.adm .gdel{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1;padding:0 2px}
+.adm .gdel:hover{color:var(--danger)}
+.adm .gbdy{padding:9px 13px}
+.adm .gci{width:100%;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rmd);padding:7px 9px;font-size:13px;color:var(--text);font-family:inherit;outline:none;resize:vertical;min-height:50px;line-height:1.6}
+.adm .tinput{width:100%;padding:9px 0;font-size:26px;font-weight:500;font-family:inherit;background:transparent;border:none;border-bottom:2px solid var(--brd);color:var(--text);outline:none;letter-spacing:-.02em;transition:border-color .15s}
+.adm .tinput:focus{border-bottom-color:var(--brd2)}
+.adm .em{font-size:11.5px;color:var(--danger);min-height:15px}
+.adm .sm{font-size:11.5px;color:var(--success);min-height:15px}
+.adm .sbw{background:var(--bg3);border-radius:4px;height:5px;overflow:hidden;margin:7px 0 5px}
+.adm .sbf{height:100%;border-radius:4px;background:var(--acc);transition:width .4s}
+.adm .sbf.warn{background:#f59e0b}
+.adm .sbf.dng{background:var(--danger)}
+.adm .ni{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:var(--rmd);font-size:13px;color:var(--text2);cursor:pointer;transition:background .1s,color .1s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.adm .ni:hover{background:var(--bg2);color:var(--text)}
+.adm .ni.on{background:var(--bg3);color:var(--text);font-weight:500}
+.adm .ni svg{opacity:.5;flex-shrink:0}
+.adm .ni.on svg{opacity:1}
+
+/* RWD */
+@media(max-width:600px){
+  .hdr-s{display:none}
+  .tab{padding:0 8px;font-size:11.5px;gap:3px;height:36px}
+  .tab .ic{font-size:13px}
+  .pg{padding:14px 12px 48px}
+  .pgh-d{display:none}
+  .srch input{max-width:100%}
+  table{min-width:420px}
+  .qt{min-width:480px}
+  th{font-size:9px;padding:5px 8px}
+  td{padding:6px 8px}
+  .m{white-space:normal;word-break:break-all}
+  .qt td:first-child{width:100px}
+}
+/* ══ 提示詞頁 ══ */
+.pt-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.pt-chip{padding:6px 14px;border-radius:100px;font-size:12.5px;font-weight:500;font-family:inherit;cursor:pointer;border:1px solid rgba(0,0,0,.12);background:#fff;color:#5c5b58;transition:background .1s,color .1s,border-color .1s}
+.pt-chip:hover{background:#f1f0ed;color:#1a1917}
+.pt-chip.on{background:#18181b;color:#fff;border-color:#18181b}
+.pt-desc{font-size:12px;color:#9b9a97;margin-bottom:12px;min-height:16px}
+.pt-editor-wrap{border:1px solid rgba(0,0,0,.12);border-radius:9px;overflow:hidden;margin-bottom:20px}
+.pt-editor-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#eeecea;border-bottom:1px solid rgba(0,0,0,.08)}
+.pt-editor-label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#9b9a97}
+.pt-copy-btn{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;border:1px solid rgba(0,0,0,.15);background:#fff;color:#1a1917;transition:background .1s}
+.pt-copy-btn:hover{background:#f1f0ed}
+.pt-copy-btn.copied{background:#18181b;color:#fff;border-color:#18181b}
+.pt-editor{width:100%;min-height:320px;padding:16px;font-family:'Courier New',monospace;font-size:12.5px;line-height:1.75;color:#1a1917;background:#fff;border:none;outline:none;resize:vertical;tab-size:2}
+.pt-fields-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9b9a97;margin-bottom:10px}
+.pt-fields{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
+.pt-field{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px}
+.pt-field-key{font-family:'Courier New',monospace;font-size:11.5px;font-weight:600;color:#18181b;white-space:nowrap;flex-shrink:0;min-width:160px}
+.pt-field-desc{font-size:12px;color:#5c5b58;line-height:1.5}
+.pt-field-ex{font-size:11px;color:#9b9a97;margin-top:2px}
+@media(max-width:600px){
+  .pt-field{flex-direction:column;gap:4px}
+  .pt-field-key{min-width:unset}
+  .pt-editor{min-height:240px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <span class="hdr-t">Portfolio 元件對照表</span>
+    <span class="hdr-s">index.html x admin.html · 2026.05</span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-pg="prompt" onclick="go('prompt')"><span class="ic">💬</span>提示詞範例</button>
+    <button class="tab" data-pg="mod" onclick="go('mod')"><span class="ic">🔍</span>速查表</button>
+    <button class="tab" data-pg="css" onclick="go('css')"><span class="ic">🎨</span>CSS 樣式</button>
+    <button class="tab" data-pg="js" onclick="go('js')"><span class="ic">⚡</span>JS 函式</button>
+    <button class="tab" data-pg="db" onclick="go('db')"><span class="ic">🗄</span>資料表</button>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="main" id="mn">
+
+<!-- ══ 提示詞範例 ══ -->
+<div class="pg on" id="pg-prompt">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">💬</span><span class="pgh-t">提示詞範例</span></div>
+    <div class="pgh-d">選擇範本後可直接在下方編輯，<code style="background:#eeecea;padding:1px 5px;border-radius:4px;font-size:11px">{{ 大括號 }}</code> 內為可替換的欄位</div>
+  </div>
+
+  <!-- 範本選擇器 -->
+  <div class="pt-chips" id="pt-chips">
+    <button class="pt-chip on" data-tpl="css">🎨 修改 CSS 樣式</button>
+    <button class="pt-chip" data-tpl="newcomp">✨ 新增前台元件</button>
+    <button class="pt-chip" data-tpl="jsfn">⚡ 修改 JS 函式</button>
+    <button class="pt-chip" data-tpl="crud">🗄 後台 CRUD 問題</button>
+    <button class="pt-chip" data-tpl="db">📋 資料表欄位問題</button>
+    <button class="pt-chip" data-tpl="bug">🐛 Bug 回報</button>
+  </div>
+
+  <!-- 範本說明 -->
+  <div class="pt-desc" id="pt-desc"></div>
+
+  <!-- 編輯區 -->
+  <div class="pt-editor-wrap">
+    <div class="pt-editor-hdr">
+      <span class="pt-editor-label">可直接編輯後複製</span>
+      <button class="pt-copy-btn" onclick="copyPrompt()">複製</button>
+    </div>
+    <textarea class="pt-editor" id="pt-editor" spellcheck="false"></textarea>
+  </div>
+
+  <!-- 欄位說明 -->
+  <div class="pt-fields-title">可替換欄位說明</div>
+  <div class="pt-fields" id="pt-fields"></div>
+</div>
+
+<!-- ══ 速查表 ══ -->
+<div class="pg" id="pg-mod">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">🔍</span><span class="pgh-t">速查表</span></div>
+    <div class="pgh-d">你說這個 → 我改哪裡。每次溝通前先查這裡。</div>
+  </div>
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <table class="qt">
+      <thead><tr><th>你說的</th><th>對應位置（檔案 · selector / 函式）</th><th>注意事項</th></tr></thead>
+      <tbody>
+        <tr><td>玻璃效果 / glass-el</td><td>index.html · .glass-el + .tag + .note-type box-shadow 四層（.skill-tag 已合併為 .tag）</td><td>Dark mode 在 [data-theme="dark"] 另有變數</td></tr>
+        <tr><td>Nav 指示器 / pill</td><td>index.html · .nav-links::after + setPillPosition() + movePillTo() + --pill-x / --pill-w</td><td>scroll 跟隨不觸發動畫，hover 才觸發 pillStretch</td></tr>
+        <tr><td>背景光暈球 / orb</td><td>index.html · body::before / body::after + --orb-1 / --orb-2</td><td>position:fixed，z-index:0，filter:blur(80px)</td></tr>
+        <tr><td>深淺色切換 / theme</td><td>index.html · toggleTheme() + applyTheme()，localStorage key="theme"</td><td>三態：system / dark / light，theme-transitioning class 控制過渡</td></tr>
+        <tr><td>骨架屏 / skeleton</td><td>index.html · .skeleton + @keyframes pulse</td><td>HTML 靜態預填，loadData() 後 innerHTML 覆蓋</td></tr>
+        <tr><td>Modal / 彈窗</td><td>index.html · #modal-overlay + .open + openModal() / openNote() / closeModal()</td><td>作品與隨筆共用同一個 modal DOM</td></tr>
+        <tr><td>作品封面 / cover</td><td>index.html · renderProjects() → parseImgArr()[0] → img.onerror 換 .project-cover-empty</td><td>失敗時改為 empty div，不顯示壞圖</td></tr>
+        <tr><td>sections 格 / modal-block</td><td>index.html · openModal() sections loop → .modal-block.glass-el</td><td>sections[].items 以 \n 分隔多行</td></tr>
+        <tr><td>TagInput / 標籤輸入</td><td>admin.html · makeTagInput() + .tag-input-wrap / .tag-chip</td><td>data-init 用 || 分隔初始值；getTagInputValue() 讀值</td></tr>
+        <tr><td>群組編輯 / sections 編輯</td><td>admin.html · makeGroupEditor() → getGroupSections() → JSON.stringify → projects.sections JSONB</td><td>items 以 \n join 後存入</td></tr>
+        <tr><td>富文本 / Quill</td><td>admin.html · makeQuill(id, placeholder, richMode) → content 存 innerHTML</td><td>影片需走 openVideoModal() 轉 YouTube/Vimeo embed URL</td></tr>
+        <tr><td>圖片上傳 / processImage</td><td>admin.html · processImage() 16:9 Canvas 裁切 → uploadImage() → portfolio-images bucket</td><td>JPEG 0.85 壓縮，publicUrl 存 images[]</td></tr>
+        <tr><td>日期區間 / time_range</td><td>admin.html · initDatePickers() + syncManualFromPickers() + toggleOngoing()</td><td>手動文字欄位 ↔ date picker 雙向同步</td></tr>
+        <tr><td>個人資料 / nav_name</td><td>index.html · renderProfile() / admin.html · renderProfilePage() + saveProfile()</td><td class="warn">⚠ nav_name 欄位待確認 Supabase 是否存在</td></tr>
+        <tr><td>Storage 用量</td><td>admin.html · checkStorageUsage() → .storage-bar-fill + .warn / .danger class</td><td>80% → warn（黃），95% → danger（紅）</td></tr>
+        <tr><td>前台 RWD</td><td>index.html · @media (max-width:720px) 平板 / @media (max-width:560px) 手機，.nav 改 position:fixed</td><td>詳見 CSS 樣式頁「前台 RWD 響應式規則」區塊</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ CSS 樣式 ══ -->
+<div class="pg" id="pg-css">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">🎨</span><span class="pgh-t">CSS 樣式</span></div>
+    <div class="pgh-d">設計 Token · Liquid Glass · 動畫 · Nav · 前台元件 · 後台元件</div>
+    <div class="srch">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="搜尋 class 名稱…" oninput="qf(this.value,'pg-css')">
+    </div>
+  </div>
+
+  <div class="sub">設計 Token（CSS 變數）</div>
+  <div class="tw">
+    <table><thead><tr><th>變數</th><th>用途</th><th>Light 值</th><th>所在</th></tr></thead><tbody>
+    <tr><td class="m">--bg / --bg-secondary / --bg-tertiary</td><td>背景三層</td><td>#fff / #f4f3f0 / #eceae5</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--text / --text-secondary / --text-tertiary</td><td>文字三層（主/說明/hint）</td><td>#111110 / #4a4945 / #88867f</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--border / --border-strong</td><td>邊框兩階</td><td>rgba(0,0,0,.13) / .28</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--accent / --accent-text</td><td>強調色（按鈕/active）</td><td>#111110 / #fff</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--radius-sm / md / lg</td><td>圓角三階</td><td>6 / 8 / 12px</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--font-sans / --font-serif</td><td>字型</td><td>Noto Sans TC / Noto Serif TC</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-el-bg / --glass-el-border</td><td>glass-el 背景/邊框</td><td>rgba(255,255,255,.6) / rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-shine-top / --glass-shine-bottom</td><td>玻璃四層 inset shadow 折射光</td><td>rgba(255,255,255,.9) / .5</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-indicator-bg</td><td>Nav Pill 填色</td><td>rgba(255,255,255,.72)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-pill-shadow</td><td>Pill 外陰影</td><td>rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--orb-1 / --orb-2</td><td>背景光暈球顏色</td><td>藍 / 綠漸層</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--nav-bg</td><td>Nav 玻璃背景</td><td>rgba(255,255,255,.65)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--pill-x / --pill-w</td><td>Nav Pill 位移/寬（JS 動態注入）</td><td>由 setPillPosition() 計算</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--danger / --success</td><td>刪除紅 / 成功綠</td><td>#dc2626 / #16a34a</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">--sidebar-w</td><td>後台側欄寬度</td><td>220px</td><td><span class="b ba">後台</span></td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">Liquid Glass 系統</div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .gel（glass-el）Light / Dark，hover 觸發 glassStretch</div>
+    <div class="demo-bd" style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="orb" style="flex:1;min-width:180px;background:#f0ede8">
+        <div class="ix" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="gel" style="padding:7px 16px;border-radius:100px;font-size:13px;color:#4a4945;cursor:pointer">pill</span>
+          <span class="gel" style="padding:10px 16px;border-radius:8px;font-size:13px;color:#4a4945;cursor:pointer">card</span>
+          <span class="tag" style="cursor:pointer">tag</span>
+        </div>
+      </div>
+      <div class="orb dk" style="flex:1;min-width:180px">
+        <div class="ix dk" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="gel" style="padding:7px 16px;border-radius:100px;font-size:13px;color:#b8b5b0;cursor:pointer">Dark pill</span>
+          <span class="gel" style="padding:10px 16px;border-radius:8px;font-size:13px;color:#b8b5b0;cursor:pointer">card</span>
+          <span class="tag" style="cursor:pointer">tag</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>Class</th><th>用途</th><th>技術細節</th></tr></thead><tbody>
+    <tr><td class="m">.glass-el</td><td>玻璃效果 mixin class</td><td>backdrop-filter blur(12px) saturate(160%) + 四層 inset box-shadow</td></tr>
+    <tr><td class="m">.glass-el:hover</td><td>hover 輕伸</td><td>animation: glassStretch 360ms cubic-bezier(1,0,.4,1)</td></tr>
+    <tr><td class="m">.glass-card:hover</td><td>card hover 較小伸展</td><td>animation: glassStretchCard，scale(1.04,1)</td></tr>
+    <tr><td class="m">.tag / .note-type</td><td>全站 tag 共享玻璃外觀（技能/作品/隨筆統一）</td><td>同 .glass-el 的 box-shadow 四層 + backdrop-filter；.skill-tag 已合併為 .tag</td></tr>
+    <tr><td class="m">#glass-distort (SVG filter)</td><td>Nav 玻璃折射噪點</td><td>feTurbulence + feDisplacementMap，scale=0.008</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">@keyframes 動畫</div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — 直接 hover 元件觸發</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8">
+        <div class="ix" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <span class="gel" style="padding:7px 16px;border-radius:100px;font-size:12.5px;color:#4a4945;cursor:pointer">glassStretch ×1.08</span>
+          <span class="gel gcard" style="padding:11px 16px;border-radius:12px;font-size:12.5px;color:#4a4945;cursor:pointer">glassStretchCard ×1.04</span>
+          <span class="tag" style="cursor:pointer">tag ×1.08</span>
+          <span class="skel" style="width:90px;height:13px;border-radius:5px"></span>
+          <span style="font-size:11px;color:#88867f">← pulse</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>名稱</th><th>觸發條件</th><th>效果</th><th>時長</th></tr></thead><tbody>
+    <tr><td class="m">glassStretch</td><td>.glass-el:hover / .tag:hover</td><td>橫向拉伸 scale(1.08,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
+    <tr><td class="m">glassStretchCard</td><td>.glass-card:hover</td><td>card 輕伸 scale(1.04,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
+    <tr><td class="m">pillStretch</td><td>.nav-links.hover-slide::after</td><td>Nav 指示器橫向拉伸 scale(1.2,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
+    <tr><td class="m">pulse</td><td>.skeleton（自動循環）</td><td>opacity 1 → 0.4 → 1</td><td>1.4s ease-in-out infinite</td></tr>
+    <tr><td class="m">theme-transitioning（class）</td><td>toggleTheme() 加在 html 上 550ms</td><td>全站 bg / color / border 0.5s cubic 過渡</td><td>550ms 後移除</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">Nav 元件</div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — 玻璃 Pill 指示器（hover/click 切換，JS 控制 --px / --pw）</div>
+    <div class="demo-bd" style="display:flex;flex-direction:column;gap:10px">
+      <div class="orb" style="background:#f0ede8;padding:10px 14px">
+        <div class="ix">
+          <div class="navd"><a class="nlogo">林艾奭</a>
+            <div class="nlinks" id="nl" style="--px:0px;--pw:44px">
+              <button class="nlink on" data-nv="l">關於</button>
+              <button class="nlink" data-nv="l">作品集</button>
+              <button class="nlink" data-nv="l">隨筆</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="orb dk" style="padding:10px 14px">
+        <div class="ix dk">
+          <div class="navd"><a class="nlogo">林艾奭</a>
+            <div class="nlinks" id="nd" style="--px:0px;--pw:44px">
+              <button class="nlink on" data-nv="d">關於</button>
+              <button class="nlink" data-nv="d">作品集</button>
+              <button class="nlink" data-nv="d">隨筆</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>Class / 元素</th><th>用途</th><th>說明</th></tr></thead><tbody>
+    <tr><td class="m">.nav</td><td>sticky 頂部導覽列</td><td>position:sticky top:0, z-index:100, backdrop-filter:blur(24px)</td></tr>
+    <tr><td class="m">.nav-inner</td><td>寬度限制容器</td><td>max-width:860px, height:60px, flex</td></tr>
+    <tr><td class="m">.nav-logo (#nav-name)</td><td>左側品牌名稱</td><td>由 renderProfile() 填入 profile.nav_name</td></tr>
+    <tr><td class="m">.nav-links::after</td><td>玻璃 Pill 指示器</td><td>--pill-x / --pill-w 由 JS 動態注入，translate 400ms cubic</td></tr>
+    <tr><td class="m">.nav-links.hover-slide::after</td><td>hover 觸發 pillStretch</td><td>mouseenter 加 class，mouseleave 移除</td></tr>
+    <tr><td class="m">.nav-link[data-section]</td><td>導覽連結</td><td>data-section 屬性對應 section id</td></tr>
+    <tr><td class="m">.nav-link.active</td><td>當前區塊高亮</td><td>font-weight:500，由 updateNav() scroll 監聽更新</td></tr>
+    <tr><td class="m">.theme-toggle</td><td>深淺色切換按鈕</td><td>32px 圓形，::after tooltip（data-tip），三態 system/dark/light</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">前台元件（index.html）</div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .hero-badge / .contact-item（glass-el）</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8">
+        <div class="ix" style="display:flex;flex-wrap:wrap;gap:9px;align-items:center">
+          <span class="hbadge gel"><span class="hbdot"></span>UI/UX Designer · 在職中</span>
+          <a class="citem gel"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>zh6502014@gmail.com</a>
+          <span class="citem gel"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>0911-585-420</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .skill-card（glass-el + glass-card）+ .tag（技能 tag 統一用 .tag）</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8">
+        <div class="ix" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+          <div class="scard gel gcard"><div class="sic">🎨</div><div class="stl">UI / UX Design</div><div class="stlst"><span class="tag">Wireframe</span><span class="tag">UI Mockup</span><span class="tag">易用性測試</span></div></div>
+          <div class="scard gel gcard"><div class="sic">🖼</div><div class="stl">Visual Design</div><div class="stlst"><span class="tag">字型學</span><span class="tag">色彩學</span><span class="tag">版面構成</span></div></div>
+          <div class="scard gel gcard"><div class="sic">📐</div><div class="stl">平台設計</div><div class="stlst"><span class="tag">Web UI</span><span class="tag">Mobile UI</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .tool-item（glass-el）</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8">
+        <div class="ix" style="display:flex;flex-wrap:wrap;gap:8px">
+          <div class="titem gel"><div><div class="tname">Figma</div><div class="tdesc">主要設計工具</div></div></div>
+          <div class="titem gel"><div><div class="tname">Adobe XD</div></div></div>
+          <div class="titem gel"><div><div class="tname">Illustrator</div><div class="tdesc">向量繪圖</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .project-row（hover 標題色變）</div>
+    <div class="demo-bd">
+      <div class="ix" style="background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,.09)">
+        <div class="prow" style="padding:18px;border-top:1px solid rgba(0,0,0,.1)">
+          <div><p class="pnum">01</p><h2 class="ptl">永豐數位銀行 UI/UX 專案</h2><p class="pdsc">加入永豐新網銀專案，接手廠商設計稿並建立設計系統，提升行動銀行 APP 使用體驗。</p><div class="ptags"><span class="tag">Design System</span><span class="tag">Mobile UI</span><span class="tag">Web UI</span></div></div>
+          <div style="padding-top:16px"><div class="pemp"><span style="font-size:18px;opacity:.25">🖼</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .note-item + .note-type + .hero-note + .skeleton</div>
+    <div class="demo-bd">
+      <div class="ix" style="background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,.09);padding:12px 14px">
+        <div class="nitem"><span class="ndt">2026.04.25</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span class="ntl">如果我不做設計，我還能做什麼？</span><div style="display:flex;gap:5px"><span class="ntype">自我反思</span></div></div></div>
+        <div class="nitem"><span class="ndt">2026.02.10</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span class="ntl">瘦瘦針革命</span><div style="display:flex;gap:5px"><span class="ntype">讀書心得</span></div></div></div>
+        <div style="margin-top:12px"><p class="hnote" style="max-width:340px">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p></div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center"><span class="skel" style="width:110px;height:13px"></span><span class="skel" style="width:70px;height:13px"></span><span style="font-size:10.5px;color:#88867f">← .skeleton pulse</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .modal-block（glass-el）+ .modal-close（glass-el）</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8">
+        <div class="ix">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:9px"><button class="mclose gel">✕</button></div>
+          <div class="mgrid">
+            <div class="mblock gel"><p class="mblbl">設計目標</p><ul><li>提升 APP 使用體驗</li><li>定義 Design guideline</li><li>建構 Design system</li></ul></div>
+            <div class="mblock gel"><p class="mblbl">使用方法</p><ul><li>啟發式評估</li><li>逆向流程分析</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>Class</th><th>glass-el?</th><th>用途</th><th>說明</th></tr></thead><tbody>
+    <tr><td class="m">.hero-badge</td><td>✅</td><td>首屏狀態標籤</td><td>含 .hero-badge-dot 綠點，border-radius:100px</td></tr>
+    <tr><td class="m">.contact-item</td><td>✅</td><td>Email/Phone 膠囊</td><td>border-radius:100px，含 SVG icon</td></tr>
+    <tr><td class="m">.hero-note</td><td>—</td><td>聯絡備注文字</td><td>border-left:2px solid + bg-secondary 底色</td></tr>
+    <tr><td class="m">.skill-card</td><td>✅ + .glass-card</td><td>技能卡片</td><td>含 .skill-card-icon / -title / -tag-list，hover scale(1.04)</td></tr>
+    <tr><td class="m">.skill-grid</td><td>—</td><td>技能 grid 容器</td><td>grid auto-fit minmax(200px,1fr), gap:14px</td></tr>
+    
+    <tr><td class="m">.tool-item</td><td>✅</td><td>工具膠囊</td><td>含 .tool-name（粗）/ .tool-desc（細）</td></tr>
+    <tr><td class="m">.tools-grid</td><td>—</td><td>工具 flex 容器</td><td>flex-wrap:wrap, gap:10px</td></tr>
+    <tr><td class="m">.project-row</td><td>—</td><td>作品列表行</td><td>grid 1fr auto，hover 標題色變</td></tr>
+    <tr><td class="m">.project-cover / -cover-empty</td><td>—</td><td>作品封面 / 佔位</td><td>160×90px，onerror 換 empty div</td></tr>
+    <tr><td class="m">.project-row-title / -desc / -num</td><td>—</td><td>作品行文字三層</td><td>num 13px 灰，title 22px 600，desc 三行截斷</td></tr>
+    <tr><td class="m">.tag</td><td>✅ 內建</td><td>作品/通用 tag</td><td>共享 glass 外觀，border-radius:100px</td></tr>
+    <tr><td class="m">.note-item</td><td>—</td><td>隨筆列表行</td><td>hover opacity:0.75，date + title + type</td></tr>
+    <tr><td class="m">.note-type</td><td>✅ 內建</td><td>隨筆類型 tag</td><td>共享 glass 外觀</td></tr>
+    <tr><td class="m">.skeleton</td><td>—</td><td>骨架屏佔位</td><td>bg-secondary + pulse 動畫，loadData() 後覆蓋</td></tr>
+    <tr><td class="m">.modal-overlay</td><td>—</td><td>Modal 全屏遮罩</td><td>position:fixed inset:0，.open 觸發 opacity:1</td></tr>
+    <tr><td class="m">.modal</td><td>—</td><td>Modal 主體</td><td>max-height:88vh，translateY(32px)→0 進場</td></tr>
+    <tr><td class="m">.modal-header</td><td>—</td><td>Modal sticky 標頭</td><td>sticky top:0，backdrop-filter</td></tr>
+    <tr><td class="m">.modal-close</td><td>✅</td><td>Modal 關閉鈕</td><td>32px 圓形，✕</td></tr>
+    <tr><td class="m">.modal-block</td><td>✅</td><td>Modal sections 資訊格</td><td>modal-grid 1fr 1fr，含 label + ul</td></tr>
+    <tr><td class="m">.wrapper</td><td>—</td><td>全站寬度限制容器</td><td>max-width:860px，padding:0 40px</td></tr>
+    <tr><td class="m">.sec-label</td><td>—</td><td>區塊小標籤（UPPERCASE）</td><td>font-size:13px，letter-spacing:.1em</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+
+  <div class="sub">前台 RWD 響應式規則（index.html）</div>
+  <div class="tw">
+    <table><thead><tr><th>斷點</th><th>元件</th><th>修改內容</th></tr></thead><tbody>
+    <tr><td rowspan="3" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 720px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">平板</span></td><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 24px</td></tr>
+    <tr><td class="m">.hero</td><td>padding-top:72px / padding-bottom:64px</td></tr>
+    <tr><td class="m">.hero-desc / .skill-grid / .project-row-title</td><td>font-size:18px / minmax(160px) / font-size:19px</td></tr>
+    <tr><td rowspan="14" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 560px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">手機</span></td><td class="m">.nav</td><td>position:fixed（取代 sticky，解決 Android 失效問題）+ left:0 right:0</td></tr>
+    <tr><td class="m">main</td><td>padding-top:60px（補回 fixed nav 佔的空間）</td></tr>
+    <tr><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 18px</td></tr>
+    <tr><td class="m">.hero</td><td>padding-top:56px / padding-bottom:48px</td></tr>
+    <tr><td class="m">.hero-title</td><td>font-size:clamp(32px,9vw,40px)（動態縮放）</td></tr>
+    <tr><td class="m">.hero-desc</td><td>font-size:16px / max-width:100%</td></tr>
+    <tr><td class="m">.hero-contacts</td><td>flex-direction:column / .contact-item width:100%</td></tr>
+    <tr><td class="m">.skill-grid</td><td>grid-template-columns:1fr 1fr（兩欄）/ gap:8px</td></tr>
+    <tr><td class="m">.skill-card / -icon / -title</td><td>padding:14px / icon 縮為 28px / title 13px</td></tr>
+    <tr><td class="m">.tool-item</td><td>font-size:14px / padding:10px 14px</td></tr>
+    <tr><td class="m">.project-row</td><td>grid-template-columns:1fr（單欄）/ cover 縮為 100×56px</td></tr>
+    <tr><td class="m">.note-item</td><td>flex-wrap:wrap / gap:8px</td></tr>
+    <tr><td class="m">.modal-header / -body / -grid</td><td>padding 縮小 / modal-grid 改單欄 / title 20px</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">後台元件（admin.html）</div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .btn 系統（primary / secondary / danger / sm）</div>
+    <div class="demo-bd">
+      <div class="adm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <button class="btn bp">儲存</button>
+        <button class="btn bs">取消</button>
+        <button class="btn bd">刪除</button>
+        <button class="btn bs bsm">編輯</button>
+        <button class="btn bd bsm">✕</button>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .form-input / .title-input / .form-label / 狀態訊息</div>
+    <div class="demo-bd">
+      <div class="adm" style="display:flex;flex-direction:column;gap:12px">
+        <input class="tinput" placeholder="作品標題（大字底線輸入框）" style="max-width:380px">
+        <div><label class="fl">標籤</label><input class="fi" placeholder="輸入欄位" style="max-width:280px"><p class="fh">用 · 分隔多個項目</p></div>
+        <div style="display:flex;gap:16px"><span class="em">＊ 標題不可為空</span><span class="sm">已儲存</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — TagInput（.tag-input-wrap + .tag-chip）</div>
+    <div class="demo-bd">
+      <div class="adm">
+        <label class="fl">作品標籤</label>
+        <div class="tiw" style="max-width:380px">
+          <span class="tc">Design System<button class="tcd">×</button></span>
+          <span class="tc">Mobile UI<button class="tcd">×</button></span>
+          <span class="tc">Web UI<button class="tcd">×</button></span>
+          <input class="tif" placeholder="輸入後按 Enter 新增">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .item-card / .card（後台列表）</div>
+    <div class="demo-bd">
+      <div class="adm">
+        <div class="card" style="padding:14px">
+          <div class="ct">設計技能管理</div><div class="cd">新增、編輯、刪除技能卡片</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div class="ic"><div class="icl"><span style="font-size:18px">🎨</span><div><div class="ict">UI / UX Design</div><div class="icm">Wireframe · UI Mockup · 易用性測試</div></div></div><div class="ica"><button class="btn bs bsm">編輯</button><button class="btn bd bsm">刪除</button></div></div>
+            <div class="ic"><div class="icl"><span style="font-size:18px">🖼</span><div><div class="ict">Visual Design</div><div class="icm">字型學 · 色彩學 · 版面構成</div></div></div><div class="ica"><button class="btn bs bsm">編輯</button><button class="btn bd bsm">刪除</button></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — .group-card（Sections 群組編輯器）+ Storage Bar</div>
+    <div class="demo-bd" style="display:flex;flex-direction:column;gap:12px">
+      <div class="adm">
+        <div class="gcrd"><div class="ghdr"><span class="gdrag">⋮⋮</span><input class="gti" value="設計目標"><button class="gdel">×</button></div><div class="gbdy"><textarea class="gci" rows="2">提升 APP 使用體驗&#10;定義 Design guideline</textarea></div></div>
+      </div>
+      <div class="adm" style="background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:11px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9b9a97;margin-bottom:5px;display:flex;justify-content:space-between"><span>Storage</span><span>2.4 MB / 5 GB</span></div>
+        <div class="sbw"><div class="sbf" style="width:48%"></div></div>
+        <div style="font-size:10.5px;color:#9b9a97;display:flex;justify-content:space-between;margin-top:3px"><span>2.4 MB 已使用</span><span>5 GB 上限</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — 後台 .nav-item（sidebar）</div>
+    <div class="demo-bd">
+      <div class="adm" style="background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:6px;max-width:190px">
+        <button class="ni on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>個人資料</button>
+        <button class="ni"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>設計技能</button>
+        <button class="ni"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>作品集</button>
+        <button class="ni"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>隨筆</button>
+      </div>
+    </div>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>Class</th><th>用途</th><th>說明</th></tr></thead><tbody>
+    <tr><td class="m">.btn / .btn-primary / -secondary / -danger / -sm</td><td>按鈕系統</td><td>base + 4 變體，13px 500 weight</td></tr>
+    <tr><td class="m">.form-input / .form-textarea</td><td>表單輸入框</td><td>bg-secondary，focus border-strong</td></tr>
+    <tr><td class="m">.form-label / .form-hint</td><td>輸入框標籤/提示</td><td>label 12px 500，hint 11px text3</td></tr>
+    <tr><td class="m">.title-input</td><td>大標題輸入框（26px 底線）</td><td>只有 border-bottom，透明背景</td></tr>
+    <tr><td class="m">.form-row / .form-row-2</td><td>表單列 / 雙欄</td><td>form-row-2 = grid 1fr 1fr, gap:14px</td></tr>
+    <tr><td class="m">.tag-input-wrap / .tag-chip / .tag-dropdown</td><td>TagInput 元件 UI</td><td>chip = bg-tertiary + border-strong + 100px</td></tr>
+    <tr><td class="m">.item-card / -left / -title / -meta / -actions</td><td>列表行</td><td>flex space-between，left + actions</td></tr>
+    <tr><td class="m">.card / .card-title / .card-desc</td><td>後台內容區塊</td><td>bg + border + border-radius-lg + padding:24px</td></tr>
+    <tr><td class="m">.group-card / .group-header / .group-body</td><td>Sections 群組編輯</td><td>可拖曳，title-input + content-input</td></tr>
+    <tr><td class="m">.date-range-wrap / .date-range-pickers</td><td>日期區間選擇器</td><td>雙 picker + 手動輸入 + 進行中 checkbox</td></tr>
+    <tr><td class="m">.ql-* overrides</td><td>Quill 樣式覆寫</td><td>toolbar / container / editor 三層，自訂 tooltip</td></tr>
+    <tr><td class="m">.video-modal-card</td><td>嵌入影片 URL 浮層</td><td>floating modal，input + 確認/取消</td></tr>
+    <tr><td class="m">.storage-widget / .storage-bar-fill</td><td>Storage 用量條</td><td>80% → .warn（黃），95% → .danger（紅）</td></tr>
+    <tr><td class="m">.nav-item / .nav-item.active</td><td>後台 sidebar 項目</td><td>active = bg-tertiary + font-weight:500</td></tr>
+    <tr><td class="m">.error-msg / .success-msg</td><td>表單狀態訊息</td><td>min-height:16px，red / green</td></tr>
+    <tr><td class="m">.login-card</td><td>登入卡片</td><td>max-width:380px，居中</td></tr>
+    <tr><td class="m">.img-upload-area / .img-preview-grid / .img-preview-item</td><td>圖片上傳 drop zone / 預覽格</td><td>drop zone 虛線框，preview-grid = flex wrap</td></tr>
+    <tr><td class="m">.single-date-wrap / .single-date-row</td><td>隨筆單日期選擇器</td><td>date picker + 手動文字欄位</td></tr>
+    <tr><td class="m">.ac-tag-chip / .tag-badge</td><td>TagInput autocomplete chip / 歷史標籤</td><td>autocomplete 下拉內的已選與建議項目</td></tr>
+    <tr><td class="m">.config-card / .config-steps / .config-step</td><td>首次設定引導卡片</td><td>setup banner，未設定 Supabase 時顯示</td></tr>
+    <tr><td class="m">.page-header / .page-title / .page-desc</td><td>後台各頁面標題區</td><td>flex space-between，含 page-title + action 按鈕</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+</div>
+
+<!-- ══ JS 函式 ══ -->
+<div class="pg" id="pg-js">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">⚡</span><span class="pgh-t">JS 函式</span></div>
+    <div class="pgh-d">前台、後台、共用工具函式完整清單</div>
+    <div class="srch">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="搜尋函式名稱…" oninput="qf(this.value,'pg-js')">
+    </div>
+  </div>
+
+  <div class="sub">前台函式（index.html）</div>
+  <div class="tw">
+    <table><thead><tr><th>函式</th><th>觸發</th><th>功能</th></tr></thead><tbody>
+    <tr><td class="m">loadData()</td><td>頁面載入自動執行</td><td>Promise.all 並行拉取 profile/skills/tools/projects/notes 5 張表；失敗走 renderFallback()</td></tr>
+    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）</td></tr>
+    <tr><td class="m">renderSkills(data)</td><td>loadData()</td><td>createElement 建 .skill-card grid（icon / title / tags[]）</td></tr>
+    <tr><td class="m">renderTools(data)</td><td>loadData()</td><td>createElement 建 .tool-item（name / description）</td></tr>
+    <tr><td class="m">renderProjects(data)</td><td>loadData()</td><td>createElement 建 .project-row，parseImgArr() 取封面，img.onerror → empty div</td></tr>
+    <tr><td class="m">renderNotes(data)</td><td>loadData()</td><td>innerHTML 建 .note-item，note_type 以 · 分隔解析成多個 .note-type span</td></tr>
+    <tr><td class="m">renderFallback()</td><td>loadData() catch</td><td>Supabase 失敗時顯示靜態備用資料（4 作品 + 5 隨筆）</td></tr>
+    <tr><td class="m">openModal(id)</td><td>project-row onclick</td><td>填 modal header（tags / time / meta）+ body（封面 / sections grid / content rich text）</td></tr>
+    <tr><td class="m">openNote(id)</td><td>note-item onclick</td><td>填 modal（title / date / note-type / content rich text）</td></tr>
+    <tr><td class="m">closeModal()</td><td>✕ / ESC / overlay click</td><td>移除 .open class，還原 body overflow:auto</td></tr>
+    <tr><td class="m">handleOverlayClick(e)</td><td>modal-overlay onclick</td><td>點擊遮罩非 modal 本體時呼叫 closeModal()</td></tr>
+    <tr><td class="m">updateNav()</td><td>scroll 事件（passive）</td><td>根據 scrollY 決定 .nav-link.active，呼叫 setPillPosition()</td></tr>
+    <tr><td class="m">setPillPosition(link)</td><td>updateNav() / 初始化</td><td>更新 --pill-x / --pill-w CSS var，無動畫（平移跟隨）</td></tr>
+    <tr><td class="m">movePillTo(link)</td><td>nav-link mouseenter / mouseleave</td><td>更新 pill 位置 + 加 hover-slide class 觸發 pillStretch 動畫</td></tr>
+    <tr><td class="m">getPillMetrics(link)</td><td>setPillPosition / movePillTo 內部</td><td>計算 link 相對 .nav-links 的 x 偏移與寬度</td></tr>
+    <tr><td class="m">toggleTheme()</td><td>theme-toggle onclick</td><td>system → dark → light 三態循環，存 localStorage key="theme"</td></tr>
+    <tr><td class="m">applyTheme(theme)</td><td>toggleTheme / 頁面初始 / matchMedia change</td><td>設 html[data-theme]，更新按鈕 emoji 與 data-tip tooltip</td></tr>
+    <tr><td class="m">getTheme() / getSystemTheme()</td><td>applyTheme 內部</td><td>讀 localStorage / matchMedia prefers-color-scheme</td></tr>
+    <tr><td class="m">parseImgArr(val)</td><td>renderProjects / openModal 內部</td><td>images 欄位解析：JSON string / Array / null → string[]</td></tr>
+    <tr><td class="m">stripHtml(html)</td><td>renderProjects 內部</td><td>innerHTML → 純文字（description 截斷用）</td></tr>
+    <tr><td class="m">formatDate(d)</td><td>renderNotes / openNote 內部</td><td>"2026-01-01" → "2026.01.01"</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">後台函式（admin.html）</div>
+  <div class="tw">
+    <table><thead><tr><th>函式 / 群組</th><th>分類</th><th>功能</th></tr></thead><tbody>
+    <tr><td class="m">boot()</td><td>啟動</td><td>讀 localStorage sb_config → initSupabase() → checkAuth()；失敗顯示 setup banner</td></tr>
+    <tr><td class="m">getConfig() / saveConfig() / resetConfig()</td><td>Config</td><td>讀寫 localStorage sb_config（Supabase URL / anon key）</td></tr>
+    <tr><td class="m">initSupabase(url, key)</td><td>連線</td><td>建立全域 sbClient（Supabase JS client）</td></tr>
+    <tr><td class="m">doLogin() / doLogout()</td><td>Auth</td><td>email/password signInWithPassword，signOut 清狀態回登入畫面</td></tr>
+    <tr><td class="m">registerAndLogin()</td><td>Auth</td><td>首次設定時 signUp + signIn</td></tr>
+    <tr><td class="m">showApp() / showPage(name, btn)</td><td>路由</td><td>隱藏 login，顯示 #app，切換 .page[data-page] 與 nav-item.active</td></tr>
+    <tr><td class="m">toast(msg, duration)</td><td>通知</td><td>右下角 toast，createElement，2.2s 後自動消失</td></tr>
+    <tr><td class="m">renderProfilePage() / saveProfile()</td><td>Profile</td><td>載入並 upsert profile 表（nav_name/name/description/email/phone/note）</td></tr>
+    <tr><td class="m">renderSkillsPage() / loadSkills() / addSkill() / editSkill(id) / renderSkillForm(skill) / saveSkill(id) / deleteSkill(id)</td><td>Skills CRUD</td><td>icon / title / tags[] / sort_order</td></tr>
+    <tr><td class="m">renderToolsPage() / loadTools() / editTool(id) / renderToolForm(tool) / saveTool(id) / deleteTool(id)</td><td>Tools CRUD</td><td>name / description / sort_order</td></tr>
+    <tr><td class="m">renderProjectsPage() / loadProjects() / editProject(id) / renderProjectForm(proj) / saveProject(id) / deleteProject(id)</td><td>Projects CRUD</td><td>含 Quill content / sections JSONB / images[] / tags / time_range / members / published</td></tr>
+    <tr><td class="m">initProjectImageArea(projId, existingUrls) / renderProjectImageArea()</td><td>封面圖</td><td>上傳/預覽/刪除，processImage → uploadImage，狀態存 window._imgState</td></tr>
+    <tr><td class="m">renderNotesPage() / loadNotes() / editNote(id) / renderNoteForm(note) / saveNote(id) / deleteNote(id)</td><td>Notes CRUD</td><td>title / content / note_type / note_date / published / sort_order</td></tr>
+    <tr><td class="m">makeGroupEditor(containerId, sections) / renderGroupEditor() / removeGroup(gi) / getGroupSections()</td><td>Sections 編輯器</td><td>可拖曳群組清單，getGroupSections() 回傳 JSONB，JSON.stringify 存 projects.sections</td></tr>
+    <tr><td class="m">makeQuill(id, placeholder, richMode) / attachQuillTooltips(id)</td><td>富文本</td><td>初始化 Quill 1.3.7，richMode=true 開完整工具列</td></tr>
+    <tr><td class="m">openVideoModal(quillId) / insertVideo() / closeVideoModal() / convertToEmbedUrl(url)</td><td>影片嵌入</td><td>攔截 Quill video 按鈕，轉換 YouTube/Vimeo URL 為 embed，插入 iframe</td></tr>
+    <tr><td class="m">initDatePickers(timeRange) / syncManualFromPickers() / syncDatePickersFromManual() / toggleOngoing()</td><td>日期區間</td><td>雙 picker ↔ 手動文字雙向同步，進行中 checkbox 設 end=null</td></tr>
+    <tr><td class="m">initNoteDatePicker(dateStr) / syncNoteDateManualFromPicker() / syncNoteDatePickerFromManual()</td><td>單日期</td><td>隨筆單一日期 picker ↔ 文字欄位同步</td></tr>
+    <tr><td class="m">checkStorageUsage()</td><td>Storage</td><td>列舉 portfolio-images bucket，計算總 MB，更新 .storage-bar-fill 寬度與 warn/danger class</td></tr>
+    <tr><td class="m">makeImageUploader(containerId, existingUrls, onChangeCb)</td><td>圖片上傳</td><td>drop zone + preview grid + 刪除，呼叫 processImage → uploadImage</td></tr>
+    <tr><td class="m">formatNoteDate(d) / parseNoteDate(s)</td><td>日期工具</td><td>隨筆日期格式雙向轉換</td></tr>
+    <tr><td class="m">render() 系列</td><td>UI 更新</td><td>renderChips() renderDropdown() renderPreviews() 等 TagInput / 圖片 UI 子函式</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">共用工具函式</div>
+  <div class="tw">
+    <table><thead><tr><th>函式</th><th>功能</th><th>所在</th></tr></thead><tbody>
+    <tr><td class="m">parseImgArr(val)</td><td>images 欄位解析：JSON string / Array / null → string[]</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">stripHtml(html)</td><td>innerHTML → 純文字（作品 description 截斷用）</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">formatDate(d)</td><td>"2026-01-01" → "2026.01.01"</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">formatMonthDisplay(ym)</td><td>"2026-01" → "2026 年 01 月"</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">formatNoteDate(d) / parseNoteDate(s)</td><td>隨筆日期格式雙向轉換</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">processImage(file)</td><td>Canvas 16:9 裁切 + JPEG 0.85 壓縮 → Blob</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">uploadImage(file, bucket)</td><td>上傳至 Supabase Storage portfolio-images，回傳 publicUrl</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">makeImageUploader(containerId, existingUrls, onChangeCb)</td><td>圖片上傳 UI 元件（drop zone + preview + 刪除）</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">makeTagInput(containerId, acKey, options)</td><td>TagInput 元件工廠，multi / single 模式，含 autocomplete dropdown</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">getTagInputValue(containerId)</td><td>讀取 TagInput 當前 selected[]</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">acLoad(key) / acSave(key, values)</td><td>localStorage autocomplete 歷史讀寫</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">tagToggleOption / tagAddNew / tagRemoveChip / tagDelHistory / tagEditHistory</td><td>TagInput 操作子函式群</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">syncHidden(containerId)</td><td>TagInput 同步 hidden input 值（供 form submit）</td><td><span class="b ba">後台</span></td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+</div>
+
+<!-- ══ 資料表 ══ -->
+<div class="pg" id="pg-db">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">🗄</span><span class="pgh-t">資料表</span></div>
+    <div class="pgh-d">Supabase 5 張表 × 欄位 × 前後台對應</div>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>資料表</th><th>欄位</th><th>前台讀取</th><th>後台寫入</th><th>備注</th></tr></thead><tbody>
+    <tr>
+      <td class="m">profile</td>
+      <td>nav_name TEXT<br>name TEXT<br>description TEXT<br>email TEXT<br>phone TEXT<br>note TEXT</td>
+      <td>renderProfile(p)</td>
+      <td>saveProfile()</td>
+      <td>.single() 唯一一筆<br><span class="warn">⚠ nav_name 待確認</span></td>
+    </tr>
+    <tr>
+      <td class="m">skills</td>
+      <td>id UUID<br>icon TEXT<br>title TEXT<br>tags TEXT[]<br>sort_order INT</td>
+      <td>renderSkills(data)</td>
+      <td>saveSkill(id)<br>deleteSkill(id)</td>
+      <td>tags 為 PostgreSQL text[]</td>
+    </tr>
+    <tr>
+      <td class="m">tools</td>
+      <td>id UUID<br>name TEXT<br>description TEXT<br>sort_order INT</td>
+      <td>renderTools(data)</td>
+      <td>saveTool(id)<br>deleteTool(id)</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td class="m">projects</td>
+      <td>id UUID<br>title TEXT<br>description TEXT<br>content TEXT（Quill HTML）<br>sections JSONB<br>tags TEXT[]<br>images TEXT[]<br>time_range TEXT<br>members TEXT<br>published BOOL<br>sort_order INT</td>
+      <td>renderProjects(data)<br>openModal(id)</td>
+      <td>saveProject(id)<br>deleteProject(id)</td>
+      <td>published=true 才前台顯示<br>sections JSONB 存群組陣列</td>
+    </tr>
+    <tr>
+      <td class="m">notes</td>
+      <td>id UUID<br>title TEXT<br>content TEXT（Quill HTML）<br>note_type TEXT<br>note_date DATE<br>published BOOL<br>sort_order INT</td>
+      <td>renderNotes(data)<br>openNote(id)</td>
+      <td>saveNote(id)<br>deleteNote(id)</td>
+      <td>無 images 欄位<br>note_type 以 · 分隔多類型</td>
+    </tr>
+    </tbody></table>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+function go(id) {
+  var i, pages, tabs, pg, tab, mn, inputs, rows, emps;
+  pages = document.querySelectorAll('.pg');
+  for (i = 0; i < pages.length; i++) { pages[i].classList.remove('on'); }
+  pg = document.getElementById('pg-' + id);
+  if (pg) { pg.classList.add('on'); }
+  mn = document.getElementById('mn');
+  if (mn) { mn.scrollTop = 0; }
+  tabs = document.querySelectorAll('.tab');
+  for (i = 0; i < tabs.length; i++) { tabs[i].classList.remove('on'); }
+  tab = document.querySelector('.tab[data-pg="' + id + '"]');
+  if (tab) { tab.classList.add('on'); }
+  inputs = document.querySelectorAll('.srch input');
+  for (i = 0; i < inputs.length; i++) { inputs[i].value = ''; }
+  rows = document.querySelectorAll('tbody tr');
+  for (i = 0; i < rows.length; i++) { rows[i].style.display = ''; }
+  emps = document.querySelectorAll('.emp');
+  for (i = 0; i < emps.length; i++) { emps[i].style.display = 'none'; }
+  // CSS 頁切入時才初始化 Nav demo（元素顯示後再算位置）
+  if (id === 'css') {
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        initNav('nl');
+        initNav('nd');
+      });
+    });
+  }
+}
+
+function qf(q, pgId) {
+  var i, k, lower, pg, rows, wraps, trs, visible, tbl, emp;
+  lower = q.toLowerCase();
+  pg = document.getElementById(pgId);
+  if (!pg) { return; }
+  rows = pg.querySelectorAll('tbody tr');
+  for (i = 0; i < rows.length; i++) {
+    rows[i].style.display = (!lower || rows[i].textContent.toLowerCase().indexOf(lower) !== -1) ? '' : 'none';
+  }
+  wraps = pg.querySelectorAll('.tw');
+  for (i = 0; i < wraps.length; i++) {
+    tbl = wraps[i].querySelector('table');
+    emp = wraps[i].querySelector('.emp');
+    if (!tbl || !emp) { continue; }
+    trs = tbl.querySelectorAll('tbody tr');
+    visible = false;
+    for (k = 0; k < trs.length; k++) {
+      if (trs[k].style.display !== 'none') { visible = true; break; }
+    }
+    emp.style.display = visible ? 'none' : 'block';
+  }
+}
+
+function initNav(id) {
+  var i, nav, links;
+  nav = document.getElementById(id);
+  if (!nav) { return; }
+  links = nav.querySelectorAll('.nlink');
+
+  function movePill(link, stretch) {
+    var nr = nav.getBoundingClientRect();
+    var lr = link.getBoundingClientRect();
+    var x = lr.left - nr.left - 4;
+    var w = lr.width;
+    if (stretch) {
+      nav.classList.remove('hs');
+      void nav.offsetWidth;
+      nav.classList.add('hs');
+    }
+    nav.style.setProperty('--px', x + 'px');
+    nav.style.setProperty('--pw', w + 'px');
+  }
+
+  for (i = 0; i < links.length; i++) {
+    (function(link) {
+      link.addEventListener('mouseenter', function() { movePill(link, true); });
+      link.addEventListener('click', function() {
+        var j;
+        for (j = 0; j < links.length; j++) { links[j].classList.remove('on'); }
+        link.classList.add('on');
+        movePill(link, true);
+      });
+    })(links[i]);
+  }
+
+  if (nav.parentElement) {
+    nav.parentElement.addEventListener('mouseleave', function() {
+      var a = nav.querySelector('.on');
+      if (a) { movePill(a, false); }
+    });
+  }
+
+  setTimeout(function() {
+    var a = nav.querySelector('.on');
+    if (a) { movePill(a, false); }
+  }, 100);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderTemplate('css');
+});
+/* ══ 提示詞範本資料 ══ */
+var TEMPLATES = {
+  css: {
+    desc: '修改任何 CSS 樣式時使用，包含元件外觀、動畫、Token 變數調整',
+    tpl: [
+      '## 修改 CSS 樣式',
+      '',
+      '**頁面**：{{ index.html / admin.html }}',
+      '**元件**：{{ 元件 class 名稱，例如 .skill-card / .glass-el / .nav-links::after }}',
+      '',
+      '### 預期',
+      '{{ 描述你希望看到的結果，例如：玻璃效果 hover 時縮放幅度改小一點 }}',
+      '',
+      '### 實際',
+      '{{ 描述目前的狀況，例如：目前 glassStretch 動畫 scale(1.08,1) 感覺太大 }}',
+      '',
+      '### 補充',
+      '{{ 選填：截圖說明、數值建議、參考設計稿，沒有可刪除此段 }}'
+    ].join('\n'),
+    fields: [
+      { key: '{{ 頁面 }}', desc: '指定要改哪個檔案', ex: 'index.html 或 admin.html' },
+      { key: '{{ 元件 class 名稱 }}', desc: '對照 CSS 樣式頁找到的 class，要精確', ex: '.glass-el、.nav-links::after、.skill-card' },
+      { key: '{{ 預期 }}', desc: '你想要的最終樣子，越具體越好', ex: '玻璃 pill hover 時只有輕微放大，不要橫向拉伸' },
+      { key: '{{ 實際 }}', desc: '目前看到的問題', ex: '目前 glassStretch 動畫 scale(1.08,1) 太誇張' },
+      { key: '{{ 補充 }}', desc: '截圖、數值、參考連結（選填）', ex: '可附 F12 截圖或建議的 px/ms 數值' }
+    ]
+  },
+  newcomp: {
+    desc: '在前台新增一個視覺元件，例如新的 section、card 樣式、互動元素',
+    tpl: [
+      '## 新增前台元件',
+      '',
+      '**位置**：{{ 要放在哪個 section，例如 hero 區 / projects 區下方 }}',
+      '**元件名稱**：{{ 自訂一個 class 名稱，例如 .highlight-banner }}',
+      '',
+      '### 功能描述',
+      '{{ 這個元件要做什麼，例如：顯示一行強調文字 + 背景色帶 }}',
+      '',
+      '### 視覺要求',
+      '- 玻璃效果：{{ 要 / 不要 }}',
+      '- 深色模式支援：{{ 要 / 不要 }}',
+      '- hover 動畫：{{ 要 / 不要，要的話描述效果 }}',
+      '',
+      '### 資料來源',
+      '{{ 靜態寫死 / 從 Supabase 哪張表的哪個欄位讀取 }}',
+      '',
+      '### 參考',
+      '{{ 選填：截圖、設計稿，沒有可刪除 }}'
+    ].join('\n'),
+    fields: [
+      { key: '{{ 位置 }}', desc: '插入在哪個 section 裡或哪個元素之後', ex: 'hero 區 .hero-contacts 下方' },
+      { key: '{{ 元件名稱 }}', desc: '給新元件取一個 class 名稱', ex: '.highlight-banner、.award-badge' },
+      { key: '{{ 功能描述 }}', desc: '元件的用途與內容', ex: '顯示一段強調文字和一個圖示' },
+      { key: '{{ 玻璃效果 }}', desc: '是否要套 .glass-el 樣式', ex: '要（套用 glass-el）/ 不要' },
+      { key: '{{ 資料來源 }}', desc: '內容從哪來', ex: '靜態寫死 / 從 profile 表的 note 欄位' }
+    ]
+  },
+  jsfn: {
+    desc: '修改既有 JS 函式的行為邏輯，例如改 render 方式、Modal 觸發條件、Nav 動畫',
+    tpl: [
+      '## 修改 JS 函式行為',
+      '',
+      '**頁面**：{{ index.html / admin.html }}',
+      '**函式名稱**：{{ 對照 JS 函式頁，例如 renderProjects / openModal / movePillTo }}',
+      '',
+      '### 目前行為',
+      '{{ 描述函式現在做什麼，例如：renderProjects() 只取 images[0] 當封面 }}',
+      '',
+      '### 期望行為',
+      '{{ 描述你想改成什麼，例如：如果 images[0] 不存在才顯示 empty div，否則顯示圖片 }}',
+      '',
+      '### 影響範圍',
+      '{{ 這個改動會影響哪些畫面或元件，例如：只影響 projects 列表 }}',
+      '',
+      '### Console 錯誤（如有）',
+      '{{ 貼上 F12 Console 的錯誤訊息，沒有可刪除 }}'
+    ].join('\n'),
+    fields: [
+      { key: '{{ 函式名稱 }}', desc: '對照「JS 函式」頁的函式清單找到正確名稱', ex: 'renderProjects、openModal、updateNav' },
+      { key: '{{ 目前行為 }}', desc: '現在這個函式做了什麼', ex: 'renderProjects() 只顯示 published=true 的作品' },
+      { key: '{{ 期望行為 }}', desc: '你想要改成什麼樣的邏輯', ex: '還要依 sort_order 排序後再渲染' },
+      { key: '{{ 影響範圍 }}', desc: '改動後哪些畫面會變', ex: '只影響前台 projects section' },
+      { key: '{{ Console 錯誤 }}', desc: 'F12 Console 的錯誤，有助於快速定位', ex: 'TypeError: Cannot read properties of null' }
+    ]
+  },
+  crud: {
+    desc: '後台新增/編輯/刪除功能出問題，或要新增一個 CRUD 頁面',
+    tpl: [
+      '## 後台 CRUD 問題',
+      '',
+      '**資料表**：{{ 對照資料表頁，例如 projects / skills / notes }}',
+      '**操作**：{{ 新增 / 編輯 / 刪除 / 讀取 }}',
+      '**對應函式**：{{ 對照 JS 函式頁，例如 saveProject / deleteSkill }}',
+      '',
+      '### 問題描述',
+      '{{ 描述操作步驟與發生的問題 }}',
+      '1. {{ 步驟一，例如：在後台作品集頁點擊新增 }}',
+      '2. {{ 步驟二，例如：填寫標題後按儲存 }}',
+      '3. {{ 步驟三，例如：畫面無反應 / 顯示錯誤 }}',
+      '',
+      '### 預期結果',
+      '{{ 正確情況下應該發生什麼，例如：儲存後 toast 顯示「已儲存」並回到列表 }}',
+      '',
+      '### F12 Console 錯誤',
+      '{{ 貼上錯誤訊息，沒有可刪除 }}',
+      '',
+      '### 相關欄位（如有異動）',
+      '{{ 例如：新增了 cover_url TEXT 欄位，需要前後台同步處理 }}'
+    ].join('\n'),
+    fields: [
+      { key: '{{ 資料表 }}', desc: '對照「資料表」頁，確認操作的是哪張表', ex: 'projects、skills、notes' },
+      { key: '{{ 操作 }}', desc: '是新增、編輯、刪除還是讀取', ex: '新增 / 編輯 / 刪除 / 讀取' },
+      { key: '{{ 對應函式 }}', desc: '對照「JS 函式」頁後台函式清單', ex: 'saveProject、deleteSkill、loadNotes' },
+      { key: '{{ 步驟 }}', desc: '重現問題的操作步驟，越清楚越好', ex: '1. 點擊新增 2. 填標題 3. 按儲存 → 無反應' },
+      { key: '{{ 相關欄位 }}', desc: '若涉及欄位新增或修改，說明欄位名稱與類型', ex: 'cover_url TEXT、is_featured BOOL' }
+    ]
+  },
+  db: {
+    desc: '資料表欄位不存在、類型有誤、前後台讀寫不一致等問題',
+    tpl: [
+      '## 資料表欄位問題',
+      '',
+      '**資料表**：{{ 例如 profile / projects / notes }}',
+      '**欄位名稱**：{{ 例如 nav_name / sections / images }}',
+      '',
+      '### 問題類型',
+      '{{ 欄位不存在 / 欄位類型不符 / 前後台讀寫不一致 / 其他 }}',
+      '',
+      '### 問題描述',
+      '{{ 例如：後台 saveProfile() 寫入 nav_name，但 Supabase profile 表沒有這個欄位 }}',
+      '',
+      '### 目前 Supabase 欄位狀態',
+      '{{ 你在 Supabase Table Editor 看到的實際欄位清單，貼上或描述 }}',
+      '',
+      '### 期望修正方式',
+      '{{ 例如：在 Supabase 補建 nav_name TEXT 欄位，或改前台讀取的 key 名稱 }}'
+    ].join('\n'),
+    fields: [
+      { key: '{{ 資料表 }}', desc: '對照「資料表」頁確認表名', ex: 'profile、projects、skills' },
+      { key: '{{ 欄位名稱 }}', desc: '有問題的欄位名稱，要和程式碼裡用的一致', ex: 'nav_name、sections、images' },
+      { key: '{{ 問題類型 }}', desc: '選一個最接近的', ex: '欄位不存在 / 類型不符（應為 JSONB 卻是 TEXT）' },
+      { key: '{{ 目前狀態 }}', desc: '截圖或描述 Supabase 現有的欄位', ex: '目前 profile 表只有 name、email、phone' },
+      { key: '{{ 期望修正 }}', desc: '你想要怎麼修正', ex: '補建欄位 / 改程式碼讀取的 key / 兩者都改' }
+    ]
+  },
+  bug: {
+    desc: '發現前台或後台畫面異常、功能失效，提供足夠資訊讓問題快速定位',
+    tpl: [
+      '## Bug 回報',
+      '',
+      '**頁面**：{{ 前台 index.html / 後台 admin.html }}',
+      '**元件 / 功能**：{{ 對照 CSS 樣式頁或 JS 函式頁，例如 Modal / TagInput / Nav Pill }}',
+      '',
+      '### 預期行為',
+      '{{ 這個功能正常情況下應該怎麼運作 }}',
+      '',
+      '### 實際行為',
+      '{{ 現在看到的異常是什麼 }}',
+      '',
+      '### 重現步驟',
+      '1. {{ 步驟一 }}',
+      '2. {{ 步驟二 }}',
+      '3. {{ 出現問題 }}',
+      '',
+      '### F12 Console 錯誤訊息',
+      '```',
+      '{{ 貼上完整錯誤，沒有請寫「無」}}',
+      '```',
+      '',
+      '### 裝置 / 瀏覽器',
+      '{{ 例如：iPhone 15 Safari / Mac Chrome 125 }}'
+    ].join('\n'),
+    fields: [
+      { key: '{{ 頁面 }}', desc: '問題出在哪個檔案', ex: 'index.html（前台）/ admin.html（後台）' },
+      { key: '{{ 元件/功能 }}', desc: '對照 CSS 或 JS 頁找到對應名稱', ex: '.modal、TagInput、.nav-links::after' },
+      { key: '{{ 預期行為 }}', desc: '功能正確時應該是什麼樣子', ex: '點擊作品列表後 Modal 滑出' },
+      { key: '{{ 實際行為 }}', desc: '現在看到的異常', ex: 'Modal 背景出現但內容空白' },
+      { key: '{{ Console 錯誤 }}', desc: '按 F12 → Console，把紅字錯誤複製過來', ex: "TypeError: Cannot read properties of undefined (reading 'sections')" },
+      { key: '{{ 裝置/瀏覽器 }}', desc: '方便確認是否為特定環境問題', ex: 'iPhone 15 Safari 17 / Mac Chrome 125' }
+    ]
+  }
+};
+
+var currentTpl = 'css';
+
+function renderTemplate(key) {
+  currentTpl = key;
+  var data = TEMPLATES[key];
+  var chips = document.querySelectorAll('.pt-chip');
+  var i;
+  for (i = 0; i < chips.length; i++) {
+    chips[i].classList.toggle('on', chips[i].getAttribute('data-tpl') === key);
+  }
+  document.getElementById('pt-desc').textContent = data.desc;
+  document.getElementById('pt-editor').value = data.tpl;
+  var fieldsEl = document.getElementById('pt-fields');
+  var html = '';
+  for (i = 0; i < data.fields.length; i++) {
+    var f = data.fields[i];
+    html += '<div class="pt-field">';
+    html += '<div class="pt-field-key">' + f.key + '</div>';
+    html += '<div><div class="pt-field-desc">' + f.desc + '</div>';
+    html += '<div class="pt-field-ex">例如：' + f.ex + '</div></div>';
+    html += '</div>';
+  }
+  fieldsEl.innerHTML = html;
+}
+
+function copyPrompt() {
+  var ta = document.getElementById('pt-editor');
+  var btn = document.querySelector('.pt-copy-btn');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(ta.value).then(function() {
+      btn.textContent = '已複製 ✓';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = '複製'; btn.classList.remove('copied'); }, 1800);
+    });
+  } else {
+    ta.select();
+    document.execCommand('copy');
+    btn.textContent = '已複製 ✓';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = '複製'; btn.classList.remove('copied'); }, 1800);
+  }
+}
+
+var ptChips = document.querySelectorAll('.pt-chip');
+for (var ci = 0; ci < ptChips.length; ci++) {
+  (function(chip) {
+    chip.addEventListener('click', function() { renderTemplate(chip.getAttribute('data-tpl')); });
+  })(ptChips[ci]);
+}
+
+</script>
+</body>
+</html>
