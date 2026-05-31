@@ -9,11 +9,12 @@
 html,body{height:100%;overflow:hidden}
 body{font-family:'Noto Sans TC','Helvetica Neue',system-ui,sans-serif;background:#f5f4f1;color:#1a1917;font-size:13px;line-height:1.6;display:flex;flex-direction:column}
 .hdr{background:#18181b;color:#fff;flex-shrink:0}
-.hdr-top{height:46px;display:flex;align-items:center;padding:0 18px;gap:8px}
+.hdr-inner{max-width:860px;width:100%;margin:0 auto;padding:0 40px;display:flex;align-items:center;gap:2px}
+.hdr-top{height:46px;display:flex;align-items:center;padding:0;gap:8px}
 .hdr-t{font-size:14px;font-weight:600;letter-spacing:-.01em}
 .hdr-s{font-size:11px;opacity:.4;margin-left:6px}
 /* tab bar */
-.tabs{display:flex;padding:0 12px 0;gap:2px;border-top:1px solid rgba(255,255,255,.08);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs{padding:0;border-top:1px solid rgba(255,255,255,.08);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{display:flex;align-items:center;gap:6px;padding:0 14px;height:40px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;flex-shrink:0}
 .tab .ic{font-size:15px}
@@ -224,16 +225,18 @@ tr:hover td{background:#f5f4f1}
 
 <div class="hdr">
   <div class="hdr-top">
-    <span class="hdr-t">Portfolio 元件對照表</span>
-    <span class="hdr-s">index.html x admin.html · 2026.05</span>
+    <div class="hdr-inner">
+      <span class="hdr-t">Portfolio 元件對照表</span>
+      <span class="hdr-s">index.html x admin.html · 2026.05</span>
+    </div>
   </div>
-  <div class="tabs">
+  <div class="tabs"><div class="hdr-inner" style="gap:2px">
     <button class="tab on" data-pg="prompt" onclick="go('prompt')"><span class="ic">💬</span>提示詞範例</button>
     <button class="tab" data-pg="mod" onclick="go('mod')"><span class="ic">🔍</span>速查表</button>
     <button class="tab" data-pg="css" onclick="go('css')"><span class="ic">🎨</span>CSS 樣式</button>
     <button class="tab" data-pg="js" onclick="go('js')"><span class="ic">⚡</span>JS 函式</button>
     <button class="tab" data-pg="db" onclick="go('db')"><span class="ic">🗄</span>資料表</button>
-  </div>
+  </div></div>
 </div>
 
 <div class="wrap">
