@@ -219,6 +219,14 @@ tr:hover td{background:#f5f4f1}
   .pt-field-key{min-width:unset}
   .pt-editor{min-height:240px;font-size:12px}
 }
+.sec-lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#fff;background:#18181b;padding:6px 12px;border-radius:6px;
+  display:inline-block;margin:32px 0 6px}
+.sec-lbl:first-child{margin-top:0}
+.sec-lbl.foundation{background:#5c5b58}
+.sec-lbl.glass-sys{background:#2563eb}
+.sec-lbl.component{background:#16a34a}
+.sec-lbl.pattern{background:#9333ea}
 </style>
 </head>
 <body>
@@ -311,14 +319,37 @@ tr:hover td{background:#f5f4f1}
 <div class="pg" id="pg-css">
   <div class="pgh">
     <div class="pgh-row"><span class="pgh-ic">🎨</span><span class="pgh-t">CSS 樣式</span></div>
-    <div class="pgh-d">設計 Token · Liquid Glass · 動畫 · Nav · 前台元件 · 後台元件</div>
+    <div class="pgh-d">Foundation · Liquid Glass · Components 前台 · Components 後台</div>
     <div class="srch">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input placeholder="搜尋 class 名稱…" oninput="qf(this.value,'pg-css')">
     </div>
   </div>
 
-  <div class="sub">間距規格（Spacing）</div>
+  <div class="sec-lbl foundation">Foundation — 設計基礎</div>
+  <div class="sub">Design Token — 色彩 / 圓角 / 字型 <span class="b bb" style="font-size:10px;vertical-align:middle">共用</span></div>
+  <div class="tw">
+    <table><thead><tr><th>變數</th><th>用途</th><th>Light 值</th><th>所在</th></tr></thead><tbody>
+    <tr><td class="m">--bg / --bg-secondary / --bg-tertiary</td><td>背景三層</td><td>#fff / #f4f3f0 / #eceae5</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--text / --text-secondary / --text-tertiary</td><td>文字三層（主/說明/hint）</td><td>#111110 / #4a4945 / #88867f</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--border / --border-strong</td><td>邊框兩階</td><td>rgba(0,0,0,.13) / .28</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--accent / --accent-text</td><td>強調色（按鈕/active）</td><td>#111110 / #fff</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--radius-sm / md / lg</td><td>圓角三階</td><td>6 / 8 / 12px</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--font-sans / --font-serif</td><td>字型</td><td>Noto Sans TC / Noto Serif TC</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-el-bg / --glass-el-border</td><td>glass-el 背景/邊框</td><td>rgba(255,255,255,.6) / rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-shine-top / --glass-shine-bottom</td><td>玻璃四層 inset shadow 折射光</td><td>rgba(255,255,255,.9) / .5</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-indicator-bg</td><td>Nav Pill 填色</td><td>rgba(255,255,255,.72)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--glass-pill-shadow</td><td>Pill 外陰影</td><td>rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--orb-1 / --orb-2</td><td>背景光暈球顏色</td><td>藍 / 綠漸層</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--nav-bg</td><td>Nav 玻璃背景</td><td>rgba(255,255,255,.65)</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--pill-x / --pill-w</td><td>Nav Pill 位移/寬（JS 動態注入）</td><td>由 setPillPosition() 計算</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">--danger / --success</td><td>刪除紅 / 成功綠</td><td>#dc2626 / #16a34a</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">--sidebar-w</td><td>後台側欄寬度</td><td>220px</td><td><span class="b ba">後台</span></td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sub">Spacing — 間距規格 <span class="b bb" style="font-size:10px;vertical-align:middle">共用</span></div>
   <div class="tw">
     <table><thead><tr><th>類別</th><th>元件</th><th>屬性</th><th>值（Desktop）</th><th>值（手機 ≤560px）</th><th>所在</th></tr></thead><tbody>
     <tr><td rowspan="4" style="font-weight:600;color:#18181b;white-space:nowrap">頁面容器</td>
@@ -365,29 +396,34 @@ tr:hover td{background:#f5f4f1}
     <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
   </div>
 
-  <div class="sub">設計 Token（CSS 變數）</div>
+  <div class="sub">Motion — 動畫 @keyframes <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
+  <div class="demo">
+    <div class="demo-lbl">Live Demo — 直接 hover 元件觸發</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8">
+        <div class="ix" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <span class="gel" style="padding:7px 16px;border-radius:100px;font-size:12.5px;color:#4a4945;cursor:pointer">glassStretch ×1.08</span>
+          <span class="gel gcard" style="padding:11px 16px;border-radius:12px;font-size:12.5px;color:#4a4945;cursor:pointer">glassStretchCard ×1.04</span>
+          <span class="tag" style="cursor:pointer">tag ×1.08</span>
+          <span class="skel" style="width:90px;height:13px;border-radius:5px"></span>
+          <span style="font-size:11px;color:#88867f">← pulse</span>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="tw">
-    <table><thead><tr><th>變數</th><th>用途</th><th>Light 值</th><th>所在</th></tr></thead><tbody>
-    <tr><td class="m">--bg / --bg-secondary / --bg-tertiary</td><td>背景三層</td><td>#fff / #f4f3f0 / #eceae5</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--text / --text-secondary / --text-tertiary</td><td>文字三層（主/說明/hint）</td><td>#111110 / #4a4945 / #88867f</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--border / --border-strong</td><td>邊框兩階</td><td>rgba(0,0,0,.13) / .28</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--accent / --accent-text</td><td>強調色（按鈕/active）</td><td>#111110 / #fff</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--radius-sm / md / lg</td><td>圓角三階</td><td>6 / 8 / 12px</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--font-sans / --font-serif</td><td>字型</td><td>Noto Sans TC / Noto Serif TC</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--glass-el-bg / --glass-el-border</td><td>glass-el 背景/邊框</td><td>rgba(255,255,255,.6) / rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--glass-shine-top / --glass-shine-bottom</td><td>玻璃四層 inset shadow 折射光</td><td>rgba(255,255,255,.9) / .5</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--glass-indicator-bg</td><td>Nav Pill 填色</td><td>rgba(255,255,255,.72)</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--glass-pill-shadow</td><td>Pill 外陰影</td><td>rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--orb-1 / --orb-2</td><td>背景光暈球顏色</td><td>藍 / 綠漸層</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--nav-bg</td><td>Nav 玻璃背景</td><td>rgba(255,255,255,.65)</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--pill-x / --pill-w</td><td>Nav Pill 位移/寬（JS 動態注入）</td><td>由 setPillPosition() 計算</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">--danger / --success</td><td>刪除紅 / 成功綠</td><td>#dc2626 / #16a34a</td><td><span class="b ba">後台</span></td></tr>
-    <tr><td class="m">--sidebar-w</td><td>後台側欄寬度</td><td>220px</td><td><span class="b ba">後台</span></td></tr>
+    <table><thead><tr><th>名稱</th><th>觸發條件</th><th>效果</th><th>時長</th></tr></thead><tbody>
+    <tr><td class="m">glassStretch</td><td>.glass-el:hover / .tag:hover</td><td>橫向拉伸 scale(1.08,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
+    <tr><td class="m">glassStretchCard</td><td>.glass-card:hover</td><td>card 輕伸 scale(1.04,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
+    <tr><td class="m">pillStretch</td><td>.nav-links.hover-slide::after</td><td>Nav 指示器橫向拉伸 scale(1.2,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
+    <tr><td class="m">pulse</td><td>.skeleton（自動循環）</td><td>opacity 1 → 0.4 → 1</td><td>1.4s ease-in-out infinite</td></tr>
+    <tr><td class="m">theme-transitioning（class）</td><td>toggleTheme() 加在 html 上 550ms</td><td>全站 bg / color / border 0.5s cubic 過渡</td><td>550ms 後移除</td></tr>
     </tbody></table>
     <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
   </div>
 
-  <div class="sub">Liquid Glass 系統</div>
+  <div class="sec-lbl glass-sys">Liquid Glass — 品牌特色系統</div>
+  <div class="sub">Liquid Glass — 玻璃效果系統 <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
   <div class="demo">
     <div class="demo-lbl">Live Demo — .gel（glass-el）Light / Dark，hover 觸發 glassStretch</div>
     <div class="demo-bd" style="display:flex;gap:12px;flex-wrap:wrap">
@@ -418,33 +454,8 @@ tr:hover td{background:#f5f4f1}
     <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
   </div>
 
-  <div class="sub">@keyframes 動畫</div>
-  <div class="demo">
-    <div class="demo-lbl">Live Demo — 直接 hover 元件觸發</div>
-    <div class="demo-bd">
-      <div class="orb" style="background:#f0ede8">
-        <div class="ix" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-          <span class="gel" style="padding:7px 16px;border-radius:100px;font-size:12.5px;color:#4a4945;cursor:pointer">glassStretch ×1.08</span>
-          <span class="gel gcard" style="padding:11px 16px;border-radius:12px;font-size:12.5px;color:#4a4945;cursor:pointer">glassStretchCard ×1.04</span>
-          <span class="tag" style="cursor:pointer">tag ×1.08</span>
-          <span class="skel" style="width:90px;height:13px;border-radius:5px"></span>
-          <span style="font-size:11px;color:#88867f">← pulse</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="tw">
-    <table><thead><tr><th>名稱</th><th>觸發條件</th><th>效果</th><th>時長</th></tr></thead><tbody>
-    <tr><td class="m">glassStretch</td><td>.glass-el:hover / .tag:hover</td><td>橫向拉伸 scale(1.08,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
-    <tr><td class="m">glassStretchCard</td><td>.glass-card:hover</td><td>card 輕伸 scale(1.04,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
-    <tr><td class="m">pillStretch</td><td>.nav-links.hover-slide::after</td><td>Nav 指示器橫向拉伸 scale(1.2,1)</td><td>360ms cubic(1,0,.4,1)</td></tr>
-    <tr><td class="m">pulse</td><td>.skeleton（自動循環）</td><td>opacity 1 → 0.4 → 1</td><td>1.4s ease-in-out infinite</td></tr>
-    <tr><td class="m">theme-transitioning（class）</td><td>toggleTheme() 加在 html 上 550ms</td><td>全站 bg / color / border 0.5s cubic 過渡</td><td>550ms 後移除</td></tr>
-    </tbody></table>
-    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
-  </div>
-
-  <div class="sub">Nav 元件</div>
+  <div class="sec-lbl component">Components — 前台（index.html）</div>
+  <div class="sub">Nav — 導覽列元件 <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
   <div class="demo">
     <div class="demo-lbl">Live Demo — 玻璃 Pill 指示器（hover/click 切換，JS 控制 --px / --pw）</div>
     <div class="demo-bd" style="display:flex;flex-direction:column;gap:10px">
@@ -486,7 +497,7 @@ tr:hover td{background:#f5f4f1}
     <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
   </div>
 
-  <div class="sub">前台元件（index.html）</div>
+  <div class="sub">Components — 前台元件 <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
   <div class="demo">
     <div class="demo-lbl">Live Demo — .hero-badge / .contact-item（glass-el）</div>
     <div class="demo-bd">
@@ -587,16 +598,17 @@ tr:hover td{background:#f5f4f1}
     <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
   </div>
 
-
-  <div class="sub">前台 RWD 響應式規則（index.html）</div>
+  <div class="sub">RWD — 響應式規則 <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
   <div class="tw">
     <table><thead><tr><th>斷點</th><th>元件</th><th>修改內容</th></tr></thead><tbody>
-    <tr><td rowspan="3" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 720px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">平板</span></td><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 24px</td></tr>
+    <tr><td rowspan="2" style="white-space:nowrap;font-weight:600;color:#18181b">Desktop<br><span style="font-size:10px;color:#9b9a97;font-weight:400">&gt; 720px</span></td><td class="m">.wrapper / .nav-inner</td><td>max-width:860px + margin:0 auto + padding:0 40px（內容區最寬 860px，超出螢幕自動置中留白）</td></tr>
+    <tr><td class="m">.nav（fixed）</td><td>left:0 right:0 全寬，內層 .nav-inner 維持 max-width:860px + margin:0 auto + padding:0 40px</td></tr>
+    <tr><td rowspan="3" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 720px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">平板</span></td><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 24px（max-width / margin:0 auto 保持不變）</td></tr>
     <tr><td class="m">.hero</td><td>padding-top:72px / padding-bottom:64px</td></tr>
     <tr><td class="m">.hero-desc / .skill-grid / .project-row-title</td><td>font-size:18px / minmax(160px) / font-size:19px</td></tr>
     <tr><td rowspan="14" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 560px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">手機</span></td><td class="m">.nav</td><td>position:fixed（取代 sticky，解決 Android 失效問題）+ left:0 right:0</td></tr>
     <tr><td class="m">main</td><td>padding-top:60px（補回 fixed nav 佔的空間）</td></tr>
-    <tr><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 18px</td></tr>
+    <tr><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 18px（max-width / margin:0 auto 保持不變）</td></tr>
     <tr><td class="m">.hero</td><td>padding-top:56px / padding-bottom:48px</td></tr>
     <tr><td class="m">.hero-title</td><td>font-size:clamp(32px,9vw,40px)（動態縮放）</td></tr>
     <tr><td class="m">.hero-desc</td><td>font-size:16px / max-width:100%</td></tr>
@@ -611,7 +623,8 @@ tr:hover td{background:#f5f4f1}
     <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
   </div>
 
-  <div class="sub">後台元件（admin.html）</div>
+  <div class="sec-lbl component" style="background:#ca8a04">Components — 後台（admin.html）</div>
+  <div class="sub">Components — 後台元件 <span class="b ba" style="font-size:10px;vertical-align:middle">後台</span></div>
   <div class="demo">
     <div class="demo-lbl">Live Demo — .btn 系統（primary / secondary / danger / sm）</div>
     <div class="demo-bd">
@@ -718,6 +731,99 @@ tr:hover td{background:#f5f4f1}
 <div class="pg" id="pg-js">
   <div class="pgh">
     <div class="pgh-row"><span class="pgh-ic">⚡</span><span class="pgh-t">JS 函式</span></div>
+    <div class="pgh-d">前台 · 後台 · 共用工具，統一格式：函式 / 觸發 / 功能</div>
+    <div class="srch">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="搜尋函式名稱…" oninput="qf(this.value,'pg-js')">
+    </div>
+  </div>
+
+  <div class="sec-lbl component">前台 — index.html</div>
+  <div class="sub">前台函式 — index.html <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
+  <div class="tw">
+    <table><thead><tr><th>函式</th><th>觸發</th><th>功能</th></tr></thead><tbody>
+    <tr><td class="m">loadData()</td><td>頁面載入自動執行</td><td>Promise.all 並行拉取 profile/skills/tools/projects/notes 5 張表；失敗走 renderFallback()</td></tr>
+    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）</td></tr>
+    <tr><td class="m">renderSkills(data)</td><td>loadData()</td><td>createElement 建 .skill-card grid（icon / title / tags[]）</td></tr>
+    <tr><td class="m">renderTools(data)</td><td>loadData()</td><td>createElement 建 .tool-item（name / description）</td></tr>
+    <tr><td class="m">renderProjects(data)</td><td>loadData()</td><td>createElement 建 .project-row，parseImgArr() 取封面，img.onerror → empty div</td></tr>
+    <tr><td class="m">renderNotes(data)</td><td>loadData()</td><td>innerHTML 建 .note-item，note_type 以 · 分隔解析成多個 .note-type span</td></tr>
+    <tr><td class="m">renderFallback()</td><td>loadData() catch</td><td>Supabase 失敗時顯示靜態備用資料（4 作品 + 5 隨筆）</td></tr>
+    <tr><td class="m">openModal(id)</td><td>project-row onclick</td><td>填 modal header（tags / time / meta）+ body（封面 / sections grid / content rich text）</td></tr>
+    <tr><td class="m">openNote(id)</td><td>note-item onclick</td><td>填 modal（title / date / note-type / content rich text）</td></tr>
+    <tr><td class="m">closeModal()</td><td>✕ / ESC / overlay click</td><td>移除 .open class，還原 body overflow:auto</td></tr>
+    <tr><td class="m">handleOverlayClick(e)</td><td>modal-overlay onclick</td><td>點擊遮罩非 modal 本體時呼叫 closeModal()</td></tr>
+    <tr><td class="m">updateNav()</td><td>scroll 事件（passive）</td><td>根據 scrollY 決定 .nav-link.active，呼叫 setPillPosition()</td></tr>
+    <tr><td class="m">setPillPosition(link)</td><td>updateNav() / 初始化</td><td>更新 --pill-x / --pill-w CSS var，無動畫（平移跟隨）</td></tr>
+    <tr><td class="m">movePillTo(link)</td><td>nav-link mouseenter / mouseleave</td><td>更新 pill 位置 + 加 hover-slide class 觸發 pillStretch 動畫</td></tr>
+    <tr><td class="m">getPillMetrics(link)</td><td>setPillPosition / movePillTo 內部</td><td>計算 link 相對 .nav-links 的 x 偏移與寬度</td></tr>
+    <tr><td class="m">toggleTheme()</td><td>theme-toggle onclick</td><td>system → dark → light 三態循環，存 localStorage key="theme"</td></tr>
+    <tr><td class="m">applyTheme(theme)</td><td>toggleTheme / 頁面初始 / matchMedia change</td><td>設 html[data-theme]，更新按鈕 emoji 與 data-tip tooltip</td></tr>
+    <tr><td class="m">getTheme() / getSystemTheme()</td><td>applyTheme 內部</td><td>讀 localStorage / matchMedia prefers-color-scheme</td></tr>
+    <tr><td class="m">parseImgArr(val)</td><td>renderProjects / openModal 內部</td><td>images 欄位解析：JSON string / Array / null → string[]</td></tr>
+    <tr><td class="m">stripHtml(html)</td><td>renderProjects 內部</td><td>innerHTML → 純文字（description 截斷用）</td></tr>
+    <tr><td class="m">formatDate(d)</td><td>renderNotes / openNote 內部</td><td>"2026-01-01" → "2026.01.01"</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sec-lbl component" style="background:#ca8a04">後台 — admin.html</div>
+  <div class="sub">後台函式 — admin.html <span class="b ba" style="font-size:10px;vertical-align:middle">後台</span></div>
+  <div class="tw">
+    <table><thead><tr><th>函式 / 群組</th><th>分類</th><th>觸發</th><th>功能</th></tr></thead><tbody>
+    <tr><td class="m">boot()</td><td>啟動</td><td>頁面載入</td><td>讀 localStorage sb_config → initSupabase() → checkAuth()；失敗顯示 setup banner</td></tr>
+    <tr><td class="m">getConfig() / saveConfig() / resetConfig()</td><td>Config</td><td>內部呼叫</td><td>讀寫 localStorage sb_config（Supabase URL / anon key）</td></tr>
+    <tr><td class="m">initSupabase(url, key)</td><td>連線</td><td>內部呼叫</td><td>建立全域 sbClient（Supabase JS client）</td></tr>
+    <tr><td class="m">doLogin() / doLogout()</td><td>Auth</td><td>登入按鈕</td><td>email/password signInWithPassword，signOut 清狀態回登入畫面</td></tr>
+    <tr><td class="m">registerAndLogin()</td><td>Auth</td><td>設定按鈕</td><td>首次設定時 signUp + signIn</td></tr>
+    <tr><td class="m">showApp() / showPage(name, btn)</td><td>路由</td><td>checkAuth()</td><td>隱藏 login，顯示 #app，切換 .page[data-page] 與 nav-item.active</td></tr>
+    <tr><td class="m">toast(msg, duration)</td><td>通知</td><td>CRUD 操作後</td><td>右下角 toast，createElement，2.2s 後自動消失</td></tr>
+    <tr><td class="m">renderProfilePage() / saveProfile()</td><td>Profile</td><td>showPage()</td><td>載入並 upsert profile 表（nav_name/name/description/email/phone/note）</td></tr>
+    <tr><td class="m">renderSkillsPage() / loadSkills() / addSkill() / editSkill(id) / renderSkillForm(skill) / saveSkill(id) / deleteSkill(id)</td><td>Skills CRUD</td><td>showPage()</td><td>icon / title / tags[] / sort_order</td></tr>
+    <tr><td class="m">renderToolsPage() / loadTools() / editTool(id) / renderToolForm(tool) / saveTool(id) / deleteTool(id)</td><td>Tools CRUD</td><td>showPage()</td><td>name / description / sort_order</td></tr>
+    <tr><td class="m">renderProjectsPage() / loadProjects() / editProject(id) / renderProjectForm(proj) / saveProject(id) / deleteProject(id)</td><td>Projects CRUD</td><td>showPage()</td><td>含 Quill content / sections JSONB / images[] / tags / time_range / members / published</td></tr>
+    <tr><td class="m">initProjectImageArea(projId, existingUrls) / renderProjectImageArea()</td><td>封面圖</td><td>—</td><td>上傳/預覽/刪除，processImage → uploadImage，狀態存 window._imgState</td></tr>
+    <tr><td class="m">renderNotesPage() / loadNotes() / editNote(id) / renderNoteForm(note) / saveNote(id) / deleteNote(id)</td><td>Notes CRUD</td><td>showPage()</td><td>title / content / note_type / note_date / published / sort_order</td></tr>
+    <tr><td class="m">makeGroupEditor(containerId, sections) / renderGroupEditor() / removeGroup(gi) / getGroupSections()</td><td>Sections 編輯器</td><td>renderProjectForm()</td><td>可拖曳群組清單，getGroupSections() 回傳 JSONB，JSON.stringify 存 projects.sections</td></tr>
+    <tr><td class="m">makeQuill(id, placeholder, richMode) / attachQuillTooltips(id)</td><td>富文本</td><td>renderProjectForm()</td><td>初始化 Quill 1.3.7，richMode=true 開完整工具列</td></tr>
+    <tr><td class="m">openVideoModal(quillId) / insertVideo() / closeVideoModal() / convertToEmbedUrl(url)</td><td>影片嵌入</td><td>Quill video 按鈕</td><td>攔截 Quill video 按鈕，轉換 YouTube/Vimeo URL 為 embed，插入 iframe</td></tr>
+    <tr><td class="m">initDatePickers(timeRange) / syncManualFromPickers() / syncDatePickersFromManual() / toggleOngoing()</td><td>日期區間</td><td>renderProjectForm()</td><td>雙 picker ↔ 手動文字雙向同步，進行中 checkbox 設 end=null</td></tr>
+    <tr><td class="m">initNoteDatePicker(dateStr) / syncNoteDateManualFromPicker() / syncNoteDatePickerFromManual()</td><td>單日期</td><td>renderNoteForm()</td><td>隨筆單一日期 picker ↔ 文字欄位同步</td></tr>
+    <tr><td class="m">checkStorageUsage()</td><td>Storage</td><td>showPage()</td><td>列舉 portfolio-images bucket，計算總 MB，更新 .storage-bar-fill 寬度與 warn/danger class</td></tr>
+    <tr><td class="m">makeImageUploader(containerId, existingUrls, onChangeCb)</td><td>圖片上傳</td><td>renderProjectForm()</td><td>drop zone + preview grid + 刪除，呼叫 processImage → uploadImage</td></tr>
+    <tr><td class="m">formatNoteDate(d) / parseNoteDate(s)</td><td>日期工具</td><td>內部工具</td><td>隨筆日期格式雙向轉換</td></tr>
+    <tr><td class="m">render() 系列</td><td>UI 更新</td><td>內部工具</td><td>renderChips() renderDropdown() renderPreviews() 等 TagInput / 圖片 UI 子函式</td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+
+  <div class="sec-lbl foundation">共用工具 — 前後台皆有</div>
+  <div class="sub">共用工具函式 — 前後台皆有 <span class="b bb" style="font-size:10px;vertical-align:middle">共用</span></div>
+  <div class="tw">
+    <table><thead><tr><th>函式</th><th>功能</th><th>所在</th></tr></thead><tbody>
+    <tr><td class="m">parseImgArr(val)</td><td>images 欄位解析：JSON string / Array / null → string[]</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">stripHtml(html)</td><td>innerHTML → 純文字（作品 description 截斷用）</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">formatDate(d)</td><td>"2026-01-01" → "2026.01.01"</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">formatMonthDisplay(ym)</td><td>"2026-01" → "2026 年 01 月"</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">formatNoteDate(d) / parseNoteDate(s)</td><td>隨筆日期格式雙向轉換</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">processImage(file)</td><td>Canvas 16:9 裁切 + JPEG 0.85 壓縮 → Blob</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">uploadImage(file, bucket)</td><td>上傳至 Supabase Storage portfolio-images，回傳 publicUrl</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">makeImageUploader(containerId, existingUrls, onChangeCb)</td><td>圖片上傳 UI 元件（drop zone + preview + 刪除）</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">makeTagInput(containerId, acKey, options)</td><td>TagInput 元件工廠，multi / single 模式，含 autocomplete dropdown</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">getTagInputValue(containerId)</td><td>讀取 TagInput 當前 selected[]</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">acLoad(key) / acSave(key, values)</td><td>localStorage autocomplete 歷史讀寫</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">tagToggleOption / tagAddNew / tagRemoveChip / tagDelHistory / tagEditHistory</td><td>TagInput 操作子函式群</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">syncHidden(containerId)</td><td>TagInput 同步 hidden input 值（供 form submit）</td><td><span class="b ba">後台</span></td></tr>
+    </tbody></table>
+    <div class="emp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>沒有符合的項目</div>
+  </div>
+</div>
+
+<!-- ══ 資料表 ══ -->
+
+<div class="pg" id="pg-js">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">⚡</span><span class="pgh-t">JS 函式</span></div>
     <div class="pgh-d">前台、後台、共用工具函式完整清單</div>
     <div class="srch">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -807,8 +913,22 @@ tr:hover td{background:#f5f4f1}
 <div class="pg" id="pg-db">
   <div class="pgh">
     <div class="pgh-row"><span class="pgh-ic">🗄</span><span class="pgh-t">資料表</span></div>
-    <div class="pgh-d">Supabase 5 張表 × 欄位 × 前後台對應</div>
+    <div class="pgh-d">Supabase PostgreSQL · 5 張表 · RLS 需自行設定</div>
   </div>
+
+  <div class="sec-lbl foundation">關聯說明</div>
+  <div class="tw">
+    <table><thead><tr><th>關係</th><th>說明</th></tr></thead><tbody>
+    <tr><td style="font-weight:600;white-space:nowrap">profile → 全站</td><td>全站唯一一筆，nav_name / name / description 等由 renderProfile() 填入前台各處</td></tr>
+    <tr><td style="font-weight:600;white-space:nowrap">projects.sections</td><td>JSONB 陣列，每個 item = { title, items[] }，items 以 \n 分隔多行</td></tr>
+    <tr><td style="font-weight:600;white-space:nowrap">projects.images</td><td>TEXT[] 陣列，存 Storage publicUrl，前台取 [0] 當封面</td></tr>
+    <tr><td style="font-weight:600;white-space:nowrap">projects / notes published</td><td>BOOL，只有 true 才在前台顯示；後台可預覽草稿</td></tr>
+    <tr><td style="font-weight:600;white-space:nowrap">skills / tools / projects / notes sort_order</td><td>INT，前台依 sort_order ASC 排列，後台可拖曳調整</td></tr>
+    <tr><td style="font-weight:600;white-space:nowrap">Storage bucket</td><td>portfolio-images（Public），images[] 存的是這個 bucket 的 publicUrl</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="sec-lbl component">資料表欄位 × 前後台對應</div>
   <div class="tw">
     <table><thead><tr><th>資料表</th><th>欄位</th><th>前台讀取</th><th>後台寫入</th><th>備注</th></tr></thead><tbody>
     <tr>
@@ -848,6 +968,7 @@ tr:hover td{background:#f5f4f1}
     </tr>
     </tbody></table>
   </div>
+
 </div>
 
 </div>
