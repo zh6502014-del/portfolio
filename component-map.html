@@ -209,11 +209,20 @@ tr:hover td{background:#f5f4f1}
 .pt-copy-btn.copied{background:#18181b;color:#fff;border-color:#18181b}
 .pt-editor{width:100%;min-height:320px;padding:16px;font-family:'Courier New',monospace;font-size:12.5px;line-height:1.75;color:#1a1917;background:#fff;border:none;outline:none;resize:vertical;tab-size:2}
 .pt-fields-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9b9a97;margin-bottom:10px}
-.pt-fields{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
-.pt-field{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px}
-.pt-field-key{font-family:'Courier New',monospace;font-size:11.5px;font-weight:600;color:#18181b;white-space:nowrap;flex-shrink:0;min-width:160px}
-.pt-field-desc{font-size:12px;color:#5c5b58;line-height:1.5}
-.pt-field-ex{font-size:11px;color:#9b9a97;margin-top:2px}
+.pt-fields{display:flex;flex-direction:column;gap:6px;margin-bottom:32px}
+.pt-field{display:flex;align-items:baseline;gap:10px;padding:9px 14px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;flex-wrap:wrap}
+.pt-field.pt-optional{opacity:.55}
+.pt-field-key{font-family:'Courier New',monospace;font-size:12px;font-weight:600;color:#18181b;white-space:nowrap;flex-shrink:0}
+.pt-field-desc{font-size:12px;color:#5c5b58;flex:1}
+.pt-req{font-size:10px;font-weight:600;background:#fef2f2;color:#dc2626;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+.pt-opt{font-size:10px;font-weight:500;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+.pt-ex-btn{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;border:1px solid rgba(0,0,0,.15);background:#fff;color:#18181b;transition:background .1s,color .1s,border-color .1s}
+.pt-ex-btn:hover{background:#f1f0ed}
+.pt-ex-btn.on{background:#18181b;color:#fff;border-color:#18181b}
+
+
+
+
 @media(max-width:600px){
   .pt-field{flex-direction:column;gap:4px}
   .pt-field-key{min-width:unset}
@@ -274,7 +283,10 @@ tr:hover td{background:#f5f4f1}
   <div class="pt-editor-wrap">
     <div class="pt-editor-hdr">
       <span class="pt-editor-label">可直接編輯後複製</span>
-      <button class="pt-copy-btn" onclick="copyPrompt()">複製</button>
+      <div style="display:flex;gap:7px">
+        <button class="pt-ex-btn" id="pt-ex-btn" onclick="toggleExample()">看填寫範例</button>
+        <button class="pt-copy-btn" onclick="copyPrompt()">複製</button>
+      </div>
     </div>
     <textarea class="pt-editor" id="pt-editor" spellcheck="false"></textarea>
   </div>
@@ -1078,190 +1090,313 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ══ 提示詞範本資料 ══ */
 var TEMPLATES = {
   css: {
-    desc: '修改任何 CSS 樣式時使用，包含元件外觀、動畫、Token 變數調整',
+    label: '🎨 修改 CSS 樣式',
+    desc: '修改任何元件的外觀、動畫、間距、Token 變數',
     tpl: [
       '## 修改 CSS 樣式',
       '',
-      '**頁面**：{{ index.html / admin.html }}',
-      '**元件**：{{ 元件 class 名稱，例如 .skill-card / .glass-el / .nav-links::after }}',
+      '頁面：[index.html / admin.html]',
+      '元件：[class 名稱]',
       '',
       '### 預期',
-      '{{ 描述你希望看到的結果，例如：玻璃效果 hover 時縮放幅度改小一點 }}',
+      '[你希望看到的結果]',
       '',
       '### 實際',
-      '{{ 描述目前的狀況，例如：目前 glassStretch 動畫 scale(1.08,1) 感覺太大 }}',
+      '[目前看到的狀況]',
       '',
-      '### 補充',
-      '{{ 選填：截圖說明、數值建議、參考設計稿，沒有可刪除此段 }}'
+      '### 補充（選填）',
+      '[截圖說明 / 數值建議 / 參考設計稿]'
+    ].join('\n'),
+    example: [
+      '## 修改 CSS 樣式',
+      '',
+      '頁面：index.html',
+      '元件：.glass-el',
+      '',
+      '### 預期',
+      'hover 時縮放幅度小一點，感覺更細膩',
+      '',
+      '### 實際',
+      'glassStretch 動畫 scale(1.08,1) 太誇張，元件會跳動',
+      '',
+      '### 補充（選填）',
+      '建議改成 scale(1.03,1) 試試看'
     ].join('\n'),
     fields: [
-      { key: '{{ 頁面 }}', desc: '指定要改哪個檔案', ex: 'index.html 或 admin.html' },
-      { key: '{{ 元件 class 名稱 }}', desc: '對照 CSS 樣式頁找到的 class，要精確', ex: '.glass-el、.nav-links::after、.skill-card' },
-      { key: '{{ 預期 }}', desc: '你想要的最終樣子，越具體越好', ex: '玻璃 pill hover 時只有輕微放大，不要橫向拉伸' },
-      { key: '{{ 實際 }}', desc: '目前看到的問題', ex: '目前 glassStretch 動畫 scale(1.08,1) 太誇張' },
-      { key: '{{ 補充 }}', desc: '截圖、數值、參考連結（選填）', ex: '可附 F12 截圖或建議的 px/ms 數值' }
+      { key: '[index.html / admin.html]', req: true,  desc: '指定要改哪個檔案' },
+      { key: '[class 名稱]',              req: true,  desc: '對照 CSS 樣式頁找到的 class，例如 .glass-el、.skill-card' },
+      { key: '[你希望看到的結果]',         req: true,  desc: '最終想要的樣子，越具體越好' },
+      { key: '[目前看到的狀況]',           req: true,  desc: '現在不對勁的地方' },
+      { key: '[截圖說明 / 數值建議]',      req: false, desc: '選填，有截圖或建議數值更好' }
     ]
   },
   newcomp: {
-    desc: '在前台新增一個視覺元件，例如新的 section、card 樣式、互動元素',
+    label: '✨ 新增前台元件',
+    desc: '在前台新增一個視覺元件，例如新的 section、card、互動元素',
     tpl: [
       '## 新增前台元件',
       '',
-      '**位置**：{{ 要放在哪個 section，例如 hero 區 / projects 區下方 }}',
-      '**元件名稱**：{{ 自訂一個 class 名稱，例如 .highlight-banner }}',
+      '位置：[放在哪個 section / 哪個元素之後]',
+      '元件名稱：[自訂 class 名稱]',
       '',
       '### 功能描述',
-      '{{ 這個元件要做什麼，例如：顯示一行強調文字 + 背景色帶 }}',
+      '[這個元件要顯示什麼、做什麼]',
       '',
-      '### 視覺要求',
-      '- 玻璃效果：{{ 要 / 不要 }}',
-      '- 深色模式支援：{{ 要 / 不要 }}',
-      '- hover 動畫：{{ 要 / 不要，要的話描述效果 }}',
+      '### 視覺規格',
+      '- 玻璃效果：[要 / 不要]',
+      '- 深色模式：[要 / 不要]',
+      '- hover 動畫：[要 / 不要]',
       '',
       '### 資料來源',
-      '{{ 靜態寫死 / 從 Supabase 哪張表的哪個欄位讀取 }}',
+      '[靜態寫死 / 從 Supabase 哪張表哪個欄位]',
       '',
-      '### 參考',
-      '{{ 選填：截圖、設計稿，沒有可刪除 }}'
+      '### 參考（選填）',
+      '[截圖或設計稿]'
+    ].join('\n'),
+    example: [
+      '## 新增前台元件',
+      '',
+      '位置：hero 區，.hero-contacts 下方',
+      '元件名稱：.award-badge',
+      '',
+      '### 功能描述',
+      '顯示一個獎項標籤，例如「iF Design Award 2024」',
+      '',
+      '### 視覺規格',
+      '- 玻璃效果：要',
+      '- 深色模式：要',
+      '- hover 動畫：不要',
+      '',
+      '### 資料來源',
+      '靜態寫死，內容不需要從 Supabase 讀取',
+      '',
+      '### 參考（選填）',
+      '（無）'
     ].join('\n'),
     fields: [
-      { key: '{{ 位置 }}', desc: '插入在哪個 section 裡或哪個元素之後', ex: 'hero 區 .hero-contacts 下方' },
-      { key: '{{ 元件名稱 }}', desc: '給新元件取一個 class 名稱', ex: '.highlight-banner、.award-badge' },
-      { key: '{{ 功能描述 }}', desc: '元件的用途與內容', ex: '顯示一段強調文字和一個圖示' },
-      { key: '{{ 玻璃效果 }}', desc: '是否要套 .glass-el 樣式', ex: '要（套用 glass-el）/ 不要' },
-      { key: '{{ 資料來源 }}', desc: '內容從哪來', ex: '靜態寫死 / 從 profile 表的 note 欄位' }
+      { key: '[放在哪個 section]',       req: true,  desc: '例如 hero 區、projects 區下方' },
+      { key: '[自訂 class 名稱]',         req: true,  desc: '例如 .award-badge、.highlight-banner' },
+      { key: '[功能描述]',               req: true,  desc: '元件用途與內容' },
+      { key: '[玻璃 / 深色 / 動畫]',     req: true,  desc: '三個視覺規格選要或不要' },
+      { key: '[資料來源]',               req: true,  desc: '靜態 or Supabase 哪張表哪個欄位' },
+      { key: '[截圖或設計稿]',           req: false, desc: '選填' }
     ]
   },
   jsfn: {
-    desc: '修改既有 JS 函式的行為邏輯，例如改 render 方式、Modal 觸發條件、Nav 動畫',
+    label: '⚡ 修改 JS 函式',
+    desc: '修改既有函式的行為邏輯，例如 render 方式、Modal 觸發條件、Nav 動畫',
     tpl: [
       '## 修改 JS 函式行為',
       '',
-      '**頁面**：{{ index.html / admin.html }}',
-      '**函式名稱**：{{ 對照 JS 函式頁，例如 renderProjects / openModal / movePillTo }}',
+      '頁面：[index.html / admin.html]',
+      '函式：[函式名稱]',
       '',
       '### 目前行為',
-      '{{ 描述函式現在做什麼，例如：renderProjects() 只取 images[0] 當封面 }}',
+      '[函式現在做什麼]',
       '',
       '### 期望行為',
-      '{{ 描述你想改成什麼，例如：如果 images[0] 不存在才顯示 empty div，否則顯示圖片 }}',
+      '[想改成什麼]',
       '',
       '### 影響範圍',
-      '{{ 這個改動會影響哪些畫面或元件，例如：只影響 projects 列表 }}',
+      '[改動後哪些畫面或元件會受影響]',
       '',
-      '### Console 錯誤（如有）',
-      '{{ 貼上 F12 Console 的錯誤訊息，沒有可刪除 }}'
+      '### Console 錯誤（選填）',
+      '[F12 Console 的錯誤訊息]'
+    ].join('\n'),
+    example: [
+      '## 修改 JS 函式行為',
+      '',
+      '頁面：index.html',
+      '函式：renderProjects()',
+      '',
+      '### 目前行為',
+      '直接取 images[0] 當封面，如果 images 是空陣列就顯示壞圖',
+      '',
+      '### 期望行為',
+      'images[0] 不存在時才顯示 .project-cover-empty，否則顯示圖片',
+      '',
+      '### 影響範圍',
+      '只影響前台 projects section 的封面顯示',
+      '',
+      '### Console 錯誤（選填）',
+      'TypeError: Cannot read properties of undefined (reading \'0\')'
     ].join('\n'),
     fields: [
-      { key: '{{ 函式名稱 }}', desc: '對照「JS 函式」頁的函式清單找到正確名稱', ex: 'renderProjects、openModal、updateNav' },
-      { key: '{{ 目前行為 }}', desc: '現在這個函式做了什麼', ex: 'renderProjects() 只顯示 published=true 的作品' },
-      { key: '{{ 期望行為 }}', desc: '你想要改成什麼樣的邏輯', ex: '還要依 sort_order 排序後再渲染' },
-      { key: '{{ 影響範圍 }}', desc: '改動後哪些畫面會變', ex: '只影響前台 projects section' },
-      { key: '{{ Console 錯誤 }}', desc: 'F12 Console 的錯誤，有助於快速定位', ex: 'TypeError: Cannot read properties of null' }
+      { key: '[index.html / admin.html]', req: true,  desc: '對應哪個檔案' },
+      { key: '[函式名稱]',               req: true,  desc: '對照 JS 函式頁找到正確名稱' },
+      { key: '[目前行為]',               req: true,  desc: '現在這個函式做了什麼' },
+      { key: '[期望行為]',               req: true,  desc: '想改成什麼邏輯' },
+      { key: '[影響範圍]',               req: true,  desc: '改動後哪些畫面會變' },
+      { key: '[Console 錯誤]',           req: false, desc: '選填，有錯誤訊息請貼上' }
     ]
   },
   crud: {
-    desc: '後台新增/編輯/刪除功能出問題，或要新增一個 CRUD 頁面',
+    label: '🗄 後台 CRUD 問題',
+    desc: '後台新增 / 編輯 / 刪除功能出問題，或要新增一個 CRUD 操作',
     tpl: [
       '## 後台 CRUD 問題',
       '',
-      '**資料表**：{{ 對照資料表頁，例如 projects / skills / notes }}',
-      '**操作**：{{ 新增 / 編輯 / 刪除 / 讀取 }}',
-      '**對應函式**：{{ 對照 JS 函式頁，例如 saveProject / deleteSkill }}',
+      '資料表：[表名]',
+      '操作：[新增 / 編輯 / 刪除 / 讀取]',
+      '對應函式：[函式名稱]',
       '',
-      '### 問題描述',
-      '{{ 描述操作步驟與發生的問題 }}',
-      '1. {{ 步驟一，例如：在後台作品集頁點擊新增 }}',
-      '2. {{ 步驟二，例如：填寫標題後按儲存 }}',
-      '3. {{ 步驟三，例如：畫面無反應 / 顯示錯誤 }}',
+      '### 重現步驟',
+      '1. [步驟一]',
+      '2. [步驟二]',
+      '3. [出現的問題]',
       '',
       '### 預期結果',
-      '{{ 正確情況下應該發生什麼，例如：儲存後 toast 顯示「已儲存」並回到列表 }}',
+      '[正確情況下應該發生什麼]',
       '',
-      '### F12 Console 錯誤',
-      '{{ 貼上錯誤訊息，沒有可刪除 }}',
+      '### Console 錯誤（選填）',
+      '[F12 錯誤訊息]',
       '',
-      '### 相關欄位（如有異動）',
-      '{{ 例如：新增了 cover_url TEXT 欄位，需要前後台同步處理 }}'
+      '### 相關欄位異動（選填）',
+      '[新增或修改的欄位名稱與類型]'
+    ].join('\n'),
+    example: [
+      '## 後台 CRUD 問題',
+      '',
+      '資料表：projects',
+      '操作：新增',
+      '對應函式：saveProject()',
+      '',
+      '### 重現步驟',
+      '1. 後台作品集頁點擊「新增作品」',
+      '2. 填寫標題後按儲存',
+      '3. 畫面無反應，toast 沒出現',
+      '',
+      '### 預期結果',
+      '儲存成功後 toast 顯示「已儲存」，並回到作品列表',
+      '',
+      '### Console 錯誤（選填）',
+      'POST 400 Bad Request',
+      '',
+      '### 相關欄位異動（選填）',
+      '（無）'
     ].join('\n'),
     fields: [
-      { key: '{{ 資料表 }}', desc: '對照「資料表」頁，確認操作的是哪張表', ex: 'projects、skills、notes' },
-      { key: '{{ 操作 }}', desc: '是新增、編輯、刪除還是讀取', ex: '新增 / 編輯 / 刪除 / 讀取' },
-      { key: '{{ 對應函式 }}', desc: '對照「JS 函式」頁後台函式清單', ex: 'saveProject、deleteSkill、loadNotes' },
-      { key: '{{ 步驟 }}', desc: '重現問題的操作步驟，越清楚越好', ex: '1. 點擊新增 2. 填標題 3. 按儲存 → 無反應' },
-      { key: '{{ 相關欄位 }}', desc: '若涉及欄位新增或修改，說明欄位名稱與類型', ex: 'cover_url TEXT、is_featured BOOL' }
+      { key: '[表名]',       req: true,  desc: '對照資料表頁，例如 projects、skills、notes' },
+      { key: '[操作]',       req: true,  desc: '新增 / 編輯 / 刪除 / 讀取' },
+      { key: '[函式名稱]',   req: true,  desc: '對照 JS 函式頁後台函式清單' },
+      { key: '[重現步驟]',   req: true,  desc: '越清楚越好，幫助快速重現問題' },
+      { key: '[預期結果]',   req: true,  desc: '操作成功後應該看到什麼' },
+      { key: '[Console 錯誤]',  req: false, desc: '選填，有請貼' },
+      { key: '[欄位異動]',   req: false, desc: '選填，涉及欄位變動時填寫' }
     ]
   },
   db: {
-    desc: '資料表欄位不存在、類型有誤、前後台讀寫不一致等問題',
+    label: '📋 資料表欄位問題',
+    desc: '欄位不存在、類型有誤、前後台讀寫不一致',
     tpl: [
       '## 資料表欄位問題',
       '',
-      '**資料表**：{{ 例如 profile / projects / notes }}',
-      '**欄位名稱**：{{ 例如 nav_name / sections / images }}',
-      '',
-      '### 問題類型',
-      '{{ 欄位不存在 / 欄位類型不符 / 前後台讀寫不一致 / 其他 }}',
+      '資料表：[表名]',
+      '欄位名稱：[欄位]',
+      '問題類型：[欄位不存在 / 類型不符 / 讀寫不一致]',
       '',
       '### 問題描述',
-      '{{ 例如：後台 saveProfile() 寫入 nav_name，但 Supabase profile 表沒有這個欄位 }}',
+      '[說明哪裡不對]',
       '',
-      '### 目前 Supabase 欄位狀態',
-      '{{ 你在 Supabase Table Editor 看到的實際欄位清單，貼上或描述 }}',
+      '### 目前 Supabase 狀態',
+      '[Table Editor 看到的實際欄位]',
       '',
       '### 期望修正方式',
-      '{{ 例如：在 Supabase 補建 nav_name TEXT 欄位，或改前台讀取的 key 名稱 }}'
+      '[補建欄位 / 改程式碼 key / 兩者都改]'
+    ].join('\n'),
+    example: [
+      '## 資料表欄位問題',
+      '',
+      '資料表：profile',
+      '欄位名稱：nav_name',
+      '問題類型：欄位不存在',
+      '',
+      '### 問題描述',
+      '後台 saveProfile() 有寫入 nav_name，但 Supabase profile 表沒有這個欄位，導致儲存後前台 nav 標題沒有更新',
+      '',
+      '### 目前 Supabase 狀態',
+      '目前 profile 表只有 name、description、email、phone、note',
+      '',
+      '### 期望修正方式',
+      '在 Supabase 補建 nav_name TEXT 欄位'
     ].join('\n'),
     fields: [
-      { key: '{{ 資料表 }}', desc: '對照「資料表」頁確認表名', ex: 'profile、projects、skills' },
-      { key: '{{ 欄位名稱 }}', desc: '有問題的欄位名稱，要和程式碼裡用的一致', ex: 'nav_name、sections、images' },
-      { key: '{{ 問題類型 }}', desc: '選一個最接近的', ex: '欄位不存在 / 類型不符（應為 JSONB 卻是 TEXT）' },
-      { key: '{{ 目前狀態 }}', desc: '截圖或描述 Supabase 現有的欄位', ex: '目前 profile 表只有 name、email、phone' },
-      { key: '{{ 期望修正 }}', desc: '你想要怎麼修正', ex: '補建欄位 / 改程式碼讀取的 key / 兩者都改' }
+      { key: '[表名]',       req: true, desc: '對照資料表頁確認表名' },
+      { key: '[欄位]',       req: true, desc: '要和程式碼裡用的名稱一致' },
+      { key: '[問題類型]',   req: true, desc: '欄位不存在 / 類型不符 / 讀寫不一致' },
+      { key: '[問題描述]',   req: true, desc: '哪個函式讀寫、實際出現什麼問題' },
+      { key: '[Supabase 狀態]', req: true, desc: 'Table Editor 的現有欄位清單' },
+      { key: '[修正方式]',   req: true, desc: '補建欄位 / 改程式碼 / 兩者都改' }
     ]
   },
   bug: {
-    desc: '發現前台或後台畫面異常、功能失效，提供足夠資訊讓問題快速定位',
+    label: '🐛 Bug 回報',
+    desc: '畫面異常、功能失效，提供足夠資訊快速定位',
     tpl: [
       '## Bug 回報',
       '',
-      '**頁面**：{{ 前台 index.html / 後台 admin.html }}',
-      '**元件 / 功能**：{{ 對照 CSS 樣式頁或 JS 函式頁，例如 Modal / TagInput / Nav Pill }}',
+      '頁面：[index.html / admin.html]',
+      '元件：[對應的 class 或功能名稱]',
       '',
       '### 預期行為',
-      '{{ 這個功能正常情況下應該怎麼運作 }}',
+      '[功能正常時應該是什麼樣子]',
       '',
       '### 實際行為',
-      '{{ 現在看到的異常是什麼 }}',
+      '[現在看到的異常]',
       '',
       '### 重現步驟',
-      '1. {{ 步驟一 }}',
-      '2. {{ 步驟二 }}',
-      '3. {{ 出現問題 }}',
+      '1. [步驟一]',
+      '2. [步驟二]',
+      '3. [出現問題]',
       '',
-      '### F12 Console 錯誤訊息',
-      '```',
-      '{{ 貼上完整錯誤，沒有請寫「無」}}',
-      '```',
+      '### Console 錯誤（選填）',
+      '[F12 → Console 的紅字訊息，沒有請寫「無」]',
       '',
-      '### 裝置 / 瀏覽器',
-      '{{ 例如：iPhone 15 Safari / Mac Chrome 125 }}'
+      '### 裝置 / 瀏覽器（選填）',
+      '[例如 iPhone 15 Safari / Mac Chrome 125]'
+    ].join('\n'),
+    example: [
+      '## Bug 回報',
+      '',
+      '頁面：index.html',
+      '元件：.modal（作品 Modal）',
+      '',
+      '### 預期行為',
+      '點擊作品列表後 Modal 從底部滑出，顯示作品內容',
+      '',
+      '### 實際行為',
+      'Modal 背景遮罩出現，但內容區是空白的',
+      '',
+      '### 重現步驟',
+      '1. 打開前台首頁',
+      '2. 點擊任一作品列表項目',
+      '3. Modal 遮罩出現但內容空白',
+      '',
+      '### Console 錯誤（選填）',
+      "TypeError: Cannot read properties of undefined (reading 'sections')",
+      '',
+      '### 裝置 / 瀏覽器（選填）',
+      'Mac Chrome 125'
     ].join('\n'),
     fields: [
-      { key: '{{ 頁面 }}', desc: '問題出在哪個檔案', ex: 'index.html（前台）/ admin.html（後台）' },
-      { key: '{{ 元件/功能 }}', desc: '對照 CSS 或 JS 頁找到對應名稱', ex: '.modal、TagInput、.nav-links::after' },
-      { key: '{{ 預期行為 }}', desc: '功能正確時應該是什麼樣子', ex: '點擊作品列表後 Modal 滑出' },
-      { key: '{{ 實際行為 }}', desc: '現在看到的異常', ex: 'Modal 背景出現但內容空白' },
-      { key: '{{ Console 錯誤 }}', desc: '按 F12 → Console，把紅字錯誤複製過來', ex: "TypeError: Cannot read properties of undefined (reading 'sections')" },
-      { key: '{{ 裝置/瀏覽器 }}', desc: '方便確認是否為特定環境問題', ex: 'iPhone 15 Safari 17 / Mac Chrome 125' }
+      { key: '[index.html / admin.html]', req: true,  desc: '問題出在哪個檔案' },
+      { key: '[class 或功能名稱]',        req: true,  desc: '對照 CSS 或 JS 頁找到對應名稱' },
+      { key: '[預期行為]',               req: true,  desc: '正確時應該是什麼樣子' },
+      { key: '[實際行為]',               req: true,  desc: '現在看到的異常' },
+      { key: '[重現步驟]',               req: true,  desc: '操作步驟，越清楚越好' },
+      { key: '[Console 錯誤]',           req: false, desc: '選填，F12 → Console 紅字' },
+      { key: '[裝置/瀏覽器]',            req: false, desc: '選填，方便確認是否特定環境問題' }
     ]
   }
 };
 
 var currentTpl = 'css';
 
+var showingExample = false;
+
 function renderTemplate(key) {
   currentTpl = key;
+  showingExample = false;
   var data = TEMPLATES[key];
   var chips = document.querySelectorAll('.pt-chip');
   var i;
@@ -1270,14 +1405,36 @@ function renderTemplate(key) {
   }
   document.getElementById('pt-desc').textContent = data.desc;
   document.getElementById('pt-editor').value = data.tpl;
+  var exBtn = document.getElementById('pt-ex-btn');
+  if (exBtn) { exBtn.textContent = '看填寫範例'; exBtn.classList.remove('on'); }
+  renderFields(data);
+}
+
+function toggleExample() {
+  var data = TEMPLATES[currentTpl];
+  var exBtn = document.getElementById('pt-ex-btn');
+  showingExample = !showingExample;
+  if (showingExample) {
+    document.getElementById('pt-editor').value = data.example;
+    exBtn.textContent = '回到空白範本';
+    exBtn.classList.add('on');
+  } else {
+    document.getElementById('pt-editor').value = data.tpl;
+    exBtn.textContent = '看填寫範例';
+    exBtn.classList.remove('on');
+  }
+}
+
+function renderFields(data) {
   var fieldsEl = document.getElementById('pt-fields');
   var html = '';
-  for (i = 0; i < data.fields.length; i++) {
+  for (var i = 0; i < data.fields.length; i++) {
     var f = data.fields[i];
-    html += '<div class="pt-field">';
-    html += '<div class="pt-field-key">' + f.key + '</div>';
-    html += '<div><div class="pt-field-desc">' + f.desc + '</div>';
-    html += '<div class="pt-field-ex">例如：' + f.ex + '</div></div>';
+    html += '<div class="pt-field' + (f.req ? '' : ' pt-optional') + '">';
+    html += '<div class="pt-field-key">' + f.key;
+    html += f.req ? ' <span class="pt-req">必填</span>' : ' <span class="pt-opt">選填</span>';
+    html += '</div>';
+    html += '<div class="pt-field-desc">' + f.desc + '</div>';
     html += '</div>';
   }
   fieldsEl.innerHTML = html;
