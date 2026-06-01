@@ -209,21 +209,28 @@
   .hero-content { }
   /* ── Hero 3D ── */
   .hero {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    align-items: center;
-    gap: 60px;
+    position: relative;
     min-height: 80vh;
     max-width: 860px;
     margin: 0 auto;
     padding: 96px 40px 88px;
+    overflow: hidden;
   }
-  .hero-content { display: flex; flex-direction: column; }
-  .hero-model {
+  .hero-content {
+    display: flex;
+    flex-direction: column;
     position: relative;
-    width: 400px;
-    height: 480px;
-    flex-shrink: 0;
+    z-index: 2;
+    max-width: 520px;
+  }
+  .hero-model {
+    position: absolute;
+    top: 0;
+    right: -40px;
+    width: 460px;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
   }
   .hero-model canvas {
     width: 100% !important;
@@ -280,26 +287,29 @@
   }
   .model-progress-fill {
     height: 100%;
-    width: 0%;
+    width: 35%;
     background: var(--text);
     border-radius: 2px;
-    transition: width 0.2s ease;
+    animation: barSlide 1.4s ease-in-out infinite;
+  }
+  @keyframes barSlide {
+    0%   { transform: translateX(-150%); }
+    100% { transform: translateX(400%); }
   }
   .model-progress-text {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-tertiary);
     letter-spacing: .06em;
-    font-variant-numeric: tabular-nums;
   }
 
   /* RWD */
   @media (max-width: 860px) {
-    .hero { grid-template-columns: 1fr; gap: 32px; padding: 72px 24px 64px; }
-    .hero-model { width: 100%; height: 300px; order: -1; }
+    .hero { padding: 72px 24px 64px; }
+    .hero-model { width: 340px; right: -20px; opacity: 0.5; }
   }
   @media (max-width: 560px) {
     .hero { padding: 56px 18px 48px; }
-    .hero-model { height: 240px; }
+    .hero-model { width: 220px; right: -10px; opacity: 0.35; }
   }
 
 
@@ -543,7 +553,7 @@
           <div class="model-progress-bar">
             <div class="model-progress-fill" id="model-progress-fill"></div>
           </div>
-          <span class="model-progress-text" id="model-progress-text">0%</span>
+          <span class="model-progress-text" id="model-progress-text">載入中…</span>
         </div>
       </div>
     </div>
@@ -1024,12 +1034,7 @@ function initThree() {
       })();
     },
     function(xhr) {
-      console.log('[3D] progress:', xhr.loaded, '/', xhr.total);
-      if (xhr.lengthComputable) {
-        var pct = Math.round(xhr.loaded / xhr.total * 100);
-        if (progressFill) progressFill.style.width = pct + '%';
-        if (progressText)  progressText.textContent  = pct + '%';
-      }
+      // GitHub Pages 不回傳 Content-Length，用 indeterminate 動畫
     },
     function(err) {
       console.error('[3D] GLB load error:', err);
