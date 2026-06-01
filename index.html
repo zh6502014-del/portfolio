@@ -958,7 +958,9 @@ var davidMesh = null;
 var renderer, scene, camera, animId;
 
 function initThree() {
+  console.log('[3D] initThree start');
   var container = document.getElementById('hero-model');
+  console.log('[3D] container:', container, 'size:', container ? container.clientWidth + 'x' + container.clientHeight : 'null');
   if (!container) return;
 
   var w = container.clientWidth;
@@ -994,9 +996,11 @@ function initThree() {
   var progressFill = document.getElementById('model-progress-fill');
   var progressText = document.getElementById('model-progress-text');
 
+  console.log('[3D] loading GLB...');
   loader.load(
     '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
     function(gltf) {
+      console.log('[3D] GLB loaded!', gltf);
       var model = gltf.scene;
       var box = new THREE.Box3().setFromObject(model);
       var center = box.getCenter(new THREE.Vector3());
@@ -1022,6 +1026,7 @@ function initThree() {
       animate();
     },
     function(xhr) {
+      console.log('[3D] progress:', xhr.loaded, '/', xhr.total);
       if (xhr.lengthComputable) {
         var pct = Math.round(xhr.loaded / xhr.total * 100);
         if (progressFill) progressFill.style.width = pct + '%';
@@ -1029,7 +1034,8 @@ function initThree() {
       }
     },
     function(err) {
-      console.error('GLB load error:', err);
+      console.error('[3D] GLB load error:', err);
+      console.error('[3D] error detail:', JSON.stringify(err));
     }
   );
 
