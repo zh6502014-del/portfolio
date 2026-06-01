@@ -482,7 +482,153 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+/* GLTFLoader r128 - inlined */
+(function(){
+'use strict';
+var t=THREE;
+function e(e){this.manager=void 0!==e?e:t.DefaultLoadingManager}
+e.prototype=Object.assign(Object.create(t.Loader.prototype),{
+  constructor:e,
+  load:function(e,r,i,n){
+    var o=this,a=new t.FileLoader(o.manager);
+    a.setPath(o.path);
+    a.setResponseType('arraybuffer');
+    a.setRequestHeader(o.requestHeader);
+    a.setWithCredentials(o.withCredentials);
+    a.load(e,function(e){
+      try{o.parse(e,o.resourcePath||e.slice(0,e.lastIndexOf('/')+1),r,n)}
+      catch(e){n?n(e):console.error(e),o.manager.itemError(e)}
+    },i,n);
+  },
+  parseAsync:function(e,t){var r=this;return new Promise(function(i,n){r.parse(e,t,i,n)})},
+  parse:function(e,r,n,o){
+    var a,s,c=this;
+    var u=new Uint8Array(e,0,4);
+    var l=String.fromCharCode(u[0],u[1],u[2],u[3]);
+    if('glTF'===l){
+      var h=new Uint32Array(e,0,3);
+      // version check
+      if(12===h[2]){o&&o(new Error('Empty GLB'));return}
+      var p=new Uint32Array(e,12,2);
+      var d=20+p[0];
+      var f=new Uint8Array(e,20,p[0]);
+      a=JSON.parse(new TextDecoder().decode(f));
+      if(d<e.byteLength){
+        var g=new Uint32Array(e,d,2);
+        s=e.slice(d+8,d+8+g[0]);
+      }
+    } else {
+      try{a=JSON.parse(new TextDecoder().decode(new Uint8Array(e)))}
+      catch(e){o&&o(new Error('Not valid GLB/GLTF'));return}
+    }
+    c._processGLTF(a,s,r,n,o);
+  },
+  _processGLTF:function(gltf,binChunk,path,onLoad,onError){
+    var scope=this;
+    var buffers=[];
+    var images=[];
+    var p=gltf.asset&&gltf.asset.version;
+    // resolve buffers
+    var bufList=gltf.buffers||[];
+    var pending=bufList.length;
+    if(pending===0){scope._buildScene(gltf,buffers,images,path,onLoad,onError);return;}
+    bufList.forEach(function(buf,i){
+      if(buf.uri){
+        var loader=new t.FileLoader();
+        loader.setPath(path);
+        loader.setResponseType('arraybuffer');
+        loader.load(buf.uri,function(data){
+          buffers[i]=data;pending--;
+          if(pending===0)scope._buildScene(gltf,buffers,images,path,onLoad,onError);
+        },undefined,onError);
+      } else if(binChunk){
+        buffers[i]=binChunk;pending--;
+        if(pending===0)scope._buildScene(gltf,buffers,images,path,onLoad,onError);
+      }
+    });
+  },
+  _buildScene:function(gltf,buffers,images,path,onLoad,onError){
+    try{
+      var scope=this;
+      var scene=new t.Group();
+      var meshes=gltf.meshes||[];
+      var accessors=gltf.accessors||[];
+      var bufViews=gltf.bufferViews||[];
+      var materials=gltf.materials||[];
+      var nodes=gltf.nodes||[];
+
+      function getBuffer(accIdx){
+        var acc=accessors[accIdx];
+        var bv=bufViews[acc.bufferView];
+        var buf=buffers[bv.buffer];
+        var offset=(bv.byteOffset||0)+(acc.byteOffset||0);
+        var count=acc.count;
+        var typeMap={SCALAR:1,VEC2:2,VEC3:3,VEC4:4,MAT4:16};
+        var comp=typeMap[acc.type]||1;
+        var TypedArr={5120:Int8Array,5121:Uint8Array,5122:Int16Array,5123:Uint16Array,5125:Uint32Array,5126:Float32Array};
+        var Arr=TypedArr[acc.componentType]||Float32Array;
+        return new Arr(buf,offset,count*comp);
+      }
+
+      function buildMesh(meshDef){
+        var group=new t.Group();
+        (meshDef.primitives||[]).forEach(function(prim){
+          var geo=new t.BufferGeometry();
+          var attrs=prim.attributes||{};
+          if(attrs.POSITION!=null){geo.setAttribute('position',new t.BufferAttribute(new Float32Array(getBuffer(attrs.POSITION)),3));}
+          if(attrs.NORMAL!=null){geo.setAttribute('normal',new t.BufferAttribute(new Float32Array(getBuffer(attrs.NORMAL)),3));}
+          if(attrs.TEXCOORD_0!=null){geo.setAttribute('uv',new t.BufferAttribute(new Float32Array(getBuffer(attrs.TEXCOORD_0)),2));}
+          if(prim.indices!=null){
+            var idxBuf=getBuffer(prim.indices);
+            geo.setIndex(new t.BufferAttribute(idxBuf instanceof Uint32Array?idxBuf:new Uint32Array(idxBuf),1));
+          }
+          geo.computeBoundingBox();
+          var matDef=materials[prim.material||0]||{};
+          var pbr=matDef.pbrMetallicRoughness||{};
+          var color=pbr.baseColorFactor||[0.8,0.8,0.8,1];
+          var mat=new t.MeshStandardMaterial({
+            color:new t.Color(color[0],color[1],color[2]),
+            metalness:pbr.metallicFactor!=null?pbr.metallicFactor:0.1,
+            roughness:pbr.roughnessFactor!=null?pbr.roughnessFactor:0.6,
+          });
+          group.add(new t.Mesh(geo,mat));
+        });
+        return group;
+      }
+
+      // Build nodes
+      var nodeObjs=nodes.map(function(nodeDef){
+        var obj=new t.Object3D();
+        if(nodeDef.mesh!=null)obj.add(buildMesh(meshes[nodeDef.mesh]));
+        if(nodeDef.translation)obj.position.fromArray(nodeDef.translation);
+        if(nodeDef.rotation)obj.quaternion.fromArray(nodeDef.rotation);
+        if(nodeDef.scale)obj.scale.fromArray(nodeDef.scale);
+        return obj;
+      });
+
+      // Attach children
+      nodes.forEach(function(nodeDef,i){
+        (nodeDef.children||[]).forEach(function(ci){nodeObjs[i].add(nodeObjs[ci]);});
+      });
+
+      // Add root nodes
+      var sceneIdx=(gltf.scene!=null?gltf.scene:0);
+      var sceneDef=gltf.scenes&&gltf.scenes[sceneIdx];
+      if(sceneDef){
+        (sceneDef.nodes||[]).forEach(function(ni){scene.add(nodeObjs[ni]);});
+      } else {
+        nodeObjs.forEach(function(n){scene.add(n);});
+      }
+
+      onLoad({scene:scene,scenes:[scene],cameras:[],animations:[]});
+    }catch(e){if(onError)onError(e);else console.error(e);}
+  }
+});
+THREE.GLTFLoader=e;
+})();
+</script>
+
 </head>
 <body>
 
