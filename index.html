@@ -211,24 +211,30 @@
   .hero {
     position: relative;
     min-height: 80vh;
+    padding: 0;
+  }
+  .hero-inner {
     max-width: 860px;
     margin: 0 auto;
     padding: 96px 40px 88px;
+    display: flex;
+    align-items: center;
+    position: relative;
     overflow: hidden;
   }
   .hero-content {
-    display: flex;
-    flex-direction: column;
     position: relative;
     z-index: 2;
-    max-width: 520px;
+    flex: 1;
+    min-width: 0;
+    padding-right: 360px;
   }
   .hero-model {
     position: absolute;
     top: 0;
-    right: -40px;
-    width: 460px;
-    height: 100%;
+    right: 0;
+    bottom: 0;
+    width: 400px;
     z-index: 1;
     pointer-events: none;
   }
@@ -304,12 +310,14 @@
 
   /* RWD */
   @media (max-width: 860px) {
-    .hero { padding: 72px 24px 64px; }
-    .hero-model { width: 340px; right: -20px; opacity: 0.5; }
+    .hero-inner { padding: 72px 24px 64px; }
+    .hero-content { padding-right: 260px; }
+    .hero-model { width: 260px; right: 0; opacity: 0.6; }
   }
   @media (max-width: 560px) {
-    .hero { padding: 56px 18px 48px; }
-    .hero-model { width: 220px; right: -10px; opacity: 0.35; }
+    .hero-inner { padding: 56px 18px 48px; }
+    .hero-content { padding-right: 0; }
+    .hero-model { width: 160px; right: 0; opacity: 0.3; }
   }
 
 
@@ -524,40 +532,38 @@
 </nav>
 
 <main>
-<div class="wrapper">
-
-
-  <section class="hero" id="hero">
-    <!-- 左欄：文字內容 -->
-    <div class="hero-content">
-      <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
-      <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
-      <div class="hero-contacts" id="hero-contacts">
-        <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-          zh6502014@gmail.com
-        </a>
-        <span class="contact-item glass-el">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          0911-585-420
-        </span>
-      </div>
-      <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
+<section class="hero" id="hero">
+  <div class="hero-inner" id="hero-inner">
+  <div class="hero-content">
+    <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
+    <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
+    <div class="hero-contacts" id="hero-contacts">
+      <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        zh6502014@gmail.com
+      </a>
+      <span class="contact-item glass-el">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        0911-585-420
+      </span>
     </div>
-
-    <!-- 右欄：3D 模型 -->
-    <div class="hero-model" id="hero-model">
-      <div class="model-loader" id="model-loader">
-        <div class="model-skeleton"></div>
-        <div class="model-progress-wrap">
-          <div class="model-progress-bar">
-            <div class="model-progress-fill" id="model-progress-fill"></div>
-          </div>
-          <span class="model-progress-text" id="model-progress-text">載入中…</span>
+    <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
+  </div>
+  <div class="hero-model" id="hero-model">
+    <div class="model-loader" id="model-loader">
+      <div class="model-skeleton"></div>
+      <div class="model-progress-wrap">
+        <div class="model-progress-bar">
+          <div class="model-progress-fill" id="model-progress-fill"></div>
         </div>
+        <span class="model-progress-text" id="model-progress-text">載入中…</span>
       </div>
     </div>
-  </section>
+  </div>
+  </div>
+</section>
+
+<div class="wrapper">
 
   <section id="about" style="position:relative">
     <p class="sec-label">設計技能</p>
@@ -968,18 +974,19 @@ loadData();
 
 <script>
 function initThree() {
-  console.log('[3D] initThree start');
   var THREE = window.THREE;
   var container = document.getElementById('hero-model');
-  console.log('[3D] container:', container, 'THREE:', !!THREE, 'GLTFLoader:', !!(THREE && THREE.GLTFLoader));
   if (!container || !THREE) { console.error('[3D] missing container or THREE'); return; }
   if (!THREE.GLTFLoader) { console.error('[3D] GLTFLoader not ready, retrying...'); setTimeout(initThree, 200); return; }
 
-  var w = container.clientWidth;
-  var h = container.clientHeight;
+  var heroInner = document.getElementById('hero-inner');
+  var w = (heroInner ? heroInner.clientWidth : 0) || 860;
+  var h = (heroInner ? heroInner.clientHeight : 0) || 520;
+  // model 寬度固定
+  w = 400;
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-  camera.position.set(0, 0.2, 3.2);
+  camera.position.set(0, 0.1, 3.5);
   var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(w, h);
@@ -1001,12 +1008,9 @@ function initThree() {
   var loader = new THREE.GLTFLoader();
   var progressFill = document.getElementById('model-progress-fill');
   var progressText  = document.getElementById('model-progress-text');
-
-  console.log('[3D] loading GLB...');
   loader.load(
     '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
     function(gltf) {
-      console.log('[3D] GLB loaded!', gltf);
       var model = gltf.scene;
       var box = new THREE.Box3().setFromObject(model);
       var center = new THREE.Vector3();
@@ -1021,8 +1025,6 @@ function initThree() {
       console.log("[3D] size:", size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2), "sc:", sc.toFixed(3));
       davidMesh = model;
       scene.add(model);
-      if (progressFill) progressFill.style.width = '100%';
-      if (progressText)  progressText.textContent  = '100%';
       setTimeout(function() {
         var loaderEl = document.getElementById('model-loader');
         if (loaderEl) loaderEl.classList.add('hidden');
@@ -1048,9 +1050,12 @@ function initThree() {
   }, { passive: true });
 
   window.addEventListener('resize', function() {
-    camera.aspect = container.clientWidth / container.clientHeight;
+    var hi = document.getElementById('hero-inner');
+    var rh = hi ? hi.clientHeight : 520;
+    if (rh < 1) rh = 520;
+    camera.aspect = 400 / rh;
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(400, rh);
   });
 }
 window.addEventListener('load', initThree);
