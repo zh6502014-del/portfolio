@@ -225,16 +225,16 @@
   .hero-content {
     position: relative;
     z-index: 2;
-    flex: 1;
-    min-width: 0;
-    padding-right: 360px;
+    width: 100%;
+    max-width: 500px;
   }
   .hero-model {
     position: absolute;
     top: 0;
-    right: 0;
+    right: -40px;
     bottom: 0;
-    width: 400px;
+    width: 50%;
+    min-width: 320px;
     z-index: 1;
     pointer-events: none;
   }
@@ -242,10 +242,8 @@
     width: 100% !important;
     height: 100% !important;
     display: block;
-    opacity: 0;
-    transition: opacity 1s ease;
+    opacity: 1;
   }
-  .hero-model canvas.loaded { opacity: 1; }
 
   /* Loading UI */
   .model-loader {
@@ -311,13 +309,13 @@
   /* RWD */
   @media (max-width: 860px) {
     .hero-inner { padding: 72px 24px 64px; }
-    .hero-content { padding-right: 260px; }
-    .hero-model { width: 260px; right: 0; opacity: 0.6; }
+    .hero-content { max-width: 420px; }
+    .hero-model { width: 280px; right: -20px; opacity: 0.55; }
   }
   @media (max-width: 560px) {
     .hero-inner { padding: 56px 18px 48px; }
-    .hero-content { padding-right: 0; }
-    .hero-model { width: 160px; right: 0; opacity: 0.3; }
+    .hero-content { max-width: 100%; }
+    .hero-model { width: 180px; right: -10px; opacity: 0.25; }
   }
 
 
@@ -1022,14 +1020,10 @@ function initThree() {
       model.scale.setScalar(sc);
       model.position.set(-center.x * sc, -center.y * sc, -center.z * sc);
       model.rotation.y = -0.15;
-      console.log("[3D] size:", size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2), "sc:", sc.toFixed(3));
       davidMesh = model;
       scene.add(model);
-      setTimeout(function() {
-        var loaderEl = document.getElementById('model-loader');
-        if (loaderEl) loaderEl.classList.add('hidden');
-        if (renderer.domElement) renderer.domElement.classList.add('loaded');
-      }, 400);
+      var loaderEl = document.getElementById('model-loader');
+      if (loaderEl) loaderEl.classList.add('hidden');
       (function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
