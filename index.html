@@ -481,14 +481,8 @@
     .note-item { flex-wrap:wrap; }
   }
 </style>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
-    "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js"
-  }
-}
-</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
@@ -955,9 +949,9 @@ window.addEventListener('scroll', updateNav, { passive: true });
 loadData();
 </script>
 
-<script type="module">
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+<script>
+(function() {
+var THREE = window.THREE;
 
 var davidMesh = null;
 var renderer, scene, camera, animId;
@@ -1009,7 +1003,7 @@ function initThree() {
   var progressText = document.getElementById('model-progress-text');
 
   loader.load(
-    'assets/head_of_michelangelos_david_optimised.glb',
+    '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
     function(gltf) {
       var model = gltf.scene;
 
@@ -1081,6 +1075,7 @@ if (document.readyState === 'loading') {
 } else {
   initThree();
 }
+})();
 </script>
 </body>
 </html>
