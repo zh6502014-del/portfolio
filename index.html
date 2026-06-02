@@ -995,75 +995,74 @@ window.addEventListener('load', () => { updateNav(); });
    Three.js — 3D Model
 ══════════════════════════════════════ */
 function initThree() {
-  const THREE = window.THREE;
-  const container = document.getElementById('hero-model');
-  if (!THREE || !container) return;
+  var THREE = window.THREE;
+  if (!THREE) { console.error('THREE not loaded'); return; }
   if (!THREE.GLTFLoader) { setTimeout(initThree, 100); return; }
 
-  // 固定尺寸測試
-  const w = 300;
-  const h = 400;
+  var container = document.getElementById('hero-model');
+  if (!container) { console.error('hero-model not found'); return; }
 
-  const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-  camera.position.set(0, 0.05, 3.0);
+  var W = 300, H = 400;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(w, h);
-  renderer.outputEncoding  = THREE.sRGBEncoding;
-  renderer.toneMapping     = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
+  camera.position.set(0, 0, 3);
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(W, H);
   renderer.setClearColor(0x000000, 0);
+  renderer.domElement.style.cssText = 'position:absolute;top:0;right:0;width:300px;height:400px;';
   container.appendChild(renderer.domElement);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-  const dir = new THREE.DirectionalLight(0xffffff, 1.2);
-  dir.position.set(2, 3, 2); scene.add(dir);
-  const fill = new THREE.DirectionalLight(0x8ab4f8, 0.3);
-  fill.position.set(-2, 0, 1); scene.add(fill);
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  var dir = new THREE.DirectionalLight(0xffffff, 1.5);
+  dir.position.set(1, 2, 2);
+  scene.add(dir);
 
-  let davidMesh = null;
+  // 先畫一個測試球確認 renderer 正常
+  var testGeo = new THREE.SphereGeometry(0.5, 16, 16);
+  var testMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+  var testMesh = new THREE.Mesh(testGeo, testMat);
+  scene.add(testMesh);
+
+  var davidMesh = null;
+
+  (function animate() {
+    requestAnimationFrame(animate);
+    if (testMesh) testMesh.rotation.y += 0.01;
+    if (davidMesh) davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
+    renderer.render(scene, camera);
+  }());
+
   new THREE.GLTFLoader().load(
     '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
     function(gltf) {
-      const model = gltf.scene;
-      const box    = new THREE.Box3().setFromObject(model);
-      const center = new THREE.Vector3();
-      const size   = new THREE.Vector3();
+      console.log('GLB loaded OK');
+      scene.remove(testMesh);
+      var model = gltf.scene;
+      var box = new THREE.Box3().setFromObject(model);
+      var center = new THREE.Vector3();
+      var size = new THREE.Vector3();
       box.getCenter(center);
       box.getSize(size);
-      const sc = 1.8 / Math.max(size.x, size.y, size.z);
+      var sc = 1.8 / Math.max(size.x, size.y, size.z);
       model.scale.setScalar(sc);
-      model.position.set(-center.x * sc, -center.y * sc, -center.z * sc);
+      model.position.set(-center.x*sc, -center.y*sc, -center.z*sc);
       model.rotation.y = -0.15;
       scene.add(model);
       davidMesh = model;
-      const loader = document.getElementById('model-loader');
+      var loader = document.getElementById('model-loader');
       if (loader) loader.classList.add('hidden');
-      (function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-      }());
     },
     null,
-    err => console.error('GLB error:', err)
+    function(err) { console.error('GLB error:', err); }
   );
 
-  // scroll → 水平順時針旋轉
-  window.addEventListener('scroll', () => {
+  window.addEventListener('scroll', function() {
     if (!davidMesh) return;
     davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
   }, { passive: true });
-
-  // resize（固定測試）
-  window.addEventListener('resize', () => {});
 }
-
-/* ══════════════════════════════════════
-   Init
-══════════════════════════════════════ */
-loadData();
 window.addEventListener('load', initThree);
 </script>
 </body>
