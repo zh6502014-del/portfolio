@@ -148,7 +148,8 @@
   .wrapper, .nav-inner, footer { position:relative; z-index:1; }
   section { position:relative; z-index:1; }
 
-  .nav { position:sticky; top:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
+  .nav { position:fixed; top:0; left:0; right:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
+  main { padding-top:60px; }
   .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
   .nav-logo { font-family:var(--font-sans); font-size:18px; font-weight:500; color:var(--text); text-decoration:none; }
   /* ── Glass Nav ── */
@@ -276,7 +277,7 @@
   .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
-  .tag, .skill-tag, .note-type {
+  .tag, .note-type {
     font-size:13px; padding:4px 12px; border-radius:100px; color:var(--text-secondary);
     background: var(--glass-el-bg);
     border: 1px solid var(--glass-el-border);
@@ -290,7 +291,7 @@
     transition: box-shadow .2s;
     display: inline-block;
   }
-  .tag:hover, .skill-tag:hover, .note-type:hover {
+  .tag:hover, .note-type:hover {
     animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
   }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
@@ -378,73 +379,51 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 
-  @media (max-width:560px) {
-    .modal-header { padding:16px 20px 14px; }
-    .modal-body { padding:20px 20px 48px; }
-    .modal-grid { grid-template-columns:1fr; }
-    .wrapper { padding:0 20px; }
-    .nav-inner { padding:0 20px; }
-    .hero-title { font-size:36px; }
-    .project-row { grid-template-columns:1fr; }
-    .project-row-right { flex-direction:row; padding-top:0; }
-    .note-item { flex-wrap:wrap; }
+  /* ── 平板 ── */
+  @media (max-width:720px) {
+    .wrapper { padding:0 24px; }
+    .nav-inner { padding:0 24px; }
+    .hero { padding-top:72px; padding-bottom:64px; }
+    .hero-desc { font-size:18px; margin-bottom:32px; }
+    .skill-grid { grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+    .project-row-title { font-size:19px; }
+    .sec-label { margin-bottom:22px; }
   }
 
-  /* ── 3D Model ── */
-  .hero {
-    position: relative;
+  /* ── 手機 ── */
+  @media (max-width:560px) {
+    .wrapper { padding:0 18px; }
+    .nav-inner { padding:0 18px; }
+    .hero { padding-top:56px; padding-bottom:48px; }
+    .hero-title { font-size:clamp(32px,9vw,40px); margin-bottom:16px; }
+    .hero-desc { font-size:16px; line-height:1.8; margin-bottom:28px; max-width:100%; }
+    .hero-contacts { flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:22px; }
+    .contact-item { width:100%; justify-content:flex-start; }
+    .hero-note { max-width:100%; font-size:13px; }
+    .hero-badge { font-size:13px; padding:4px 12px; margin-bottom:20px; }
+    .sec-label { margin-bottom:16px; }
+    .skill-grid { grid-template-columns:1fr 1fr; gap:8px; margin-bottom:40px; }
+    .skill-card { padding:14px; }
+    .skill-card-icon { width:28px; height:28px; font-size:15px; margin-bottom:10px; }
+    .skill-card-title { font-size:13px; margin-bottom:8px; }
+    .tools-grid { gap:7px; }
+    .tool-item { font-size:14px; padding:10px 14px; }
+    .project-row { grid-template-columns:1fr; gap:10px; padding:22px 0; }
+    .project-row-right { flex-direction:row; padding-top:0; }
+    .project-row-title { font-size:18px; margin-bottom:6px; }
+    .project-row-desc { font-size:14px; -webkit-line-clamp:2; }
+    .project-cover { width:100px; height:56px; }
+    .project-cover-empty { width:100px; height:56px; }
+    .note-item { flex-wrap:wrap; gap:8px; padding:16px 0; }
+    .note-title { font-size:16px; }
+    .note-date { font-size:12px; }
+    .modal-header { padding:14px 18px 12px; }
+    .modal-body { padding:18px 18px 44px; }
+    .modal-grid { grid-template-columns:1fr; }
+    .modal-title { font-size:20px; }
+    .modal-meta { flex-wrap:wrap; gap:6px; }
   }
-  #hero-model {
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 50%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
-  }
-  .hero > *:not(#hero-model) {
-    position: relative;
-    z-index: 1;
-  }
-  #model-loader {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    transition: opacity 0.5s;
-  }
-  #model-loader.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .model-skeleton {
-    width: 160px; height: 200px;
-    border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
-    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-    animation: skPulse 1.6s ease-in-out infinite;
-  }
-  @keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .model-bar-wrap {
-    width: 120px; height: 2px;
-    background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;
-  }
-  .model-bar {
-    height: 100%; width: 35%;
-    background: var(--text); border-radius: 2px;
-    animation: barRun 1.4s ease-in-out infinite;
-  }
-  @keyframes barRun { 0%{transform:translateX(-150%)} 100%{transform:translateX(400%)} }
-  .model-bar-text {
-    font-size: 11px; color: var(--text-tertiary); letter-spacing: .06em;
-  }
-  @media (max-width: 720px) { #hero-model { width: 40%; opacity: 0.35; } }
-  @media (max-width: 560px) { #hero-model { width: 55%; opacity: 0.2; } }
 </style>
-<script src="/portfolio/assets/three.min.js"></script>
-<script src="/portfolio/assets/GLTFLoader.js"></script>
 </head>
 <body>
 
@@ -473,13 +452,6 @@
 
 
   <section class="hero" id="hero">
-    <div id="hero-model">
-      <div id="model-loader">
-        <div class="model-skeleton"></div>
-        <div class="model-bar-wrap"><div class="model-bar"></div></div>
-        <span class="model-bar-text">載入中…</span>
-      </div>
-    </div>
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
@@ -591,7 +563,7 @@ function renderSkills(data) {
     <div class="skill-card glass-el glass-card">
       <div class="skill-card-icon">${s.icon || '🎨'}</div>
       <div class="skill-card-title">${s.title}</div>
-      <div class="skill-tag-list">${(s.tags || []).map(t => `<span class="skill-tag">${t}</span>`).join('')}</div>
+      <div class="skill-tag-list">${(s.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
     </div>
   `).join('');
 }
@@ -789,9 +761,9 @@ function renderFallback() {
   renderProjects(fallbackProjects);
   renderNotes(fallbackNotes);
   document.getElementById('skills-grid').innerHTML = `
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="skill-tag">Wireframe</span><span class="skill-tag">UI Mockup</span><span class="skill-tag">UI Flow</span><span class="skill-tag">易用性測試</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="skill-tag">字型學</span><span class="skill-tag">色彩學</span><span class="skill-tag">版面構成</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="skill-tag">Web UI（RWD）</span><span class="skill-tag">Mobile UI</span><span class="skill-tag">Design System</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="tag">Wireframe</span><span class="tag">UI Mockup</span><span class="tag">UI Flow</span><span class="tag">易用性測試</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="tag">字型學</span><span class="tag">色彩學</span><span class="tag">版面構成</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="tag">Web UI（RWD）</span><span class="tag">Mobile UI</span><span class="tag">Design System</span></div></div>
   `;
   document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
 }
@@ -900,80 +872,6 @@ function updateNav() {
 window.addEventListener('scroll', updateNav, { passive: true });
 
 loadData();
-</script>
-
-<script>
-
-<script>
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    var T = window.THREE;
-    if (!T || !T.GLTFLoader) return;
-
-    var el = document.getElementById('hero-model');
-    if (!el) return;
-
-    // Scene
-    var scene  = new T.Scene();
-    var W = el.offsetWidth  || 400;
-    var H = el.offsetHeight || 500;
-    var cam = new T.PerspectiveCamera(45, W/H, 0.1, 100);
-    cam.position.set(0, 0.1, 3.2);
-
-    // Renderer
-    var renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.setSize(W, H);
-    renderer.setClearColor(0, 0);
-    renderer.outputEncoding = T.sRGBEncoding;
-    renderer.domElement.style.cssText = 'width:100%;height:100%;display:block;';
-    el.appendChild(renderer.domElement);
-
-    // Lights
-    scene.add(new T.AmbientLight(0xffffff, 0.8));
-    var dl = new T.DirectionalLight(0xffffff, 1.2);
-    dl.position.set(2, 3, 2); scene.add(dl);
-
-    // Render loop
-    var mesh = null;
-    !function tick() {
-      requestAnimationFrame(tick);
-      renderer.render(scene, cam);
-    }();
-
-    // Load model
-    new T.GLTFLoader().load(
-      '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
-      function(gltf) {
-        var m = gltf.scene;
-        var box = new T.Box3().setFromObject(m);
-        var c = new T.Vector3(), s = new T.Vector3();
-        box.getCenter(c); box.getSize(s);
-        var sc = 1.8 / Math.max(s.x, s.y, s.z);
-        m.scale.setScalar(sc);
-        m.position.set(-c.x*sc, -c.y*sc, -c.z*sc);
-        m.rotation.y = -0.2;
-        scene.add(m);
-        mesh = m;
-        var ld = document.getElementById('model-loader');
-        if (ld) ld.classList.add('hidden');
-      },
-      null,
-      function(e) { console.error('GLB:', e); }
-    );
-
-    // Scroll rotate
-    window.addEventListener('scroll', function() {
-      if (mesh) mesh.rotation.y = -0.2 + scrollY / innerHeight * Math.PI * 2;
-    }, { passive: true });
-
-    // Expose for debug
-    window._scene = scene;
-    window._cam   = cam;
-    window._getMesh = function() { return mesh; };
-
-  }, 500);
-});
 </script>
 </body>
 </html>
