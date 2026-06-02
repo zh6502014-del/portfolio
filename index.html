@@ -1000,11 +1000,9 @@ function initThree() {
   if (!THREE || !container) return;
   if (!THREE.GLTFLoader) { setTimeout(initThree, 100); return; }
 
-  // 取 hero-inner 的實際高度
-  const heroInner = document.getElementById('hero-inner');
-  const w = container.offsetWidth || (heroInner ? heroInner.offsetWidth * 0.55 : window.innerWidth * 0.55);
-  const h = (heroInner ? heroInner.offsetHeight : 0) || window.innerHeight * 0.75;
-  if (w < 10 || h < 10) { setTimeout(initThree, 300); return; }
+  // 固定尺寸測試
+  const w = 300;
+  const h = 400;
 
   const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
@@ -1058,16 +1056,8 @@ function initThree() {
     davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
   }, { passive: true });
 
-  // resize
-  window.addEventListener('resize', () => {
-    const hi = document.getElementById('hero-inner');
-    const nw = container.offsetWidth || (hi ? hi.offsetWidth * 0.55 : w);
-    const nh = (hi ? hi.offsetHeight : 0) || window.innerHeight * 0.75;
-    if (nw < 10) return;
-    camera.aspect = nw / nh;
-    camera.updateProjectionMatrix();
-    renderer.setSize(nw, nh);
-  });
+  // resize（固定測試）
+  window.addEventListener('resize', () => {});
 }
 
 /* ══════════════════════════════════════
