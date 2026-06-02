@@ -907,6 +907,7 @@ loadData();
   if (!window.THREE || !window.THREE.WebGLRenderer || !window.THREE.GLTFLoader) {
     return setTimeout(waitThree, 100);
   }
+
   var container = document.getElementById('hero-model');
   if (!container) return;
 
@@ -916,14 +917,14 @@ loadData();
   var camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
   camera.position.set(0, 0.1, 3.2);
 
-  var renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(W, H);
   renderer.setClearColor(0, 0);
   renderer.outputEncoding = THREE.sRGBEncoding;
 
   var canvas = renderer.domElement;
-  canvas.style.cssText = 'position:absolute;top:50%;right:0;transform:translateY(-50%);width:'+W+'px;height:'+H+'px;';
+  canvas.style.cssText = 'position:absolute;top:50%;right:0;transform:translateY(-50%);width:'+W+'px;height:'+H+'px;display:block;';
   container.appendChild(canvas);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.8));
@@ -932,36 +933,43 @@ loadData();
   var fl = new THREE.DirectionalLight(0x8ab4f8, 0.4);
   fl.position.set(-2, 0, 1); scene.add(fl);
 
-  var mesh = null;
-  var loader = new THREE.GLTFLoader();
-  loader.load(
-    '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
-    function(gltf) {
-      var model = gltf.scene;
-      var box = new THREE.Box3().setFromObject(model);
-      var c = new THREE.Vector3(), s = new THREE.Vector3();
-      box.getCenter(c); box.getSize(s);
-      var sc = 1.8 / Math.max(s.x, s.y, s.z);
-      model.scale.setScalar(sc);
-      model.position.set(-c.x*sc, -c.y*sc, -c.z*sc);
-      model.rotation.y = -0.2;
-      scene.add(model);
-      mesh = model;
-      var el = document.getElementById('model-loader');
-      if (el) el.classList.add('hidden');
-    },
-    null,
-    function(e) { console.error('GLB:', e); }
-  );
+  // 暴露到 window 供 debug
+  window._scene  = scene;
+  window._camera = camera;
+  window._mesh   = null;
 
+  // render loop 先跑起來
   (function tick() {
     requestAnimationFrame(tick);
     renderer.render(scene, camera);
   })();
 
+  // 等一個 tick 後才 load，確保 render loop 已啟動
+  requestAnimationFrame(function() {
+    new THREE.GLTFLoader().load(
+      '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
+      function(gltf) {
+        var model = gltf.scene;
+        var box = new THREE.Box3().setFromObject(model);
+        var c = new THREE.Vector3(), s = new THREE.Vector3();
+        box.getCenter(c); box.getSize(s);
+        var sc = 1.8 / Math.max(s.x, s.y, s.z);
+        model.scale.setScalar(sc);
+        model.position.set(-c.x*sc, -c.y*sc, -c.z*sc);
+        model.rotation.y = -0.2;
+        scene.add(model);
+        window._mesh = model;
+        var loaderEl = document.getElementById('model-loader');
+        if (loaderEl) loaderEl.classList.add('hidden');
+      },
+      null,
+      function(e) { console.error('GLB error:', e); }
+    );
+  });
+
   window.addEventListener('scroll', function() {
-    if (!mesh) return;
-    mesh.rotation.y = -0.2 + (scrollY / innerHeight) * Math.PI * 2;
+    if (!window._mesh) return;
+    window._mesh.rotation.y = -0.2 + (scrollY / innerHeight) * Math.PI * 2;
   }, { passive: true });
 })();
 </script>
