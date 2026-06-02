@@ -211,7 +211,7 @@
   .hero {
     position: relative;
     min-height: 80vh;
-    padding: 0;
+    padding: 0 !important;
   }
   .hero-inner {
     position: relative;
@@ -234,7 +234,7 @@
     height: 100%;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.18;
+    opacity: 0.45;
   }
   .hero-model canvas {
     width: 100% !important;
@@ -305,11 +305,11 @@
 
   @media (max-width: 860px) {
     .hero-inner { padding: 72px 24px 64px; }
-    .hero-model { width: 45%; opacity: 0.15; }
+    .hero-model { width: 45%; opacity: 0.35; }
   }
   @media (max-width: 560px) {
     .hero-inner { padding: 56px 18px 48px; }
-    .hero-model { width: 60%; right: -10%; opacity: 0.1; }
+    .hero-model { width: 60%; right: -10%; opacity: 0.2; }
   }
     .hero-content { max-width: 100%; }
     .hero-model { width: 180px; right: -10px; opacity: 0.25; }
@@ -530,6 +530,7 @@
 <section class="hero" id="hero">
   <div class="hero-inner" id="hero-inner">
   <div class="hero-content">
+    <div class="hero-badge glass-el" id="hero-badge"><span class="hero-badge-dot"></span>UI/UX Designer · 在職中</div>
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
