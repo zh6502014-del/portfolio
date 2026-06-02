@@ -178,6 +178,7 @@ section {
   position: relative;
   z-index: 1;
 }
+.hero { padding: 0; }
 
 /* ══════════════════════════════════════
    Nav
@@ -760,7 +761,10 @@ function renderProfile(p) {
     const cleanName = p.name.replace(/您好[，,]\s*我是/g, '').trim();
     document.getElementById('hero-title').textContent = '您好，我是' + cleanName;
   }
-  if (p.name)        document.getElementById('footer-name').textContent = p.name + ' · UI/UX Designer';
+  if (p.name) {
+    const cleanName2 = p.name.replace(/您好[，,]\s*我是/g, '').trim();
+    document.getElementById('footer-name').textContent = cleanName2 + ' · UI/UX Designer';
+  }
   if (p.description) document.getElementById('hero-desc').innerHTML = p.description;
   if (p.note) document.getElementById('hero-note').textContent = p.note;
   if (p.email || p.phone) {
@@ -835,7 +839,7 @@ function renderNotes(data) {
   const list = document.getElementById('notes-list');
   if (!data.length) { list.innerHTML = '<p class="note-empty">尚無隨筆</p>'; return; }
   list.innerHTML = data.map(n => `
-    <div class="note-item" onclick="openNote(${n.id})">
+    <div class="note-item" onclick="openNote('${n.id}')">
       <span class="note-date">${formatDate(n.note_date)}</span>
       <div style="flex:1">
         <div class="note-title">${n.title||''}</div>
@@ -844,18 +848,9 @@ function renderNotes(data) {
     </div>`).join('');
 }
 
-/* ── Stored data for modal ── */
-let _projects = [];
-let _notes    = [];
-
 async function openModal(id) {
-  if (!_projects.length) {
-    const { data } = await sb.from('projects').select('*').eq('id', id).single();
-    if (data) showModal(data);
-  } else {
-    const p = _projects.find(x => x.id === id);
-    if (p) showModal(p);
-  }
+  const { data } = await sb.from('projects').select('*').eq('id', id).single();
+  if (data) showModal(data);
 }
 async function openNote(id) {
   const { data } = await sb.from('notes').select('*').eq('id', id).single();
@@ -1045,17 +1040,29 @@ function initThree() {
       console.log('GLB loaded OK');
       scene.remove(testMesh);
       var model = gltf.scene;
+
+      // 計算 bounding box 置中
       var box = new THREE.Box3().setFromObject(model);
       var center = new THREE.Vector3();
       var size = new THREE.Vector3();
       box.getCenter(center);
       box.getSize(size);
-      var sc = 1.8 / Math.max(size.x, size.y, size.z);
+      console.log('model size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
+
+      // 縮放讓最長邊 = 1.6，置中在原點
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var sc = 1.6 / maxDim;
       model.scale.setScalar(sc);
-      model.position.set(-center.x*sc, -center.y*sc, -center.z*sc);
+      model.position.set(
+        -center.x * sc,
+        -center.y * sc,
+        -center.z * sc
+      );
       model.rotation.y = -0.15;
       scene.add(model);
       davidMesh = model;
+      console.log('model added at position:', model.position.x.toFixed(2), model.position.y.toFixed(2), model.position.z.toFixed(2));
+
       var loader = document.getElementById('model-loader');
       if (loader) loader.classList.add('hidden');
     },
