@@ -148,8 +148,7 @@
   .wrapper, .nav-inner, footer { position:relative; z-index:1; }
   section { position:relative; z-index:1; }
 
-  .nav { position:fixed; top:0; left:0; right:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
-  main { padding-top:60px; }
+  .nav { position:sticky; top:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
   .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
   .nav-logo { font-family:var(--font-sans); font-size:18px; font-weight:500; color:var(--text); text-decoration:none; }
   /* ── Glass Nav ── */
@@ -207,7 +206,115 @@
   section { padding:80px 0; }
   section + section { border-top:none; }
 
-  .hero { padding-top:96px; padding-bottom:88px; }
+  .hero-content { }
+  /* ── Hero 3D ── */
+  .hero {
+    position: relative;
+    min-height: 80vh;
+    padding: 0;
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 96px 40px 88px;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+  .hero-model {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 55%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.18;
+  }
+  .hero-model canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+
+  /* Loading UI */
+  .model-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.6s ease;
+  }
+  .model-loader.hidden { opacity: 0; pointer-events: none; }
+  .model-skeleton {
+    width: 180px;
+    height: 220px;
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    animation: skelPulse 1.6s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+  }
+  .model-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+    animation: skelShimmer 1.6s ease-in-out infinite;
+  }
+  @keyframes skelPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes skelShimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+  .model-progress-wrap {
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .model-progress-bar {
+    width: 100%;
+    height: 2px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .model-progress-fill {
+    height: 100%;
+    width: 35%;
+    background: var(--text);
+    border-radius: 2px;
+    animation: barSlide 1.4s ease-in-out infinite;
+  }
+  @keyframes barSlide {
+    0%   { transform: translateX(-150%); }
+    100% { transform: translateX(400%); }
+  }
+  .model-progress-text {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: .06em;
+  }
+
+  @media (max-width: 860px) {
+    .hero-inner { padding: 72px 24px 64px; }
+    .hero-model { width: 45%; opacity: 0.15; }
+  }
+  @media (max-width: 560px) {
+    .hero-inner { padding: 56px 18px 48px; }
+    .hero-model { width: 60%; right: -10%; opacity: 0.1; }
+  }
+    .hero-content { max-width: 100%; }
+    .hero-model { width: 180px; right: -10px; opacity: 0.25; }
+  }
+
 
   /* ── Glass element mixin ── */
   .glass-el {
@@ -277,7 +384,7 @@
   .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
-  .tag, .note-type {
+  .tag, .skill-tag, .note-type {
     font-size:13px; padding:4px 12px; border-radius:100px; color:var(--text-secondary);
     background: var(--glass-el-bg);
     border: 1px solid var(--glass-el-border);
@@ -291,7 +398,7 @@
     transition: box-shadow .2s;
     display: inline-block;
   }
-  .tag:hover, .note-type:hover {
+  .tag:hover, .skill-tag:hover, .note-type:hover {
     animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
   }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
@@ -379,51 +486,23 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 
-  /* ── 平板 ── */
-  @media (max-width:720px) {
-    .wrapper { padding:0 24px; }
-    .nav-inner { padding:0 24px; }
-    .hero { padding-top:72px; padding-bottom:64px; }
-    .hero-desc { font-size:18px; margin-bottom:32px; }
-    .skill-grid { grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
-    .project-row-title { font-size:19px; }
-    .sec-label { margin-bottom:22px; }
-  }
-
-  /* ── 手機 ── */
   @media (max-width:560px) {
-    .wrapper { padding:0 18px; }
-    .nav-inner { padding:0 18px; }
-    .hero { padding-top:56px; padding-bottom:48px; }
-    .hero-title { font-size:clamp(32px,9vw,40px); margin-bottom:16px; }
-    .hero-desc { font-size:16px; line-height:1.8; margin-bottom:28px; max-width:100%; }
-    .hero-contacts { flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:22px; }
-    .contact-item { width:100%; justify-content:flex-start; }
-    .hero-note { max-width:100%; font-size:13px; }
-    .hero-badge { font-size:13px; padding:4px 12px; margin-bottom:20px; }
-    .sec-label { margin-bottom:16px; }
-    .skill-grid { grid-template-columns:1fr 1fr; gap:8px; margin-bottom:40px; }
-    .skill-card { padding:14px; }
-    .skill-card-icon { width:28px; height:28px; font-size:15px; margin-bottom:10px; }
-    .skill-card-title { font-size:13px; margin-bottom:8px; }
-    .tools-grid { gap:7px; }
-    .tool-item { font-size:14px; padding:10px 14px; }
-    .project-row { grid-template-columns:1fr; gap:10px; padding:22px 0; }
-    .project-row-right { flex-direction:row; padding-top:0; }
-    .project-row-title { font-size:18px; margin-bottom:6px; }
-    .project-row-desc { font-size:14px; -webkit-line-clamp:2; }
-    .project-cover { width:100px; height:56px; }
-    .project-cover-empty { width:100px; height:56px; }
-    .note-item { flex-wrap:wrap; gap:8px; padding:16px 0; }
-    .note-title { font-size:16px; }
-    .note-date { font-size:12px; }
-    .modal-header { padding:14px 18px 12px; }
-    .modal-body { padding:18px 18px 44px; }
+    .modal-header { padding:16px 20px 14px; }
+    .modal-body { padding:20px 20px 48px; }
     .modal-grid { grid-template-columns:1fr; }
-    .modal-title { font-size:20px; }
-    .modal-meta { flex-wrap:wrap; gap:6px; }
+    .wrapper { padding:0 20px; }
+    .nav-inner { padding:0 20px; }
+    .hero-title { font-size:36px; }
+    .project-row { grid-template-columns:1fr; }
+    .project-row-right { flex-direction:row; padding-top:0; }
+    .note-item { flex-wrap:wrap; }
   }
 </style>
+
+
+
+<script src="/portfolio/assets/three.min.js"></script>
+<script src="/portfolio/assets/GLTFLoader.js"></script>
 </head>
 <body>
 
@@ -448,10 +527,9 @@
 </nav>
 
 <main>
-<div class="wrapper">
-
-
-  <section class="hero" id="hero">
+<section class="hero" id="hero">
+  <div class="hero-inner" id="hero-inner">
+  <div class="hero-content">
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
@@ -465,7 +543,22 @@
       </span>
     </div>
     <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
-  </section>
+  </div>
+  <div class="hero-model" id="hero-model">
+    <div class="model-loader" id="model-loader">
+      <div class="model-skeleton"></div>
+      <div class="model-progress-wrap">
+        <div class="model-progress-bar">
+          <div class="model-progress-fill" id="model-progress-fill"></div>
+        </div>
+        <span class="model-progress-text" id="model-progress-text">載入中…</span>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<div class="wrapper">
 
   <section id="about" style="position:relative">
     <p class="sec-label">設計技能</p>
@@ -563,7 +656,7 @@ function renderSkills(data) {
     <div class="skill-card glass-el glass-card">
       <div class="skill-card-icon">${s.icon || '🎨'}</div>
       <div class="skill-card-title">${s.title}</div>
-      <div class="skill-tag-list">${(s.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+      <div class="skill-tag-list">${(s.tags || []).map(t => `<span class="skill-tag">${t}</span>`).join('')}</div>
     </div>
   `).join('');
 }
@@ -761,9 +854,9 @@ function renderFallback() {
   renderProjects(fallbackProjects);
   renderNotes(fallbackNotes);
   document.getElementById('skills-grid').innerHTML = `
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="tag">Wireframe</span><span class="tag">UI Mockup</span><span class="tag">UI Flow</span><span class="tag">易用性測試</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="tag">字型學</span><span class="tag">色彩學</span><span class="tag">版面構成</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="tag">Web UI（RWD）</span><span class="tag">Mobile UI</span><span class="tag">Design System</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="skill-tag">Wireframe</span><span class="skill-tag">UI Mockup</span><span class="skill-tag">UI Flow</span><span class="skill-tag">易用性測試</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="skill-tag">字型學</span><span class="skill-tag">色彩學</span><span class="skill-tag">版面構成</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="skill-tag">Web UI（RWD）</span><span class="skill-tag">Mobile UI</span><span class="skill-tag">Design System</span></div></div>
   `;
   document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
 }
@@ -872,6 +965,90 @@ function updateNav() {
 window.addEventListener('scroll', updateNav, { passive: true });
 
 loadData();
+</script>
+
+<script>
+function initThree() {
+  var THREE = window.THREE;
+  var container = document.getElementById('hero-model');
+  if (!container || !THREE) return;
+  if (!THREE.GLTFLoader) { setTimeout(initThree, 100); return; }
+
+  // canvas 尺寸直接用 container 實際大小
+  var w = container.offsetWidth;
+  var h = container.offsetHeight;
+  if (w < 1 || h < 1) { setTimeout(initThree, 100); return; }
+
+  var scene    = new THREE.Scene();
+  var camera   = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  camera.position.set(0, 0.05, 3.0);
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h);
+  renderer.outputEncoding  = THREE.sRGBEncoding;
+  renderer.toneMapping     = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  renderer.setClearColor(0x000000, 0);
+  container.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  var dir = new THREE.DirectionalLight(0xffffff, 1.2);
+  dir.position.set(2, 3, 2);
+  scene.add(dir);
+  var fill = new THREE.DirectionalLight(0x8ab4f8, 0.3);
+  fill.position.set(-2, 0, 1);
+  scene.add(fill);
+
+  var davidMesh = null;
+  new THREE.GLTFLoader().load(
+    '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
+    function(gltf) {
+      var model = gltf.scene;
+
+      // 置中
+      var box    = new THREE.Box3().setFromObject(model);
+      var center = new THREE.Vector3();
+      var size   = new THREE.Vector3();
+      box.getCenter(center);
+      box.getSize(size);
+      var sc = 1.8 / Math.max(size.x, size.y, size.z);
+      model.scale.setScalar(sc);
+      model.position.set(-center.x * sc, -center.y * sc, -center.z * sc);
+      model.rotation.y = -0.15;
+
+      scene.add(model);
+      davidMesh = model;
+
+      var loaderEl = document.getElementById('model-loader');
+      if (loaderEl) loaderEl.classList.add('hidden');
+
+      (function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }());
+    },
+    null,
+    function(err) { console.error('GLB error:', err); }
+  );
+
+  // scroll → 水平順時針旋轉
+  window.addEventListener('scroll', function() {
+    if (!davidMesh) return;
+    davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
+  }, { passive: true });
+
+  // resize
+  window.addEventListener('resize', function() {
+    var nw = container.offsetWidth;
+    var nh = container.offsetHeight;
+    if (nw < 1 || nh < 1) return;
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
+  });
+}
+window.addEventListener('load', initThree);
 </script>
 </body>
 </html>
