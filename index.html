@@ -7,683 +7,499 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="/portfolio/assets/three.min.js" onload="window._threeLoaded=true" onerror="window._threeLoaded=false"></script>
-<script src="/portfolio/assets/GLTFLoader.js" onload="window._gltfLoaded=true" onerror="window._gltfLoaded=false"></script>
 <style>
-/* ══════════════════════════════════════
-   Reset
-══════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-
-/* ══════════════════════════════════════
-   Design Tokens — Light
-══════════════════════════════════════ */
-:root {
-  --bg: #ffffff;
-  --bg-secondary: #f4f3f0;
-  --bg-tertiary: #eceae5;
-  --text: #111110;
-  --text-secondary: #4a4945;
-  --text-tertiary: #88867f;
-  --border: rgba(0,0,0,0.13);
-  --border-strong: rgba(0,0,0,0.28);
-  --accent: #111110;
-  --accent-text: #ffffff;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --font-sans: 'Noto Sans TC', system-ui, sans-serif;
-  /* Liquid Glass */
-  --nav-bg: rgba(255,255,255,0.65);
-  --glass-bg: rgba(255,255,255,0.55);
-  --glass-modal-bg: rgba(255,255,255,0.78);
-  --glass-border: rgba(0,0,0,0.1);
-  --glass-border-strong: rgba(0,0,0,0.2);
-  --glass-shine: rgba(255,255,255,0.9);
-  --glass-shadow: rgba(0,0,0,0.08);
-  --glass-el-bg: rgba(255,255,255,0.6);
-  --glass-el-border: rgba(0,0,0,0.08);
-  --glass-shine-top: rgba(255,255,255,0.9);
-  --glass-shine-bottom: rgba(255,255,255,0.5);
-  --glass-pill-border: rgba(0,0,0,0.08);
-  --glass-pill-shadow: rgba(0,0,0,0.08);
-  --glass-indicator-bg: rgba(255,255,255,0.72);
-  --overlay-bg: rgba(0,0,0,0.3);
-  --orb-1: rgba(99,179,237,0.45);
-  --orb-2: rgba(154,230,180,0.4);
-}
-
-/* ── Dark mode ── */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0e0d0c; --bg-secondary: #1c1a18; --bg-tertiary: #252320;
-    --text: #f0ede8; --text-secondary: #b8b5b0; --text-tertiary: #706d68;
-    --border: rgba(255,255,255,0.1); --border-strong: rgba(255,255,255,0.22);
-    --accent: #f0ede8; --accent-text: #0e0d0c;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg-secondary: #f4f3f0; --bg-tertiary: #eceae5;
+    --text: #111110; --text-secondary: #4a4945; --text-tertiary: #88867f;
+    --border: rgba(0,0,0,0.13); --border-strong: rgba(0,0,0,0.28);
+    --accent: #111110; --accent-text: #ffffff;
+    --radius-sm:6px; --radius-md:8px; --radius-lg:12px;
+    --font-sans:'Noto Sans TC',system-ui,sans-serif;
+    --font-serif:'Noto Sans TC',system-ui,sans-serif;
+    /* ── Liquid Glass (Light) ── */
+    --nav-bg: rgba(255,255,255,0.65);
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-modal-bg: rgba(255,255,255,0.78);
+    --glass-header-bg: rgba(255,255,255,0.85);
+    --glass-tag-bg: rgba(255,255,255,0.5);
+    --glass-border: rgba(0,0,0,0.1);
+    --glass-border-strong: rgba(0,0,0,0.2);
+    --glass-shine: rgba(255,255,255,0.9);
+    --glass-shadow: rgba(0,0,0,0.08);
+    --overlay-bg: rgba(0,0,0,0.3);
+    --orb-1: rgba(99,179,237,0.45);
+    --orb-2: rgba(154,230,180,0.4);
+    --orb-opacity: 1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0e0d0c; --bg-secondary:#1c1a18; --bg-tertiary:#252320;
+      --text:#f0ede8; --text-secondary:#b8b5b0; --text-tertiary:#706d68;
+      --border:rgba(255,255,255,0.1); --border-strong:rgba(255,255,255,0.22);
+      --accent:#f0ede8; --accent-text:#0e0d0c;
+      --nav-bg: rgba(14,13,12,0.7);
+      --glass-bg: rgba(28,26,24,0.6);
+      --glass-modal-bg: rgba(20,18,16,0.82);
+      --glass-header-bg: rgba(20,18,16,0.88);
+      --glass-tag-bg: rgba(255,255,255,0.07);
+      --glass-border: rgba(255,255,255,0.12);
+      --glass-border-strong: rgba(255,255,255,0.22);
+      --glass-shine: rgba(255,255,255,0.06);
+      --glass-shadow: rgba(0,0,0,0.4);
+      --overlay-bg: rgba(0,0,0,0.6);
+      --orb-1: rgba(66,153,225,0.38);
+      --orb-2: rgba(72,187,120,0.34);
+      --glass-pill-bg: rgba(255,255,255,0.06);
+      --glass-pill-border: rgba(255,255,255,0.1);
+      --glass-indicator-bg: rgba(255,255,255,0.12);
+      --glass-shine-top: rgba(255,255,255,0.18);
+      --glass-shine-bottom: rgba(255,255,255,0.06);
+      --glass-pill-shadow: rgba(0,0,0,0.3);
+      --glass-el-bg: rgba(255,255,255,0.07);
+      --glass-el-border: rgba(255,255,255,0.12);
+    }
+  }
+  [data-theme="dark"] {
+    --bg:#0e0d0c; --bg-secondary:#1c1a18; --bg-tertiary:#252320;
+    --text:#f0ede8; --text-secondary:#b8b5b0; --text-tertiary:#706d68;
+    --border:rgba(255,255,255,0.1); --border-strong:rgba(255,255,255,0.22);
+    --accent:#f0ede8; --accent-text:#0e0d0c;
+    /* ── Liquid Glass (Dark) ── */
     --nav-bg: rgba(14,13,12,0.7);
     --glass-bg: rgba(28,26,24,0.6);
     --glass-modal-bg: rgba(20,18,16,0.82);
+    --glass-header-bg: rgba(20,18,16,0.88);
+    --glass-tag-bg: rgba(255,255,255,0.07);
     --glass-border: rgba(255,255,255,0.12);
     --glass-border-strong: rgba(255,255,255,0.22);
     --glass-shine: rgba(255,255,255,0.06);
     --glass-shadow: rgba(0,0,0,0.4);
-    --glass-el-bg: rgba(255,255,255,0.07);
-    --glass-el-border: rgba(255,255,255,0.12);
-    --glass-shine-top: rgba(255,255,255,0.18);
-    --glass-shine-bottom: rgba(255,255,255,0.06);
-    --glass-pill-border: rgba(255,255,255,0.1);
-    --glass-pill-shadow: rgba(0,0,0,0.3);
-    --glass-indicator-bg: rgba(255,255,255,0.12);
     --overlay-bg: rgba(0,0,0,0.6);
     --orb-1: rgba(66,153,225,0.38);
     --orb-2: rgba(72,187,120,0.34);
+    --orb-opacity: 1;
   }
-}
-[data-theme="dark"] {
-  --bg: #0e0d0c; --bg-secondary: #1c1a18; --bg-tertiary: #252320;
-  --text: #f0ede8; --text-secondary: #b8b5b0; --text-tertiary: #706d68;
-  --border: rgba(255,255,255,0.1); --border-strong: rgba(255,255,255,0.22);
-  --accent: #f0ede8; --accent-text: #0e0d0c;
-  --nav-bg: rgba(14,13,12,0.7);
-  --glass-bg: rgba(28,26,24,0.6);
-  --glass-modal-bg: rgba(20,18,16,0.82);
-  --glass-border: rgba(255,255,255,0.12);
-  --glass-border-strong: rgba(255,255,255,0.22);
-  --glass-shine: rgba(255,255,255,0.06);
-  --glass-shadow: rgba(0,0,0,0.4);
-  --glass-el-bg: rgba(255,255,255,0.07);
-  --glass-el-border: rgba(255,255,255,0.12);
-  --glass-shine-top: rgba(255,255,255,0.18);
-  --glass-shine-bottom: rgba(255,255,255,0.06);
-  --glass-pill-border: rgba(255,255,255,0.1);
-  --glass-pill-shadow: rgba(0,0,0,0.3);
-  --glass-indicator-bg: rgba(255,255,255,0.12);
-  --overlay-bg: rgba(0,0,0,0.6);
-  --orb-1: rgba(66,153,225,0.38);
-  --orb-2: rgba(72,187,120,0.34);
-}
-[data-theme="light"] {
-  --bg: #ffffff; --bg-secondary: #f4f3f0; --bg-tertiary: #eceae5;
-  --text: #111110; --text-secondary: #4a4945; --text-tertiary: #88867f;
-  --border: rgba(0,0,0,0.13); --border-strong: rgba(0,0,0,0.28);
-  --accent: #111110; --accent-text: #ffffff;
-  --nav-bg: rgba(255,255,255,0.65);
-  --glass-el-bg: rgba(255,255,255,0.6);
-  --glass-el-border: rgba(0,0,0,0.08);
-  --glass-shine-top: rgba(255,255,255,0.9);
-  --glass-shine-bottom: rgba(255,255,255,0.5);
-  --glass-pill-border: rgba(0,0,0,0.08);
-  --glass-pill-shadow: rgba(0,0,0,0.08);
-  --glass-indicator-bg: rgba(255,255,255,0.72);
-  --orb-1: rgba(99,179,237,0.45);
-  --orb-2: rgba(154,230,180,0.4);
-}
+  [data-theme="light"] {
+    --bg:#ffffff; --bg-secondary:#f8f8f7; --bg-tertiary:#f3f2ef;
+    --text:#1a1917; --text-secondary:#5c5b58; --text-tertiary:#9b9a97;
+    --border:rgba(0,0,0,0.1); --border-strong:rgba(0,0,0,0.2);
+    --accent:#18181b; --accent-text:#ffffff;
+  }
+  /* Theme toggle button */
+  .theme-toggle {
+    width:32px; height:32px; border-radius:50%;
+    background:transparent; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:17px; transition:background .15s, border-color .15s;
+    flex-shrink:0; position:relative;
+  }
+  .theme-toggle:hover { background:var(--bg-secondary); border-color:var(--border-strong); }
+  .theme-toggle::after {
+    content: attr(data-tip);
+    position:absolute; top:calc(100% + 10px); left:50%;
+    transform:translateX(-50%);
+    background:var(--text); color:var(--bg);
+    font-size:13px; white-space:nowrap;
+    padding:5px 10px; border-radius:6px;
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+    font-family:var(--font-sans);
+    z-index:9999;
+  }
+  .theme-toggle::before {
+    content:''; position:absolute; top:calc(100% + 3px); left:50%;
+    transform:translateX(-50%);
+    border:5px solid transparent;
+    border-bottom-color:var(--text);
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+    z-index:9999;
+  }
+  .theme-toggle:hover::after,
+  .theme-toggle:hover::before { opacity:1; }
+  html { scroll-behavior: smooth; }
+  :root { --orb-opacity: 0; }
+  body { }
+  body::before { opacity:var(--orb-1-opacity, 1); }
+  body::after  { opacity:var(--orb-2-opacity, 1); }
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: background-color 0.5s cubic-bezier(0.4,0,0.2,1),
+      color 0.5s cubic-bezier(0.4,0,0.2,1),
+      border-color 0.5s cubic-bezier(0.4,0,0.2,1) !important;
+  }
+  body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:20px; min-height:100vh; position:relative; }
+  /* ── Background orbs for glass effect ── */
+  body::before, body::after {
+    content:''; position:fixed; pointer-events:none; z-index:0; border-radius:50%;
+    filter:blur(80px); opacity:1; transition:opacity 0.5s;
+  }
+  body::before {
+    width:600px; height:600px; top:-100px; right:-100px;
+    background:radial-gradient(circle, var(--orb-1) 0%, transparent 70%);
+  }
+  body::after {
+    width:500px; height:500px; bottom:10%; left:-80px;
+    background:radial-gradient(circle, var(--orb-2) 0%, transparent 70%);
+  }
+  .wrapper, .nav-inner, footer { position:relative; z-index:1; }
+  section { position:relative; z-index:1; }
 
-/* ══════════════════════════════════════
-   Theme transition
-══════════════════════════════════════ */
-html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition:
-    background-color 0.5s cubic-bezier(0.4,0,0.2,1),
-    color 0.5s cubic-bezier(0.4,0,0.2,1),
-    border-color 0.5s cubic-bezier(0.4,0,0.2,1) !important;
-}
+  .nav { position:sticky; top:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
+  .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
+  .nav-logo { font-family:var(--font-sans); font-size:18px; font-weight:500; color:var(--text); text-decoration:none; }
+  /* ── Glass Nav ── */
+  .nav-links {
+    position: relative;
+    display: flex;
+    gap: 0;
+    align-items: center;
+    padding: 4px 4px;
+    border-radius: 99em;
+  }
+  .nav-links::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: var(--pill-w, 52px);
+    height: calc(100% - 8px);
+    border-radius: 99em;
+    background: var(--glass-indicator-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-pill-border),
+      inset 2px 1px 0px -1px var(--glass-shine-top),
+      inset -1.5px -1px 0px -1px var(--glass-shine-bottom),
+      0px 2px 8px 0px var(--glass-pill-shadow);
+    z-index: 0;
+    translate: var(--pill-x, 0px) 0;
+    transition:
+      translate 400ms cubic-bezier(1, 0.0, 0.4, 1),
+      width 400ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
+  .nav-links.hover-slide::after { animation: pillStretch 360ms cubic-bezier(1, 0.0, 0.4, 1); }
+  @keyframes pillStretch { 0%,100%{scale:1 1} 45%{scale:1.2 1} }
+  .nav-link {
+    position: relative; z-index: 1;
+    font-size: 16px; color: var(--text-secondary);
+    text-decoration: none; padding: 6px 14px;
+    border-radius: 99em; border: none;
+    transition: color 200ms;
+    white-space: nowrap;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--text); font-weight: 500; }
+  /* Glass pill variables - light */
+  :root {
+    --glass-pill-bg: rgba(0,0,0,0.06);
+    --glass-pill-border: rgba(0,0,0,0.08);
+    --glass-indicator-bg: rgba(255,255,255,0.72);
+    --glass-shine-top: rgba(255,255,255,0.9);
+    --glass-shine-bottom: rgba(255,255,255,0.5);
+    --glass-pill-shadow: rgba(0,0,0,0.08);
+  }
 
-/* ══════════════════════════════════════
-   Base
-══════════════════════════════════════ */
-body {
-  font-family: var(--font-sans);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 20px;
-  line-height: 1.7;
-  min-height: 100vh;
-  position: relative;
-}
+  .wrapper { max-width:860px; margin:0 auto; padding:0 40px; }
+  section { padding:80px 0; }
+  section + section { border-top:none; }
 
-/* Background orbs */
-body::before, body::after {
-  content: ''; position: fixed; pointer-events: none;
-  z-index: 0; border-radius: 50%; filter: blur(80px); opacity: 1;
-}
-body::before {
-  width: 600px; height: 600px; top: -100px; right: -100px;
-  background: radial-gradient(circle, var(--orb-1) 0%, transparent 70%);
-}
-body::after {
-  width: 500px; height: 500px; bottom: 10%; left: -80px;
-  background: radial-gradient(circle, var(--orb-2) 0%, transparent 70%);
-}
+  .hero { padding-top:96px; padding-bottom:88px; }
 
-/* SVG filter for glass distortion */
-#glass-distort { position: absolute; width: 0; height: 0; }
+  /* ── Glass element mixin ── */
+  .glass-el {
+    background: var(--glass-el-bg);
+    border: 1px solid var(--glass-el-border);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-shine-top),
+      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
+      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
+      0px 2px 12px 0px var(--glass-pill-shadow);
+    transition: box-shadow .2s;
+  }
+  .glass-el:hover {
+    animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
+  @keyframes glassStretch {
+    0%, 100% { scale: 1 1; }
+    45%      { scale: 1.08 1; }
+  }
+  /* Card uses a slightly gentler stretch */
+  .glass-card:hover {
+    animation: glassStretchCard 360ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
+  @keyframes glassStretchCard {
+    0%, 100% { scale: 1 1; }
+    45%      { scale: 1.04 1; }
+  }
+  /* Light mode glass vars */
+  :root {
+    --glass-el-bg: rgba(255,255,255,0.6);
+    --glass-el-border: rgba(0,0,0,0.08);
+  }
+  .hero-badge { display:inline-flex; align-items:center; gap:6px; font-size:14px; color:var(--text-tertiary); border-radius:100px; padding:5px 14px; margin-bottom:28px; white-space:nowrap; }
+  .hero-badge-dot { width:6px; height:6px; min-width:6px; background:#22c55e; border-radius:50%; display:inline-block; }
+  .hero-title { font-family:var(--font-sans); font-size:clamp(44px,6vw,68px); font-weight:700; line-height:1.15; letter-spacing:-.02em; margin-bottom:24px; }
+  .hero-title em { font-style:normal; color:var(--text); }
+  .hero-desc { font-size:22px; color:var(--text-secondary); max-width:560px; line-height:1.9; margin-bottom:44px; }
+  .hero-contacts { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:32px; }
+  .contact-item { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--text-secondary); border-radius:100px; padding:8px 18px; text-decoration:none; }
+  .contact-item:hover { color:var(--text); }
+  .hero-note { font-size:14px; color:var(--text-tertiary); padding:10px 14px; border-left:2px solid var(--border-strong); background:var(--bg-secondary); border-radius:0 var(--radius-sm) var(--radius-sm) 0; max-width:420px; }
 
-/* ══════════════════════════════════════
-   Layout
-══════════════════════════════════════ */
-.wrapper {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 0 40px;
-  position: relative;
-  z-index: 1;
-}
-section {
-  padding: 80px 0;
-  position: relative;
-  z-index: 1;
-}
-.hero { padding: 0; }
+  .sec-label { font-size:13px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:32px; }
+  .skill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:56px; }
+  .skill-card { border-radius:var(--radius-lg); padding:20px; }
+  .skill-card-icon { width:36px; height:36px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
+  .skill-card-title { font-size:16px; font-weight:500; margin-bottom:10px; }
+  .skill-tag-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:14px 18px; border-radius:var(--radius-md); color:var(--text-secondary); }
+  .tool-name { font-weight:500; color:var(--text); font-size:16px; }
+  .tool-desc { font-size:13px; color:var(--text-tertiary); }
 
-/* ══════════════════════════════════════
-   Nav
-══════════════════════════════════════ */
-.nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  background: var(--nav-bg);
-  border-bottom: 1px solid var(--glass-border);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: 0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine);
-}
-.nav-inner {
-  max-width: 860px; margin: 0 auto; padding: 0 40px;
-  display: flex; align-items: center; gap: 32px;
-  height: 60px;
-}
-.nav-spacer { flex: 1; }
-.nav-logo {
-  font-size: 18px; font-weight: 500;
-  color: var(--text); text-decoration: none;
-}
-.nav-links {
-  position: relative; display: flex; gap: 0;
-  align-items: center; padding: 4px;
-  border-radius: 99em;
-}
-.nav-links::after {
-  content: ''; position: absolute;
-  top: 4px; left: 4px;
-  width: var(--pill-w, 52px);
-  height: calc(100% - 8px);
-  border-radius: 99em;
-  background: var(--glass-indicator-bg);
-  box-shadow:
-    inset 0 0 0 1px var(--glass-pill-border),
-    inset 2px 1px 0 -1px var(--glass-shine-top),
-    inset -1.5px -1px 0 -1px var(--glass-shine-bottom),
-    0 2px 8px 0 var(--glass-pill-shadow);
-  z-index: 0;
-  translate: var(--pill-x, 0px) 0;
-  transition: translate 400ms cubic-bezier(1,0,0.4,1), width 400ms cubic-bezier(1,0,0.4,1);
-}
-.nav-links.hover-slide::after { animation: pillStretch 360ms cubic-bezier(1,0,0.4,1); }
-@keyframes pillStretch { 0%,100%{scale:1 1} 45%{scale:1.2 1} }
-.nav-link {
-  position: relative; z-index: 1;
-  font-size: 16px; color: var(--text-secondary);
-  text-decoration: none; padding: 6px 14px;
-  border-radius: 99em; border: none;
-  background: none; cursor: pointer;
-  font-family: var(--font-sans);
-  transition: color 200ms; white-space: nowrap;
-}
-.nav-link:hover { color: var(--text); }
-.nav-link.active { color: var(--text); font-weight: 500; }
+  .projects-grid { display:flex; flex-direction:column; }
+  .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .project-cover { width:160px; height:90px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
+  .project-cover-empty { width:160px; height:90px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
+  .project-cover-empty-icon { font-size:20px; opacity:0.25; }
+  .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
+  .modal-cover-wrap { margin:0 0 20px; overflow:hidden; border-radius:var(--radius-md); }
+  .modal-cover-wrap img { width:100%; aspect-ratio:32/9; object-fit:cover; display:block; }
+  .projects-grid { border-top:1px solid var(--border); }
+  .project-row:hover .project-row-title { color:var(--text); }
+  .project-row-num { font-size:13px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
+  .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
+  .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .tag, .skill-tag, .note-type {
+    font-size:13px; padding:4px 12px; border-radius:100px; color:var(--text-secondary);
+    background: var(--glass-el-bg);
+    border: 1px solid var(--glass-el-border);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-shine-top),
+      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
+      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
+      0px 2px 8px 0px var(--glass-pill-shadow);
+    transition: box-shadow .2s;
+    display: inline-block;
+  }
+  .tag:hover, .skill-tag:hover, .note-type:hover {
+    animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
+  .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
+  .project-time { font-size:14px; color:var(--text-tertiary); white-space:nowrap; }
 
-/* Theme toggle */
-.theme-toggle {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: transparent; border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 17px;
-  transition: background .15s, border-color .15s;
-  flex-shrink: 0; position: relative;
-}
-.theme-toggle:hover { background: var(--bg-secondary); border-color: var(--border-strong); }
-.theme-toggle::after {
-  content: attr(data-tip);
-  position: absolute; top: calc(100% + 10px); left: 50%;
-  transform: translateX(-50%);
-  background: var(--text); color: var(--bg);
-  font-size: 13px; white-space: nowrap;
-  padding: 5px 10px; border-radius: 6px;
-  pointer-events: none; opacity: 0;
-  transition: opacity 0.15s; z-index: 9999;
-}
-.theme-toggle::before {
-  content: ''; position: absolute; top: calc(100% + 3px); left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-bottom-color: var(--text);
-  pointer-events: none; opacity: 0;
-  transition: opacity 0.15s; z-index: 9999;
-}
-.theme-toggle:hover::after, .theme-toggle:hover::before { opacity: 1; }
+  .modal-overlay { position:fixed; inset:0; z-index:200; background:var(--overlay-bg); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--glass-modal-bg); backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
+  .modal-overlay.open .modal { transform:translateY(0); }
+  .modal-header { position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-header-left { flex:1; min-width:0; }
+  .modal-close { width:32px; height:32px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:background .15s; flex-shrink:0; margin-top:2px; }
+  .modal-close:hover { background:var(--bg-tertiary); }
+  .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
+  .modal-title { font-family:var(--font-sans); font-size:24px; font-weight:600; margin-bottom:8px; line-height:1.3; }
+  .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .modal-time { font-size:14px; color:var(--text-tertiary); margin-right:4px; }
+  .modal-desc { font-size:18px; color:var(--text-secondary); line-height:1.85; margin-bottom:28px; }
+  .modal-desc h1 { font-size:26px; font-weight:600; margin:16px 0 8px; color:var(--text); }
+  .modal-desc h2 { font-size:22px; font-weight:600; margin:14px 0 6px; color:var(--text); }
+  .modal-desc h3 { font-size:19px; font-weight:600; margin:12px 0 4px; color:var(--text); }
+  .modal-desc p { margin:5px 0; }
+  .modal-desc strong { font-weight:600; color:var(--text); }
+  /* Quill output styles */
+  .modal-desc p, .note-content p { margin:0 0 0.75em; }
+  .modal-desc p:last-child, .note-content p:last-child { margin-bottom:0; }
+  .ql-align-center { text-align:center; }
+  .ql-align-right { text-align:right; }
+  .ql-align-justify { text-align:justify; }
+  .ql-indent-1 { padding-left:2em; }
+  .ql-indent-2 { padding-left:4em; }
+  .ql-indent-3 { padding-left:6em; }
+  .modal-desc ol, .modal-desc ul,
+  .note-content ol, .note-content ul { padding-left:1.5em; margin:0.5em 0; }
+  .modal-desc li, .note-content li { margin:0.25em 0; }
+  .modal-desc blockquote, .note-content blockquote {
+    border-left:3px solid var(--border-strong); margin:0.75em 0;
+    padding:4px 12px; color:var(--text-secondary);
+  }
+  .modal-desc pre, .note-content pre {
+    background:var(--bg-secondary); border-radius:var(--radius-md);
+    padding:12px 16px; font-size:0.85em; overflow-x:auto; margin:0.75em 0;
+  }
+  .modal-desc img { max-width:100%; border-radius:var(--radius-md); margin:10px 0; display:block; }
+  .modal-desc blockquote { border-left:3px solid var(--border-strong); padding-left:14px; color:var(--text-tertiary); margin:10px 0; }
+  .modal-desc ul, .modal-desc ol { padding-left:22px; margin:6px 0; }
+  .modal-desc li { margin:3px 0; }
+  .modal-desc a { color:var(--text); text-decoration:underline; }
+  .modal-desc iframe, .modal-desc .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
+  .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:28px; }
+  .modal-block { border-radius:var(--radius-md); padding:16px; }
+  .modal-block-label { font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px; }
+  .modal-block ul { list-style:none; }
+  .modal-block li { font-size:16px; color:var(--text-secondary); padding:3px 0; display:flex; gap:8px; }
+  .modal-block li::before { content:'—'; color:var(--text-tertiary); flex-shrink:0; }
 
-/* ══════════════════════════════════════
-   Glass el (Liquid Glass 基礎元件)
-══════════════════════════════════════ */
-.glass-el {
-  background: var(--glass-el-bg);
-  border: 1px solid var(--glass-el-border);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  box-shadow:
-    inset 0 0 0 1px var(--glass-shine-top),
-    inset 1.5px 2px 0 -1.5px var(--glass-shine-top),
-    inset -1.5px -2px 0 -1.5px var(--glass-shine-bottom),
-    0 2px 12px 0 var(--glass-pill-shadow);
-  transition: box-shadow .2s;
-}
-.glass-el:hover { animation: glassStretch 360ms cubic-bezier(1,0,0.4,1); }
-.glass-card:hover { animation: glassStretchCard 360ms cubic-bezier(1,0,0.4,1); }
-@keyframes glassStretch { 0%,100%{scale:1 1} 45%{scale:1.08 1} }
-@keyframes glassStretchCard { 0%,100%{scale:1 1} 45%{scale:1.04 1} }
+  .modal-images { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:24px; }
+  .modal-images img { width:100%; height:180px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); }
+  .note-item { display:flex; justify-content:space-between; align-items:flex-start; padding:22px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
+  .note-item:hover { opacity:0.75; }
+  .note-content { font-size:18px; color:var(--text-secondary); line-height:1.85; }
+  .note-content h1 { font-size:26px; font-weight:600; margin:18px 0 8px; color:var(--text); }
+  .note-content h2 { font-size:22px; font-weight:600; margin:16px 0 6px; color:var(--text); }
+  .note-content h3 { font-size:19px; font-weight:600; margin:14px 0 4px; color:var(--text); }
+  .note-content p { margin:6px 0; }
+  .note-content img { max-width:100%; border-radius:var(--radius-md); margin:12px 0; display:block; }
+  .note-content blockquote { border-left:3px solid var(--border-strong); padding-left:14px; color:var(--text-tertiary); margin:10px 0; }
+  .note-content ul, .note-content ol { padding-left:22px; margin:6px 0; }
+  .note-content li { margin:3px 0; }
+  .note-content a { color:var(--text); text-decoration:underline; }
+  .note-content strong { font-weight:600; color:var(--text); }
+  .note-content iframe, .note-content .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
+  .note-empty { font-size:16px; color:var(--text-tertiary); padding:20px 0; }
 
-/* ── Tag 共享 glass 外觀 ── */
-.tag, .skill-tag, .note-type {
-  font-size: 13px; padding: 4px 12px; border-radius: 100px;
-  color: var(--text-secondary); display: inline-block;
-  background: var(--glass-el-bg);
-  border: 1px solid var(--glass-el-border);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  box-shadow:
-    inset 0 0 0 1px var(--glass-shine-top),
-    inset 1.5px 2px 0 -1.5px var(--glass-shine-top),
-    inset -1.5px -2px 0 -1.5px var(--glass-shine-bottom),
-    0 2px 8px 0 var(--glass-pill-shadow);
-  transition: box-shadow .2s;
-}
-.tag:hover, .skill-tag:hover, .note-type:hover {
-  animation: glassStretch 360ms cubic-bezier(1,0,0.4,1);
-}
+  .notes-list { display:flex; flex-direction:column; }
+  .note-item:first-child { border-top:1px solid var(--border); }
+  .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
+  .note-title { font-size:18px; color:var(--text); }
 
-/* Skeleton */
-.skeleton {
-  background: var(--bg-secondary); border-radius: var(--radius-sm);
-  display: inline-block; animation: pulse 1.4s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
+  .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
+  .footer-link { font-size:15px; color:var(--text-tertiary); text-decoration:none; }
+  .footer-link:hover { color:var(--text); }
+  .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-/* ══════════════════════════════════════
-   Hero
-══════════════════════════════════════ */
-.hero {
-  position: relative;
-  /* 補 nav 高度 */
-  padding-top: 60px;
-}
-.hero-inner {
-  position: relative;
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 80px 40px 80px;
-  min-height: calc(80vh - 60px);
-  display: flex;
-  align-items: center;
-}
-/* 文字內容：自然佔滿，不設任何 max-width 或 padding-right */
-.hero-content {
-  position: relative;
-  z-index: 2;
-}
-/* 3D 模型：absolute 疊在右側背景，完全不影響文字版面 */
-.hero-model {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 55%;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.45;
-}
-.hero-model canvas {
-  display: block;
-}
 
-/* Loading UI */
-.model-loader {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 20px;
-  transition: opacity 0.6s ease;
-}
-.model-loader.hidden { opacity: 0; pointer-events: none; }
-.model-skeleton {
-  width: 180px; height: 220px;
-  border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-  animation: skelPulse 1.6s ease-in-out infinite;
-  position: relative; overflow: hidden;
-}
-.model-skeleton::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
-  animation: skelShimmer 1.6s ease-in-out infinite;
-}
-@keyframes skelPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-@keyframes skelShimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-.model-progress-wrap {
-  width: 140px; display: flex; flex-direction: column;
-  align-items: center; gap: 8px;
-}
-.model-progress-bar {
-  width: 100%; height: 2px;
-  background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;
-}
-.model-progress-fill {
-  height: 100%; width: 35%;
-  background: var(--text); border-radius: 2px;
-  animation: barSlide 1.4s ease-in-out infinite;
-}
-@keyframes barSlide {
-  0%   { transform: translateX(-150%); }
-  100% { transform: translateX(400%); }
-}
-.model-progress-text { font-size: 11px; color: var(--text-tertiary); letter-spacing: .06em; }
+  @media (max-width:560px) {
+    .modal-header { padding:16px 20px 14px; }
+    .modal-body { padding:20px 20px 48px; }
+    .modal-grid { grid-template-columns:1fr; }
+    .wrapper { padding:0 20px; }
+    .nav-inner { padding:0 20px; }
+    .hero-title { font-size:36px; }
+    .project-row { grid-template-columns:1fr; }
+    .project-row-right { flex-direction:row; padding-top:0; }
+    .note-item { flex-wrap:wrap; }
+  }
 
-/* Hero 文字元件 */
-.hero-title {
-  font-size: clamp(44px,6vw,68px); font-weight: 700;
-  line-height: 1.15; letter-spacing: -.02em; margin-bottom: 24px;
-}
-.hero-desc {
-  font-size: 22px; color: var(--text-secondary);
-  max-width: 520px; line-height: 1.9; margin-bottom: 44px;
-}
-.hero-contacts { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
-.contact-item {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 16px; color: var(--text-secondary);
-  border-radius: 100px; padding: 8px 18px;
-  text-decoration: none; cursor: pointer;
-}
-.hero-note {
-  font-size: 14px; color: var(--text-tertiary);
-  padding: 10px 14px;
-  border-left: 2px solid var(--border-strong);
-  background: var(--bg-secondary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  max-width: 420px;
-}
-
-/* ══════════════════════════════════════
-   Skills & Tools
-══════════════════════════════════════ */
-.sec-label {
-  font-size: 13px; font-weight: 500;
-  letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text-tertiary); margin-bottom: 24px;
-}
-.skill-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap: 14px; margin-bottom: 56px;
-}
-.skill-card { border-radius: var(--radius-lg); padding: 20px; }
-.skill-card-icon {
-  width: 36px; height: 36px; background: var(--bg-secondary);
-  border: 1px solid var(--border); border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px; font-size: 18px;
-}
-.skill-card-title { font-size: 16px; font-weight: 500; margin-bottom: 10px; }
-.skill-tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.tools-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.tool-item {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 16px; padding: 14px 18px;
-  border-radius: var(--radius-md); color: var(--text-secondary);
-}
-.tool-name { font-weight: 500; color: var(--text); font-size: 16px; }
-.tool-desc { font-size: 13px; color: var(--text-tertiary); }
-
-/* ══════════════════════════════════════
-   Projects
-══════════════════════════════════════ */
-.projects-grid { border-top: 1px solid var(--border); }
-.project-row {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: start; gap: 16px;
-  padding: 32px 0; border-bottom: 1px solid var(--border); cursor: pointer;
-}
-.project-row:hover .project-row-title { color: var(--text); }
-.project-row-num { font-size: 13px; color: var(--text-tertiary); margin-bottom: 6px; }
-.project-row-title { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: var(--text); transition: color .15s; }
-.project-row-desc {
-  font-size: 16px; color: var(--text-secondary); line-height: 1.7;
-  max-width: 520px; margin-bottom: 12px;
-  display: -webkit-box; -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical; overflow: hidden;
-}
-.project-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.project-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-top: 22px; }
-.project-time { font-size: 14px; color: var(--text-tertiary); white-space: nowrap; }
-.project-cover { width: 160px; height: 90px; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border); flex-shrink: 0; display: block; }
-.project-cover-empty { width: 160px; height: 90px; border-radius: var(--radius-md); border: 1px dashed var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); }
-.project-cover-empty-icon { font-size: 20px; opacity: 0.25; }
-
-/* ══════════════════════════════════════
-   Notes
-══════════════════════════════════════ */
-.notes-list { border-top: 1px solid var(--border); }
-.note-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 0; border-bottom: 1px solid var(--border); gap: 16px; cursor: pointer; transition: opacity .15s; }
-.note-item:hover { opacity: 0.7; }
-.note-date { font-size: 14px; color: var(--text-tertiary); white-space: nowrap; }
-.note-title { font-size: 18px; color: var(--text); margin-bottom: 8px; }
-.note-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.note-empty { font-size: 16px; color: var(--text-tertiary); padding: 32px 0; }
-
-/* ══════════════════════════════════════
-   Modal
-══════════════════════════════════════ */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: var(--overlay-bg);
-  display: flex; align-items: flex-end; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity .2s;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--glass-modal-bg);
-  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  width: 100%; max-width: 860px; max-height: 88vh;
-  display: flex; flex-direction: column;
-  transform: translateY(32px); transition: transform .25s cubic-bezier(.16,1,.3,1);
-  border: 1px solid var(--glass-border); border-bottom: none;
-  box-shadow: 0 -4px 40px var(--glass-shadow), inset 0 1px 0 var(--glass-shine);
-}
-.modal-overlay.open .modal { transform: translateY(0); }
-.modal-header {
-  position: sticky; top: 0; z-index: 10;
-  background: var(--glass-modal-bg);
-  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border-bottom: 1px solid var(--glass-border);
-  padding: 20px 28px 16px;
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-shrink: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-.modal-header-left { flex: 1; min-width: 0; }
-.modal-close {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--bg-secondary); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 16px; color: var(--text-secondary);
-  transition: background .15s; flex-shrink: 0; margin-top: 2px;
-}
-.modal-close:hover { background: var(--bg-tertiary); }
-.modal-body { overflow-y: auto; padding: 28px 28px 56px; flex: 1; }
-.modal-title { font-size: 24px; font-weight: 600; margin-bottom: 8px; line-height: 1.3; }
-.modal-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.modal-time { font-size: 14px; color: var(--text-tertiary); margin-right: 4px; }
-.modal-desc { font-size: 18px; color: var(--text-secondary); line-height: 1.85; margin-bottom: 28px; }
-.modal-desc h1 { font-size: 26px; font-weight: 600; margin: 16px 0 8px; color: var(--text); }
-.modal-desc h2 { font-size: 22px; font-weight: 600; margin: 14px 0 6px; color: var(--text); }
-.modal-desc h3 { font-size: 19px; font-weight: 600; margin: 12px 0 4px; color: var(--text); }
-.modal-desc p, .note-content p { margin: 0 0 0.75em; }
-.modal-desc p:last-child, .note-content p:last-child { margin-bottom: 0; }
-.modal-desc ol, .modal-desc ul,
-.note-content ol, .note-content ul { padding-left: 1.5em; margin: 0.5em 0; }
-.modal-desc li, .note-content li { margin: 0.25em 0; }
-.modal-desc blockquote, .note-content blockquote { border-left: 3px solid var(--border-strong); margin: 0.75em 0; padding: 4px 12px; color: var(--text-secondary); }
-.modal-desc img { max-width: 100%; border-radius: var(--radius-md); margin: 8px 0; }
-.modal-desc iframe { width: 120%; margin-left: -10%; aspect-ratio: 16/9; border: none; border-radius: var(--radius-md); margin-top: 8px; margin-bottom: 8px; }
-.modal-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
-.modal-block { border-radius: var(--radius-md); padding: 16px; }
-.modal-block-label { font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 10px; }
-.modal-block ul { list-style: none; }
-.modal-block li { font-size: 15px; color: var(--text-secondary); padding: 3px 0; display: flex; gap: 8px; }
-.modal-block li::before { content: '—'; color: var(--text-tertiary); flex-shrink: 0; }
-.modal-cover-wrap { margin: 0 0 20px; overflow: hidden; border-radius: var(--radius-md); }
-.modal-cover-wrap img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
-
-/* note-content */
-.note-content { font-size: 18px; line-height: 1.85; color: var(--text-secondary); }
-
-/* ══════════════════════════════════════
-   Footer
-══════════════════════════════════════ */
-footer {
-  border-top: 1px solid var(--border); padding: 32px 0 40px;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
-  position: relative; z-index: 1;
-}
-.footer-name { font-size: 16px; font-weight: 500; color: var(--text-secondary); }
-.footer-link { font-size: 14px; color: var(--text-tertiary); text-decoration: none; }
-.footer-link:hover { color: var(--text); }
-
-/* ══════════════════════════════════════
-   RWD
-══════════════════════════════════════ */
-/* 平板 */
-@media (max-width: 720px) {
-  .wrapper { padding: 0 24px; }
-  .nav-inner { padding: 0 24px; }
-  .hero-inner { padding: 60px 24px 64px; }
-  .hero-desc { font-size: 18px; margin-bottom: 32px; }
-  .skill-grid { grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; }
-  .project-row-title { font-size: 19px; }
-  .hero-model { width: 45%; opacity: 0.35; }
-}
-/* 手機 */
-@media (max-width: 560px) {
-  .wrapper { padding: 0 18px; }
-  .nav-inner { padding: 0 18px; }
-  .hero-inner { padding: 48px 18px 56px; min-height: unset; }
-  .hero-title { font-size: clamp(32px,9vw,40px); margin-bottom: 16px; }
-  .hero-desc { font-size: 16px; line-height: 1.8; margin-bottom: 28px; max-width: 100%; }
-  .hero-contacts { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 22px; }
-  .contact-item { width: 100%; justify-content: flex-start; }
-  .hero-note { max-width: 100%; font-size: 13px; }
-  .hero-badge { font-size: 13px; padding: 4px 12px; margin-bottom: 20px; }
-  .hero-model { width: 55%; opacity: 0.2; }
-  .skill-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 40px; }
-  .skill-card { padding: 14px; }
-  .skill-card-icon { width: 28px; height: 28px; font-size: 15px; margin-bottom: 10px; }
-  .skill-card-title { font-size: 13px; margin-bottom: 8px; }
-  .tools-grid { gap: 7px; }
-  .tool-item { font-size: 14px; padding: 10px 14px; }
-  .project-row { grid-template-columns: 1fr; gap: 10px; padding: 22px 0; }
-  .project-row-right { flex-direction: row; padding-top: 0; }
-  .project-row-title { font-size: 18px; margin-bottom: 6px; }
-  .project-row-desc { font-size: 14px; -webkit-line-clamp: 2; }
-  .project-cover { width: 100px; height: 56px; }
-  .project-cover-empty { width: 100px; height: 56px; }
-  .note-item { flex-wrap: wrap; gap: 8px; padding: 16px 0; }
-  .note-title { font-size: 16px; }
-  .note-date { font-size: 12px; }
-  .modal-header { padding: 14px 18px 12px; }
-  .modal-body { padding: 18px 18px 44px; }
-  .modal-sections { grid-template-columns: 1fr; }
-  .modal-title { font-size: 20px; }
-  .modal-meta { flex-wrap: wrap; gap: 6px; }
-}
+  /* ── 3D Model ── */
+  .hero {
+    position: relative;
+  }
+  #hero-model {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 50%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+  .hero > *:not(#hero-model) {
+    position: relative;
+    z-index: 1;
+  }
+  #model-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: opacity 0.5s;
+  }
+  #model-loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .model-skeleton {
+    width: 160px; height: 200px;
+    border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+    animation: skPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .model-bar-wrap {
+    width: 120px; height: 2px;
+    background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;
+  }
+  .model-bar {
+    height: 100%; width: 35%;
+    background: var(--text); border-radius: 2px;
+    animation: barRun 1.4s ease-in-out infinite;
+  }
+  @keyframes barRun { 0%{transform:translateX(-150%)} 100%{transform:translateX(400%)} }
+  .model-bar-text {
+    font-size: 11px; color: var(--text-tertiary); letter-spacing: .06em;
+  }
+  @media (max-width: 720px) { #hero-model { width: 40%; opacity: 0.35; } }
+  @media (max-width: 560px) { #hero-model { width: 55%; opacity: 0.2; } }
 </style>
+<script src="/portfolio/assets/three.min.js"></script>
+<script src="/portfolio/assets/GLTFLoader.js"></script>
 </head>
 <body>
 
-<!-- SVG filter for glass distortion -->
-<svg id="glass-distort" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <filter id="glass-blur">
-      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
-      <feDisplacementMap in="SourceGraphic" scale="0.008" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
-
-<!-- Nav -->
-<nav class="nav" id="nav">
+<nav class="nav">
   <div class="nav-inner">
     <a href="#hero" class="nav-logo" id="nav-name">林艾奭</a>
-    <div class="nav-spacer"></div>
-    <div class="nav-links" id="nav-links">
-      <a href="#about" class="nav-link" data-section="about">關於</a>
-      <a href="#projects" class="nav-link" data-section="projects">作品集</a>
-      <a href="#notes" class="nav-link" data-section="notes">隨筆</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="nav-links" id="nav-links">
+        <svg style="position:absolute;width:0;height:0;overflow:hidden">
+          <filter id="glass-distort" primitiveUnits="objectBoundingBox">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.008" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+        </svg>
+        <a href="#about" class="nav-link active" data-section="about">關於</a>
+        <a href="#projects" class="nav-link" data-section="projects">作品集</a>
+        <a href="#notes" class="nav-link" data-section="notes">隨筆</a>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="切換深色模式"></button>
     </div>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="切換主題" data-tip="切換主題"></button>
   </div>
 </nav>
 
-<!-- Hero -->
-<section class="hero" id="hero">
-  <div class="hero-inner" id="hero-inner">
-    <div class="hero-content">
-<h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
-      <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
-      <div class="hero-contacts" id="hero-contacts">
-        <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-          zh6502014@gmail.com
-        </a>
-        <span class="contact-item glass-el">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          0911-585-420
-        </span>
-      </div>
-      <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
-    </div>
-    <!-- 3D Model -->
-    <div class="hero-model" id="hero-model">
-      <div class="model-loader" id="model-loader">
-        <div class="model-skeleton"></div>
-        <div class="model-progress-wrap">
-          <div class="model-progress-bar">
-            <div class="model-progress-fill"></div>
-          </div>
-          <span class="model-progress-text">載入中…</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Main content -->
+<main>
 <div class="wrapper">
 
-  <section id="about">
+
+  <section class="hero" id="hero">
+    <div id="hero-model">
+      <div id="model-loader">
+        <div class="model-skeleton"></div>
+        <div class="model-bar-wrap"><div class="model-bar"></div></div>
+        <span class="model-bar-text">載入中…</span>
+      </div>
+    </div>
+    <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
+    <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
+    <div class="hero-contacts" id="hero-contacts">
+      <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        zh6502014@gmail.com
+      </a>
+      <span class="contact-item glass-el">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        0911-585-420
+      </span>
+    </div>
+    <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
+  </section>
+
+  <section id="about" style="position:relative">
     <p class="sec-label">設計技能</p>
     <div class="skill-grid" id="skills-grid">
-      <div class="skill-card glass-el glass-card">
-        <div class="skill-card-icon">🎨</div>
-        <div class="skill-card-title"><span class="skeleton" style="width:120px;height:14px"></span></div>
-      </div>
-      <div class="skill-card glass-el glass-card">
-        <div class="skill-card-icon">🖼</div>
-        <div class="skill-card-title"><span class="skeleton" style="width:100px;height:14px"></span></div>
-      </div>
+      <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title"><span class="skeleton" style="width:120px;height:14px"></span></div></div>
+      <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title"><span class="skeleton" style="width:100px;height:14px"></span></div></div>
     </div>
     <p class="sec-label">使用工具</p>
     <div class="tools-grid" id="tools-grid">
@@ -694,86 +510,79 @@ footer {
 
   <section id="projects">
     <p class="sec-label">UI / UX 設計專案</p>
-    <div class="projects-grid" id="projects-grid"></div>
+    <div class="projects-grid" id="projects-grid">
+      <div class="project-row" style="cursor:default">
+        <div><div class="project-row-num">—</div><div class="project-row-title"><span class="skeleton" style="width:200px;height:18px"></span></div></div>
+      </div>
+    </div>
   </section>
 
   <section id="notes">
     <p class="sec-label">隨筆紀錄</p>
-    <div class="notes-list" id="notes-list"></div>
+    <div class="notes-list" id="notes-list">
+      <div class="note-item"><span class="skeleton" style="width:100px;height:13px"></span><span class="skeleton" style="width:250px;height:13px"></span></div>
+    </div>
   </section>
 
   <footer>
     <span class="footer-name" id="footer-name">林艾奭 · UI/UX Designer</span>
-    <a href="mailto:zh6502014@gmail.com" class="footer-link">Email</a>
+    <div style="display:flex;gap:20px">
+      <a href="mailto:zh6502014@gmail.com" class="footer-link" id="footer-email">Email</a>
+    </div>
   </footer>
 
 </div>
+</main>
 
-<!-- Modal -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-  <div class="modal" id="modal">
-    <div class="modal-header">
-      <div class="modal-header-left">
-        <div class="modal-meta" id="modal-meta"></div>
-        <h2 class="modal-title" id="modal-title"></h2>
-      </div>
-      <button class="modal-close glass-el" onclick="closeModal()">✕</button>
+  <div class="modal">
+    <div class="modal-header" id="modal-header">
+      <div class="modal-header-left" id="modal-header-content"></div>
+      <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
     </div>
-    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-body" id="modal-content"></div>
   </div>
 </div>
 
 <script>
-/* ══════════════════════════════════════
-   Supabase
-══════════════════════════════════════ */
-const SUPA_URL = 'https://wlxlhyieypohktsvwuuc.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndseGxoeWlleXBvaGt0c3Z3dXVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTYxNTAsImV4cCI6MjA5NTM3MjE1MH0.KbgbCGBCoJA6ybawKDTHp6w-Tl_dGpE0RVgbaiFgv3Y';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+// ── Supabase 連線設定（直接寫在這裡）──
+const SUPABASE_URL = 'https://wlxlhyieypohktsvwuuc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndseGxoeWlleXBvaGt0c3Z3dXVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTYxNTAsImV4cCI6MjA5NTM3MjE1MH0.KbgbCGBCoJA6ybawKDTHp6w-Tl_dGpE0RVgbaiFgv3Y';
 
-/* ══════════════════════════════════════
-   Data
-══════════════════════════════════════ */
+let sbClient = null;
+
 async function loadData() {
   try {
-    const [prof, skills, tools, projects, notes] = await Promise.all([
-      sb.from('profile').select('*').single(),
-      sb.from('skills').select('*').order('sort_order'),
-      sb.from('tools').select('*').order('sort_order'),
-      sb.from('projects').select('*').eq('published', true).order('sort_order'),
-      sb.from('notes').select('*').eq('published', true).order('sort_order'),
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const [profileRes, skillsRes, toolsRes, projectsRes, notesRes] = await Promise.all([
+      sbClient.from('profile').select('*').single(),
+      sbClient.from('skills').select('*').order('sort_order'),
+      sbClient.from('tools').select('*').order('sort_order'),
+      sbClient.from('projects').select('*').eq('published', true).order('sort_order'),
+      sbClient.from('notes').select('*').eq('published', true).order('sort_order')
     ]);
-    if (prof.data)     renderProfile(prof.data);
-    if (skills.data)   renderSkills(skills.data);
-    if (tools.data)    renderTools(tools.data);
-    if (projects.data) renderProjects(projects.data);
-    if (notes.data)    renderNotes(notes.data);
-  } catch(e) {
-    console.error('loadData error:', e);
-    renderFallback();
-  }
+    if (profileRes.data) renderProfile(profileRes.data);
+    if (skillsRes.data) renderSkills(skillsRes.data);
+    if (toolsRes.data) renderTools(toolsRes.data);
+    if (projectsRes.data) renderProjects(projectsRes.data);
+    if (notesRes.data) renderNotes(notesRes.data);
+  } catch (e) { renderFallback(); }
 }
 
 function renderProfile(p) {
-  if (!p) return;
-  if (p.nav_name)    document.getElementById('nav-name').textContent    = p.nav_name;
-  if (p.name) {
-    const cleanName = p.name.replace(/您好[，,]\s*我是/g, '').trim();
-    document.getElementById('hero-title').textContent = '您好，我是' + cleanName;
-  }
-  if (p.name) {
-    const cleanName2 = p.name.replace(/您好[，,]\s*我是/g, '').trim();
-    document.getElementById('footer-name').textContent = cleanName2 + ' · UI/UX Designer';
-  }
-  if (p.description) document.getElementById('hero-desc').innerHTML = p.description;
-  if (p.note) document.getElementById('hero-note').textContent = p.note;
-  if (p.email || p.phone) {
-    const c = document.getElementById('hero-contacts');
-    let html = '';
-    if (p.email) html += `<a href="mailto:${p.email}" class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
-    if (p.phone) html += `<span class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
-    c.innerHTML = html;
-  }
+  const heroTitle = (p.name || '您好，我是林艾奭').trim();
+  const navName = (p.nav_name && p.nav_name.trim()) || '林艾奭';
+  document.getElementById('hero-title').textContent = heroTitle;
+  document.getElementById('nav-name').textContent = navName;
+  document.getElementById('footer-name').textContent = navName + ' · UI/UX Designer';
+  document.getElementById('hero-desc').innerHTML = p.description || '';
+  document.getElementById('hero-note').textContent = p.note || '';
+  const contacts = document.getElementById('hero-contacts');
+  contacts.innerHTML = '';
+  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
+  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
+  document.getElementById('footer-email').href = 'mailto:' + (p.email || '');
 }
 
 function renderSkills(data) {
@@ -781,301 +590,380 @@ function renderSkills(data) {
   document.getElementById('skills-grid').innerHTML = data.map(s => `
     <div class="skill-card glass-el glass-card">
       <div class="skill-card-icon">${s.icon || '🎨'}</div>
-      <div class="skill-card-title">${s.title || ''}</div>
-      <div class="skill-tag-list">${(s.tags||[]).map(t=>`<span class="skill-tag">${t}</span>`).join('')}</div>
-    </div>`).join('');
+      <div class="skill-card-title">${s.title}</div>
+      <div class="skill-tag-list">${(s.tags || []).map(t => `<span class="skill-tag">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
 }
 
 function renderTools(data) {
   if (!data.length) { document.getElementById('tools-grid').innerHTML = ''; return; }
   document.getElementById('tools-grid').innerHTML = data.map(t => `
-    <div class="tool-item glass-el">
-      <div><div class="tool-name">${t.name||''}</div>${t.description?`<div class="tool-desc">${t.description}</div>`:''}</div>
-    </div>`).join('');
+    <div class="tool-item glass-el"><div><div class="tool-name">${t.name}</div>${t.description ? `<div class="tool-desc">${t.description}</div>` : ''}</div></div>
+  `).join('');
 }
 
+let allProjects = [];
 function renderProjects(data) {
+  allProjects = data;
   const grid = document.getElementById('projects-grid');
-  if (!data.length) { grid.innerHTML = '<p style="color:var(--text-tertiary);padding:32px 0">尚無作品</p>'; return; }
   grid.innerHTML = '';
   data.forEach((p, i) => {
-    const imgs = parseImgArr(p.images);
     const row = document.createElement('div');
     row.className = 'project-row';
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
     row.onclick = () => openModal(p.id);
-    const left = document.createElement('div');
-    left.innerHTML = `
-      <div class="project-row-num">0${i+1}</div>
-      <div class="project-row-title">${p.title||''}</div>
-      <div class="project-row-desc">${stripHtml(p.description||'')}</div>
-      <div class="project-tags">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+    row.onkeydown = (e) => { if (e.key === 'Enter') openModal(p.id); };
+
+    const coverUrl = parseImgArr(p.images)[0] || '';
+    const coverEl = document.createElement(coverUrl ? 'img' : 'div');
+    if (coverUrl) {
+      coverEl.className = 'project-cover';
+      coverEl.src = coverUrl;
+      coverEl.alt = p.title + ' 封面';
+      coverEl.loading = 'lazy';
+      coverEl.onerror = function() {
+        const e = document.createElement('div');
+        e.className = 'project-cover-empty';
+        e.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
+        this.parentNode.replaceChild(e, this);
+      };
+    } else {
+      coverEl.className = 'project-cover-empty';
+      coverEl.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
+    }
+
+    const tags = (p.tags||[]).map(t => {
+      const s = document.createElement('span');
+      s.className = 'tag'; s.textContent = t; return s.outerHTML;
+    }).join('');
+
     const right = document.createElement('div');
     right.className = 'project-row-right';
-    if (p.time_range) right.innerHTML += `<div class="project-time">${p.time_range}</div>`;
-    if (imgs.length) {
-      const img = document.createElement('img');
-      img.className = 'project-cover';
-      img.src = imgs[0];
-      img.alt = p.title || '';
-      img.onerror = () => { right.replaceChild(emptyDiv(), img); };
-      right.appendChild(img);
-    } else {
-      right.appendChild(emptyDiv());
-    }
-    row.appendChild(left);
+    right.appendChild(coverEl);
+
+    row.innerHTML = '<div>' +
+      '<p class="project-row-num">' + String(i+1).padStart(2,'0') + '</p>' +
+      '<h2 class="project-row-title">' + p.title + '</h2>' +
+      (p.time_range ? '<p class="project-time" style="margin-bottom:8px">' + p.time_range + '</p>' : '') +
+      '<p class="project-row-desc">' + stripHtml(p.description || '') + '</p>' +
+      '<div class="project-tags">' + tags + '</div>' +
+      '</div>';
     row.appendChild(right);
     grid.appendChild(row);
   });
 }
 
-function emptyDiv() {
-  const d = document.createElement('div');
-  d.className = 'project-cover-empty';
-  d.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
-  return d;
-}
-
+let allNotes = [];
 function renderNotes(data) {
-  const list = document.getElementById('notes-list');
-  if (!data.length) { list.innerHTML = '<p class="note-empty">尚無隨筆</p>'; return; }
-  list.innerHTML = data.map(n => `
-    <div class="note-item" onclick="openNote('${n.id}')">
+  allNotes = data;
+  document.getElementById('notes-list').innerHTML = data.map(n => `
+    <div class="note-item" onclick="openNote(${n.id})" role="button" tabindex="0"
+      onkeydown="if(event.key==='Enter')openNote(${n.id})">
       <span class="note-date">${formatDate(n.note_date)}</span>
-      <div style="flex:1">
-        <div class="note-title">${n.title||''}</div>
-        <div class="note-tags">${(n.note_type||'').split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <span class="note-title">${n.title}</span>
+        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
       </div>
-    </div>`).join('');
+
+    </div>
+  `).join('');
 }
 
-async function openModal(id) {
-  const { data } = await sb.from('projects').select('*').eq('id', id).single();
-  if (data) showModal(data);
-}
-async function openNote(id) {
-  const { data } = await sb.from('notes').select('*').eq('id', id).single();
-  if (!data) return;
-  document.getElementById('modal-meta').innerHTML = `<span class="modal-time">${formatDate(data.note_date)}</span>${(data.note_type||'').split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}`;
-  document.getElementById('modal-title').textContent = data.title || '';
-  document.getElementById('modal-body').innerHTML = `<div class="note-content">${data.content||''}</div>`;
+function openNote(id) {
+  const n = allNotes.find(x => x.id === id);
+  if (!n) return;
+  const imgsHtml = '';
+  const contentHtml = n.content
+    ? `<div class="note-content">${n.content}</div>`
+    : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
+  document.getElementById('modal-header-content').innerHTML =
+    '<h2 class="modal-title">' + n.title + '</h2>' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:6px">' +
+      (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
+      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+    '</div>';
+  document.getElementById('modal-content').innerHTML = contentHtml;
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function showModal(p) {
+function openModal(id) {
+  const p = allProjects.find(x => x.id === id);
+  if (!p) return;
+
   const imgs = parseImgArr(p.images);
-  const sections = p.sections || [];
-  let body = '';
-  if (imgs.length) body += `<div class="modal-cover-wrap"><img src="${imgs[0]}" alt="${p.title||''}"></div>`;
-  if (sections.length) {
-    body += '<div class="modal-sections">';
-    sections.forEach(s => {
-      body += `<div class="modal-block glass-el"><div class="modal-block-label">${s.title||''}</div><ul>${(s.items||[]).map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
-    });
-    body += '</div>';
+  const coverUrl = imgs[0] || '';
+
+  // Header: tags + title + meta
+  const tagsHtml = (p.tags||[]).map(t => { const s = document.createElement('span'); s.className='tag'; s.textContent=t; return s.outerHTML; }).join('');
+  const membersHtml = p.members ? p.members.split('·').map(m => { const s=document.createElement('span'); s.className='tag'; s.textContent=m.trim(); return s.outerHTML; }).filter(Boolean).join('') : '';
+
+  document.getElementById('modal-header-content').innerHTML =
+    '<h2 class="modal-title">' + p.title + '</h2>' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:8px">' +
+      (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
+      (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + membersHtml + '</div>' : '') +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px">' + tagsHtml + '</div>' +
+    '</div>';
+
+  // Body: cover → description → sections → rest images
+  const body = document.getElementById('modal-content');
+  body.innerHTML = '';
+
+  // Cover image full width
+  if (coverUrl) {
+    const coverWrap = document.createElement('div');
+    coverWrap.className = 'modal-cover-wrap';
+    const coverImg = document.createElement('img');
+    coverImg.src = coverUrl;
+    coverImg.alt = p.title;
+    coverImg.loading = 'lazy';
+    coverWrap.appendChild(coverImg);
+    body.appendChild(coverWrap);
   }
-  if (p.content) body += `<div class="modal-desc">${p.content}</div>`;
-  document.getElementById('modal-meta').innerHTML = `${p.time_range?`<span class="modal-time">${p.time_range}</span>`:''}${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}`;
-  document.getElementById('modal-title').textContent = p.title || '';
-  document.getElementById('modal-body').innerHTML = body;
+
+  // Sections first
+  const sections = (p.sections && p.sections.length) ? p.sections : [];
+  if (sections.length) {
+    const grid = document.createElement('div');
+    grid.className = 'modal-grid';
+    if (coverUrl) grid.style.marginTop = '20px';
+    sections.forEach(s => {
+      if (!s.title) return;
+      const block = document.createElement('div');
+      block.className = 'modal-block glass-el';
+      const lines = (s.items||[]).flatMap(x => x ? x.split('\n') : []).map(l=>l.trim()).filter(Boolean);
+      block.innerHTML = '<p class="modal-block-label">' + s.title + '</p>' +
+        (lines.length ? '<ul>' + lines.map(l=>'<li>'+l+'</li>').join('') + '</ul>' : '');
+      grid.appendChild(block);
+    });
+    body.appendChild(grid);
+  }
+
+  // Content (rich text) after sections
+  if (p.content) {
+    const desc = document.createElement('div');
+    desc.className = 'modal-desc';
+    desc.style.marginTop = '20px';
+    desc.innerHTML = p.content;
+    body.appendChild(desc);
+  }
+
+
+
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-/* ── Helpers ── */
 function parseImgArr(val) {
   if (!val) return [];
   if (Array.isArray(val)) return val.filter(Boolean);
-  try { const a = JSON.parse(val); return Array.isArray(a) ? a.filter(Boolean) : []; } catch { return []; }
+  if (typeof val === 'string') {
+    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed.filter(Boolean) : []; }
+    catch { return []; }
+  }
+  return [];
 }
-function stripHtml(html) { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || d.innerText || ''; }
+function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ''; }
 function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${y}.${m}.${day}`; }
 
-/* ── Fallback ── */
 function renderFallback() {
+  const fallbackProjects = [
+    { id:1, title:'永豐數位銀行 UI/UX 專案', time_range:'2022/02 — 開發中', tags:['Design Component','Mobile UI','Web UI'], description:'加入永豐新網銀專案，接手廠商設計稿並建立設計系統。', goals:['提升 APP 使用體驗','定義 Design guideline','建構 Design system'], challenges:['初次執行大型專案','跨單位合作'], methods:['啟發式評估','逆向流程分析'], work_items:['網路銀行 / 行動銀行 UI 設計','頁面資訊結構整理'], products:['新網銀','大咖繳費 APP','無障礙網路銀行'], insight:'啟發式評估：藉由 UI 視覺分析與可用性分析接手廠商設計稿。', role:'UI / UX 設計', members:'業務單位 PM · 設計 林艾奭', images:[] },
+    { id:2, title:'大咖繳費 APP UI 改版', time_range:'2022/12 上線', tags:['Design System','Mobile UI'], description:'收斂舊有設計元素，重新建造設計系統，探索輕盈視覺風格。', goals:['定義 UI Guideline','元件歸納整理'], challenges:['從混亂設計文件熟悉元件'], methods:['減法設計思維'], work_items:['介面視覺風格探索','Lottie 動畫設計'], products:['大咖繳費 APP 2.0（已上線）'], insight:'元件層級：Segment control → Tab bar → Chips Filter。', role:'UI 設計', members:'UX設計 侑達 · 設計 林艾奭', images:[] },
+    { id:3, title:'上學院留學中心 UI 專案', time_range:'2021/04 — 2022/01', tags:['Mobile UI','Web UI','RWD'], description:'優化留學中心網站，負責 RWD 頁面設計與視覺規範建立。', goals:['提升網頁使用體驗'], challenges:['初次執行網站介面設計'], methods:['易用性原則','競品觀察'], work_items:['RWD 頁面設計','資訊結構整理'], products:['首頁優化','學生心得頁面'], insight:'加入熱門科系篩選，幫助學生聚焦到理想學校，減少選擇負擔。', role:'Web UI 設計', members:'專案管理 Bobo · 設計 林艾奭', images:[] },
+    { id:4, title:'自助家遊學網 UI 專案', time_range:'2021/04 — 2022/01', tags:['Mobile UI','Web UI','RWD'], description:'第一份網頁 UI 工作，疫情期間優化網站，運用 UI 設計準則系統性檢視改進點。', goals:['提升網頁使用體驗'], challenges:['初次執行網站介面設計'], methods:['易用性原則'], work_items:['RWD 頁面設計','資訊圖表化'], products:['首頁優化','學校介紹頁'], insight:'捨去影響網站速度且點擊率不高的區域，從品牌顏色延伸減少中性灰階。', role:'Web UI 設計', members:'前端 Bobo · 設計 林艾奭', images:[] }
+  ];
+  const fallbackNotes = [
+    { title:'【自我反思】如果我不做設計，我還能做什麼？', note_date:'2026-04-25', note_type:'自我反思' },
+    { title:'【讀書心得】瘦瘦針革命', note_date:'2026-02-10', note_type:'讀書心得' },
+    { title:'【讀書心得】透過藝術品提升觀察力', note_date:'2025-12-28', note_type:'讀書心得' },
+    { title:'【無障礙工作坊】暫時告別視覺慣性，我們能看見什麼？', note_date:'2025-12-21', note_type:'無障礙設計' },
+    { title:'【教育訓練課程】M365 Copilot AI 工作新型態應用', note_date:'2025-11-19', note_type:'教育訓練' }
+  ];
+  renderProjects(fallbackProjects);
+  renderNotes(fallbackNotes);
   document.getElementById('skills-grid').innerHTML = `
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="skill-tag">Wireframe</span><span class="skill-tag">UI Mockup</span><span class="skill-tag">易用性測試</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="skill-tag">Wireframe</span><span class="skill-tag">UI Mockup</span><span class="skill-tag">UI Flow</span><span class="skill-tag">易用性測試</span></div></div>
     <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="skill-tag">字型學</span><span class="skill-tag">色彩學</span><span class="skill-tag">版面構成</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="skill-tag">Web UI（RWD）</span><span class="skill-tag">Mobile UI</span></div></div>`;
-  document.getElementById('projects-grid').innerHTML = '<p style="color:var(--text-tertiary);padding:32px 0">—</p>';
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="skill-tag">Web UI（RWD）</span><span class="skill-tag">Mobile UI</span><span class="skill-tag">Design System</span></div></div>
+  `;
+  document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
 }
 
-/* ══════════════════════════════════════
-   Theme
-══════════════════════════════════════ */
-function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
-function getTheme() { return localStorage.getItem('theme') || 'system'; }
+// ── Theme toggle ──
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function getTheme() {
+  return localStorage.getItem('theme') || 'system';
+}
 function applyTheme(theme) {
-  const resolved = theme === 'system' ? getSystemTheme() : theme;
-  document.documentElement.setAttribute('data-theme', resolved);
+  const effective = theme === 'system' ? getSystemTheme() : theme;
+  document.documentElement.setAttribute('data-theme', effective);
   const btn = document.getElementById('theme-toggle');
-  const tips = { system: '跟隨系統', dark: '深色模式', light: '淺色模式' };
-  const icons = { light: '☀️', dark: '🌙', system: '🌓' };
-  if (btn) { btn.textContent = icons[theme] || '🌓'; btn.setAttribute('data-tip', tips[theme] || ''); }
+  if (!btn) return;
+  const isSystem = theme === 'system';
+  if (effective === 'dark') {
+    btn.textContent = '☀️';
+    btn.setAttribute('data-tip', isSystem ? '切換為亮色模式（目前跟隨系統：暗色）' : '切換為亮色模式');
+  } else {
+    btn.textContent = '🌙';
+    btn.setAttribute('data-tip', isSystem ? '切換為暗色模式（目前跟隨系統：亮色）' : '切換為暗色模式');
+  }
 }
 function toggleTheme() {
-  const cycle = { system: 'dark', dark: 'light', light: 'system' };
-  const next = cycle[getTheme()] || 'dark';
-  localStorage.setItem('theme', next);
+  const current = getTheme();
+  const system = getSystemTheme();
+  let next;
+  if (current === 'system') {
+    next = system === 'dark' ? 'light' : 'dark';
+  } else {
+    next = 'system';
+  }
   document.documentElement.classList.add('theme-transitioning');
-  setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 550);
+  localStorage.setItem('theme', next);
   applyTheme(next);
+  setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 550);
 }
-applyTheme(getTheme());
+// Listen for system theme changes
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   if (getTheme() === 'system') applyTheme('system');
 });
+// Init on load
+applyTheme(getTheme());
 
-/* ══════════════════════════════════════
-   Nav Pill
-══════════════════════════════════════ */
+// Nav scroll highlight
+const sections = ['about','projects','notes'];
+const navLinks = document.querySelectorAll('.nav-link[data-section]');
+// ── Glass Nav pill ──
 function getPillMetrics(link) {
-  const navLinks = document.getElementById('nav-links');
-  const nr = navLinks.getBoundingClientRect();
-  const lr = link.getBoundingClientRect();
-  return { x: lr.left - nr.left - 4, w: lr.width };
-}
-function setPillPosition(link) {
-  const { x, w } = getPillMetrics(link);
-  const nl = document.getElementById('nav-links');
-  nl.style.setProperty('--pill-x', x + 'px');
-  nl.style.setProperty('--pill-w', w + 'px');
-}
-function movePillTo(link) {
-  const { x, w } = getPillMetrics(link);
-  const nl = document.getElementById('nav-links');
-  nl.classList.remove('hover-slide');
-  void nl.offsetWidth;
-  nl.classList.add('hover-slide');
-  nl.style.setProperty('--pill-x', x + 'px');
-  nl.style.setProperty('--pill-w', w + 'px');
+  const navEl = document.getElementById('nav-links');
+  if (!navEl || !link) return null;
+  const navRect = navEl.getBoundingClientRect();
+  const linkRect = link.getBoundingClientRect();
+  return { x: linkRect.left - navRect.left - 4, w: linkRect.width };
 }
 
-const navLinks = document.querySelectorAll('.nav-link');
-navLinks.forEach(link => {
-  link.addEventListener('mouseenter', () => movePillTo(link));
-  link.addEventListener('mouseleave', () => {
-    const active = document.querySelector('.nav-link.active');
-    if (active) setPillPosition(active);
+// Move pill without stretch (scroll)
+function setPillPosition(link) {
+  const navEl = document.getElementById('nav-links');
+  const m = getPillMetrics(link);
+  if (!m || !navEl) return;
+  navEl.style.setProperty('--pill-x', m.x + 'px');
+  navEl.style.setProperty('--pill-w', m.w + 'px');
+}
+
+// Move pill with stretch animation (hover)
+function movePillTo(link) {
+  const navEl = document.getElementById('nav-links');
+  const m = getPillMetrics(link);
+  if (!m || !navEl) return;
+  navEl.classList.remove('hover-slide');
+  void navEl.offsetWidth;
+  navEl.classList.add('hover-slide');
+  navEl.style.setProperty('--pill-x', m.x + 'px');
+  navEl.style.setProperty('--pill-w', m.w + 'px');
+}
+
+// Hover behaviour
+document.addEventListener('DOMContentLoaded', () => {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl) return;
+  navEl.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('mouseenter', () => movePillTo(link));
   });
+  navEl.addEventListener('mouseleave', () => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) movePillTo(active);
+  });
+  // Init pill position
+  setTimeout(() => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) setPillPosition(active);
+  }, 100);
 });
 
-const sections = ['about','projects','notes'];
 function updateNav() {
   let current = 'about';
-  sections.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && window.scrollY >= el.offsetTop - 100) current = id;
-  });
+  sections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 100) current = id; });
   navLinks.forEach(link => link.classList.toggle('active', link.dataset.section === current));
+  // Update pill position on scroll (no stretch)
   const active = document.querySelector('.nav-link.active');
   if (active) setPillPosition(active);
 }
 window.addEventListener('scroll', updateNav, { passive: true });
-window.addEventListener('load', () => { updateNav(); });
 
-/* ══════════════════════════════════════
-   Three.js — 3D Model
-══════════════════════════════════════ */
-function initThree() {
-  var THREE = window.THREE;
-  if (!THREE || !THREE.WebGLRenderer) {
-    console.log('THREE not ready, retry...');
-    setTimeout(initThree, 200);
-    return;
-  }
-  if (!THREE.GLTFLoader) {
-    console.log('GLTFLoader not ready, retry...');
-    setTimeout(initThree, 200);
-    return;
-  }
+loadData();
+</script>
 
+<script>
+(function waitThree() {
+  if (!window.THREE || !window.THREE.WebGLRenderer || !window.THREE.GLTFLoader) {
+    return setTimeout(waitThree, 100);
+  }
   var container = document.getElementById('hero-model');
-  if (!container) { console.error('hero-model not found'); return; }
+  if (!container) return;
 
-  var W = 300, H = 400;
-
-  var scene = new THREE.Scene();
+  var W = 400, H = 500;
+  var THREE = window.THREE;
+  var scene  = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
-  camera.position.set(0, 0, 3);
+  camera.position.set(0, 0.1, 3.2);
 
-  var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  var renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(W, H);
-  renderer.setClearColor(0x000000, 0);
-  renderer.domElement.style.cssText = 'display:block;width:300px;height:400px;position:absolute;top:50%;right:40px;transform:translateY(-50%);';
-  container.appendChild(renderer.domElement);
+  renderer.setClearColor(0, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding;
 
-  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-  var dir = new THREE.DirectionalLight(0xffffff, 1.5);
-  dir.position.set(1, 2, 2);
-  scene.add(dir);
+  var canvas = renderer.domElement;
+  canvas.style.cssText = 'position:absolute;top:50%;right:0;transform:translateY(-50%);width:'+W+'px;height:'+H+'px;';
+  container.appendChild(canvas);
 
-  // 先畫一個測試球確認 renderer 正常
-  var testGeo = new THREE.SphereGeometry(0.5, 16, 16);
-  var testMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
-  var testMesh = new THREE.Mesh(testGeo, testMat);
-  scene.add(testMesh);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+  var dl = new THREE.DirectionalLight(0xffffff, 1.2);
+  dl.position.set(2, 3, 2); scene.add(dl);
+  var fl = new THREE.DirectionalLight(0x8ab4f8, 0.4);
+  fl.position.set(-2, 0, 1); scene.add(fl);
 
-  var davidMesh = null;
-
-  (function animate() {
-    requestAnimationFrame(animate);
-    if (testMesh) testMesh.rotation.y += 0.01;
-    if (davidMesh) davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
-    renderer.render(scene, camera);
-  }());
-
-  new THREE.GLTFLoader().load(
+  var mesh = null;
+  var loader = new THREE.GLTFLoader();
+  loader.load(
     '/portfolio/assets/head_of_michelangelos_david_optimised.glb',
     function(gltf) {
-      console.log('GLB loaded OK');
-      scene.remove(testMesh);
       var model = gltf.scene;
-
-      // 計算 bounding box 置中
       var box = new THREE.Box3().setFromObject(model);
-      var center = new THREE.Vector3();
-      var size = new THREE.Vector3();
-      box.getCenter(center);
-      box.getSize(size);
-      console.log('model size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
-
-      // 縮放讓最長邊 = 1.6，置中在原點
-      var maxDim = Math.max(size.x, size.y, size.z);
-      var sc = 1.6 / maxDim;
+      var c = new THREE.Vector3(), s = new THREE.Vector3();
+      box.getCenter(c); box.getSize(s);
+      var sc = 1.8 / Math.max(s.x, s.y, s.z);
       model.scale.setScalar(sc);
-      model.position.set(
-        -center.x * sc,
-        -center.y * sc,
-        -center.z * sc
-      );
-      model.rotation.y = -0.15;
+      model.position.set(-c.x*sc, -c.y*sc, -c.z*sc);
+      model.rotation.y = -0.2;
       scene.add(model);
-      davidMesh = model;
-      console.log('model added at position:', model.position.x.toFixed(2), model.position.y.toFixed(2), model.position.z.toFixed(2));
-
-      var loader = document.getElementById('model-loader');
-      if (loader) loader.classList.add('hidden');
+      mesh = model;
+      var el = document.getElementById('model-loader');
+      if (el) el.classList.add('hidden');
     },
     null,
-    function(err) { console.error('GLB error:', err); }
+    function(e) { console.error('GLB:', e); }
   );
 
+  (function tick() {
+    requestAnimationFrame(tick);
+    renderer.render(scene, camera);
+  })();
+
   window.addEventListener('scroll', function() {
-    if (!davidMesh) return;
-    davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
+    if (!mesh) return;
+    mesh.rotation.y = -0.2 + (scrollY / innerHeight) * Math.PI * 2;
   }, { passive: true });
-}
-window.addEventListener('load', function() { setTimeout(initThree, 300); });
+})();
 </script>
 </body>
 </html>
