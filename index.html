@@ -7,8 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="/portfolio/assets/three.min.js"></script>
-<script src="/portfolio/assets/GLTFLoader.js"></script>
+<script src="/portfolio/assets/three.min.js" onload="window._threeLoaded=true" onerror="window._threeLoaded=false"></script>
+<script src="/portfolio/assets/GLTFLoader.js" onload="window._gltfLoaded=true" onerror="window._gltfLoaded=false"></script>
 <style>
 /* ══════════════════════════════════════
    Reset
@@ -329,7 +329,6 @@ section {
   min-height: calc(80vh - 60px);
   display: flex;
   align-items: center;
-  overflow: hidden;
 }
 /* 文字內容：自然佔滿，不設任何 max-width 或 padding-right */
 .hero-content {
@@ -346,8 +345,6 @@ section {
   opacity: 0.45;
 }
 .hero-model canvas {
-  width: 100% !important;
-  height: 100% !important;
   display: block;
 }
 
@@ -996,8 +993,16 @@ window.addEventListener('load', () => { updateNav(); });
 ══════════════════════════════════════ */
 function initThree() {
   var THREE = window.THREE;
-  if (!THREE) { console.error('THREE not loaded'); return; }
-  if (!THREE.GLTFLoader) { setTimeout(initThree, 100); return; }
+  if (!THREE || !THREE.WebGLRenderer) {
+    console.log('THREE not ready, retry...');
+    setTimeout(initThree, 200);
+    return;
+  }
+  if (!THREE.GLTFLoader) {
+    console.log('GLTFLoader not ready, retry...');
+    setTimeout(initThree, 200);
+    return;
+  }
 
   var container = document.getElementById('hero-model');
   if (!container) { console.error('hero-model not found'); return; }
@@ -1011,7 +1016,7 @@ function initThree() {
   var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(W, H);
   renderer.setClearColor(0x000000, 0);
-  renderer.domElement.style.cssText = 'position:absolute;top:0;right:0;width:300px;height:400px;';
+  renderer.domElement.style.cssText = 'display:block;width:300px;height:400px;position:absolute;top:50%;right:40px;transform:translateY(-50%);';
   container.appendChild(renderer.domElement);
 
   scene.add(new THREE.AmbientLight(0xffffff, 1.0));
@@ -1063,7 +1068,7 @@ function initThree() {
     davidMesh.rotation.y = -0.15 + (window.scrollY / window.innerHeight) * Math.PI * 2;
   }, { passive: true });
 }
-window.addEventListener('load', initThree);
+window.addEventListener('load', function() { setTimeout(initThree, 300); });
 </script>
 </body>
 </html>
