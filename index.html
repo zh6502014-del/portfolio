@@ -323,7 +323,8 @@
   .hero {
     padding-top:96px;
     padding-bottom:88px;
-    width:100%;
+    max-width:860px;
+    margin:0 auto;
     padding-left:40px;
     padding-right:40px;
     position:relative;
@@ -331,19 +332,21 @@
   }
   /* hero-text：只佔左半部，留出右側空間給 absolute 的模型 */
   .hero-text {
-    max-width:480px;
     position:relative;
     z-index:2;
   }
   /* hero-3d：absolute，貼 hero 右上角，z-index 高於下層內容 */
   .hero-3d {
-    position:absolute;
-    top:0;
-    right:0;
-    width:350px;
-    height:350px;
+    position:fixed;
+    top:100px;
+    right:100px;
+    width:400px;
+    height:400px;
+    padding:10%;
+    box-sizing:border-box;
     overflow:visible;
     z-index:20;
+    pointer-events:none;
   }
 
   /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
@@ -386,7 +389,7 @@
     --progress-bar-height:0px;
   }
   @media (max-width:760px) {
-    .hero-3d { position:relative; top:auto; right:auto; width:280px; height:280px; margin:32px auto 0; z-index:1; }
+    .hero-3d { display:none; }
   }
 
   /* ── Glass element mixin ── */
@@ -637,32 +640,34 @@
     </div>
     <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
   </div>
-  <div class="hero-3d">
-        <div class="model-loader" id="model-loader">
-          <div class="model-progress-track">
-            <div class="model-progress-indicator" id="model-progress-indicator"></div>
-          </div>
-          <span class="model-loader-text" id="model-loader-text">載入中 0%</span>
-        </div>
-        <model-viewer
-          id="hero-model"
-          src="./david_head.glb"
-          alt="3D 大衛頭像"
-          loading="eager"
-          reveal="auto"
-          interaction-prompt="none"
-          shadow-intensity="0.3"
-          exposure="1.1"
-          environment-image=""
-          disable-zoom
-          disable-pan
-          disable-tap
-          camera-orbit="25deg 75deg auto"
-          field-of-view="auto"
-          style="pointer-events:none;"
-        ></model-viewer>
-  </div>
 </section>
+
+<!-- 3D 模型：fixed 定位於整個網站右上方，獨立於頁面結構之外 -->
+<div class="hero-3d">
+  <div class="model-loader" id="model-loader">
+    <div class="model-progress-track">
+      <div class="model-progress-indicator" id="model-progress-indicator"></div>
+    </div>
+    <span class="model-loader-text" id="model-loader-text">載入中 0%</span>
+  </div>
+  <model-viewer
+    id="hero-model"
+    src="./david_head.glb"
+    alt="3D 大衛頭像"
+    loading="eager"
+    reveal="auto"
+    interaction-prompt="none"
+    shadow-intensity="0.3"
+    exposure="1.1"
+    environment-image=""
+    disable-zoom
+    disable-pan
+    disable-tap
+    camera-orbit="25deg 75deg auto"
+    field-of-view="auto"
+    style="pointer-events:none;"
+  ></model-viewer>
+</div>
 
 <div class="wrapper">
 
