@@ -345,7 +345,6 @@
     overflow:visible;
     z-index:0;
     pointer-events:none;
-    filter:drop-shadow(20px 40px 80px rgba(0,0,0,0.01));
   }
 
   /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
@@ -412,6 +411,11 @@
     45%      { scale: 1.08 1; }
   }
   /* Card uses a slightly gentler stretch */
+  .glass-container {
+    border-radius:var(--radius-lg);
+    padding:0 24px;
+    overflow:hidden;
+  }
   .glass-card:hover {
     animation: glassStretchCard 360ms cubic-bezier(1, 0.0, 0.4, 1);
   }
@@ -448,7 +452,7 @@
   .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
   .modal-cover-wrap { margin:0 0 20px; overflow:hidden; border-radius:var(--radius-md); }
   .modal-cover-wrap img { width:100%; aspect-ratio:32/9; object-fit:cover; display:block; }
-  .projects-grid { border-top:1px solid var(--border); }
+  .projects-grid { border-top:none; }
   .project-row:hover .project-row-title { color:var(--text); }
   .project-row-num { font-size:13px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
   .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
@@ -541,7 +545,7 @@
   .note-empty { font-size:16px; color:var(--text-tertiary); padding:20px 0; }
 
   .notes-list { display:flex; flex-direction:column; }
-  .note-item:first-child { border-top:1px solid var(--border); }
+  .note-item:first-child { border-top:none; }
   .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:18px; color:var(--text); }
 
@@ -685,17 +689,21 @@
 
   <section id="projects">
     <p class="sec-label">UI / UX 設計專案</p>
+    <div class="glass-el glass-container">
     <div class="projects-grid" id="projects-grid">
       <div class="project-row" style="cursor:default">
         <div><div class="project-row-num">—</div><div class="project-row-title"><span class="skeleton" style="width:200px;height:18px"></span></div></div>
       </div>
     </div>
+    </div>
   </section>
 
   <section id="notes">
     <p class="sec-label">隨筆紀錄</p>
+    <div class="glass-el glass-container">
     <div class="notes-list" id="notes-list">
       <div class="note-item"><span class="skeleton" style="width:100px;height:13px"></span><span class="skeleton" style="width:250px;height:13px"></span></div>
+    </div>
     </div>
   </section>
 
