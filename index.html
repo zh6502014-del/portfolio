@@ -640,7 +640,7 @@
           disable-zoom
           disable-pan
           disable-tap
-          camera-orbit="-30deg 75deg auto"
+          camera-orbit="30deg 75deg auto"
           field-of-view="auto"
           style="pointer-events:none;"
         ></model-viewer>
@@ -1102,7 +1102,7 @@ loadData();
     lastScrollY = window.scrollY;
     if (!ticking) {
       requestAnimationFrame(() => {
-        model.cameraOrbit = `${-30 + lastScrollY * 0.3}deg 75deg auto`;
+        model.cameraOrbit = `${30 + lastScrollY * 0.3}deg 75deg auto`;
         ticking = false;
       });
       ticking = true;
