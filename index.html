@@ -324,14 +324,45 @@
   .hero-text { position:relative; z-index:2; }
   /* 外層容器 300x300，內層加 10% padding 讓模型不貼邊，model-viewer 填滿內層 */
   .hero-3d { position:relative; z-index:1; width:300px; height:300px; overflow:visible; padding:10%; box-sizing:border-box; }
+
+  /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
+  .model-loader {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:12px; z-index:10;
+    pointer-events:none;
+  }
+  .model-loader.hidden { display:none; }
+  .model-loader-text {
+    font-size:13px;
+    color:var(--muted-foreground);
+    font-family:var(--font-sans);
+    letter-spacing:0.01em;
+  }
+  /* shadcn Progress：外層 track */
+  .model-progress-track {
+    width:120px; height:8px;
+    background:var(--secondary);
+    border-radius:9999px;
+    overflow:hidden;
+  }
+  /* shadcn Progress：內層 indicator */
+  .model-progress-indicator {
+    height:100%;
+    background:var(--primary);
+    border-radius:9999px;
+    width:0%;
+    transition:width 0.2s ease;
+  }
   .hero-3d model-viewer {
     display:block;
     width:100%;
     height:100%;
     background:transparent;
     --poster-color:transparent;
-    --progress-bar-color:#111110;
-    --progress-bar-height:2px;
+    --progress-bar-color:transparent;
+    --progress-bar-height:0px;
   }
   @media (max-width:760px) {
     .hero-grid { grid-template-columns:1fr; gap:32px; }
@@ -590,6 +621,12 @@
     <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
       </div>
       <div class="hero-3d">
+        <div class="model-loader" id="model-loader">
+          <div class="model-progress-track">
+            <div class="model-progress-indicator" id="model-progress-indicator"></div>
+          </div>
+          <span class="model-loader-text" id="model-loader-text">載入中 0%</span>
+        </div>
         <model-viewer
           id="hero-model"
           src="./david_head.glb"
@@ -1026,6 +1063,34 @@ function updateNav() {
 window.addEventListener('scroll', updateNav, { passive: true });
 
 loadData();
+
+// ── 3D 模型載入進度（model-viewer progress 事件） ──
+(function() {
+  const model    = document.getElementById('hero-model');
+  const loader   = document.getElementById('model-loader');
+  const bar      = document.getElementById('model-progress-indicator');
+  const label    = document.getElementById('model-loader-text');
+  if (!model || !loader) return;
+
+  model.addEventListener('progress', (e) => {
+    const pct = Math.round(e.detail.totalProgress * 100);
+    if (bar)   bar.style.width   = pct + '%';
+    if (label) label.textContent = `載入中 ${pct}%`;
+  });
+
+  model.addEventListener('load', () => {
+    if (bar)   bar.style.width   = '100%';
+    if (label) label.textContent = '載入中 100%';
+    // 短暫停留後淡出 overlay
+    setTimeout(() => {
+      if (loader) loader.classList.add('hidden');
+    }, 300);
+  });
+
+  model.addEventListener('error', () => {
+    if (label) label.textContent = '載入失敗';
+  });
+})();
 
 // ── Scroll-based 3D model rotation（rAF 節流） ──
 (function() {
