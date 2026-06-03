@@ -567,7 +567,20 @@ let sbClient = null;
 
 async function loadData() {
   try {
-    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        persistSession: false,      // 不需要 session，停用 localStorage 同步
+        autoRefreshToken: false,    // 不需要自動 refresh token
+        detectSessionInUrl: false,  // 不偵測 URL 裡的 auth callback
+      },
+      global: {
+        fetch: (url, options = {}) => {
+          // 移除 Request 物件，改用純 fetch 參數，避免 DataCloneError
+          const { signal, ...rest } = options;
+          return fetch(url, rest);
+        }
+      }
+    });
     const [profileRes, skillsRes, toolsRes, projectsRes, notesRes] = await Promise.all([
       sbClient.from('profile').select('*').single(),
       sbClient.from('skills').select('*').order('sort_order'),
