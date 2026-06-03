@@ -322,8 +322,8 @@
   .hero { padding-top:96px; padding-bottom:88px; position:relative; }
   .hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:40px; align-items:start; }
   .hero-text { position:relative; z-index:2; }
-  /* 外層容器 300x300，內層加 10% padding 讓模型不貼邊，model-viewer 填滿內層 */
-  .hero-3d { position:relative; z-index:1; width:300px; height:300px; overflow:visible; padding:10%; box-sizing:border-box; }
+  /* 外層容器 300x300，邊界保留 5% padding，model-viewer 填滿內層 */
+  .hero-3d { position:relative; z-index:1; width:300px; height:300px; overflow:visible; padding:5%; box-sizing:border-box; }
 
   /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
   .model-loader {
@@ -640,7 +640,7 @@
           disable-zoom
           disable-pan
           disable-tap
-          camera-orbit="330deg 80deg auto"
+          camera-orbit="-30deg 75deg auto"
           field-of-view="auto"
           style="pointer-events:none;"
         ></model-viewer>
@@ -1102,7 +1102,7 @@ loadData();
     lastScrollY = window.scrollY;
     if (!ticking) {
       requestAnimationFrame(() => {
-        model.cameraOrbit = `${330 + lastScrollY * 0.3}deg 80deg auto`;
+        model.cameraOrbit = `${-30 + lastScrollY * 0.3}deg 75deg auto`;
         ticking = false;
       });
       ticking = true;
