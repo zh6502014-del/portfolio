@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>林艾奭 — UI/UX Designer</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -207,7 +208,15 @@
   section { padding:80px 0; }
   section + section { border-top:none; }
 
-  .hero { padding-top:96px; padding-bottom:88px; }
+  .hero { padding-top:96px; padding-bottom:88px; position:relative; }
+  .hero-grid { display:grid; grid-template-columns:1fr minmax(0,400px); gap:48px; align-items:center; }
+  .hero-text { position:relative; z-index:2; }
+  .hero-3d { position:relative; z-index:1; width:100%; max-width:400px; aspect-ratio:1/1; }
+  .hero-3d model-viewer { width:100%; height:100%; background:transparent; --poster-color:transparent; }
+  @media (max-width:760px) {
+    .hero-grid { grid-template-columns:1fr; gap:32px; }
+    .hero-3d { max-width:280px; margin:0 auto; }
+  }
 
   /* ── Glass element mixin ── */
   .glass-el {
@@ -452,6 +461,8 @@
 
 
   <section class="hero" id="hero">
+    <div class="hero-grid">
+      <div class="hero-text">
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
@@ -465,6 +476,23 @@
       </span>
     </div>
     <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
+      </div>
+      <div class="hero-3d">
+        <model-viewer
+          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+          alt="3D model"
+          camera-controls
+          auto-rotate
+          auto-rotate-delay="0"
+          rotation-per-second="20deg"
+          interaction-prompt="none"
+          shadow-intensity="0.3"
+          exposure="1.1"
+          environment-image="neutral"
+          disable-zoom
+        ></model-viewer>
+      </div>
+    </div>
   </section>
 
   <section id="about" style="position:relative">
