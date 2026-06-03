@@ -319,22 +319,21 @@
   .wrapper { max-width:860px; margin:0 auto; padding:0 40px; }
   section { padding:80px 0; }
 
-  .hero { padding-top:96px; padding-bottom:88px; position:relative; z-index:10; }
-  /* hero-grid：左側文字自然流動，hero-3d absolute 貼右 */
-  .hero-grid { position:relative; min-height:350px; }
-  .hero-text { position:relative; z-index:2; max-width:480px; padding-left:40px; }
-  /* hero-3d：absolute 定位，右邊貼齊視窗邊界，不受 wrapper max-width 限制 */
+  .hero { padding-top:96px; padding-bottom:88px; position:relative; z-index:10;
+    max-width:860px; margin:0 auto; padding-left:40px; padding-right:40px; }
+  /* hero 內部兩欄：左文字、右模型 */
+  .hero-inner { display:grid; grid-template-columns:1fr 350px; gap:40px; align-items:center; }
+  .hero-text { position:relative; z-index:2; }
+  /* hero-3d：用 margin-right 突破 hero 的右邊界，向右延伸至視窗邊緣 */
   .hero-3d {
-    position:absolute;
-    right:0;
-    top:50%;
-    transform:translateY(-50%);
+    position:relative;
     z-index:1;
     width:350px;
     height:350px;
     overflow:visible;
     padding:10%;
     box-sizing:border-box;
+    margin-right:calc(-1 * (50vw - 430px + 40px));
   }
 
   /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
@@ -377,7 +376,8 @@
     --progress-bar-height:0px;
   }
   @media (max-width:760px) {
-    .hero-3d { position:relative; right:auto; top:auto; transform:none; width:280px; height:280px; margin:32px auto 0; }
+    .hero-inner { grid-template-columns:1fr; }
+    .hero-3d { width:280px; height:280px; margin:32px auto 0; margin-right:auto; }
   }
 
   /* ── Glass element mixin ── */
@@ -613,8 +613,8 @@
 <main>
 
 <section class="hero" id="hero">
-    <div class="hero-grid">
-      <div class="hero-text">
+  <div class="hero-inner">
+    <div class="hero-text">
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
     <div class="hero-contacts" id="hero-contacts">
@@ -628,8 +628,8 @@
       </span>
     </div>
     <p class="hero-note" id="hero-note">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p>
-      </div>
-      <div class="hero-3d">
+    </div>
+    <div class="hero-3d">
         <div class="model-loader" id="model-loader">
           <div class="model-progress-track">
             <div class="model-progress-indicator" id="model-progress-indicator"></div>
@@ -654,7 +654,7 @@
           style="pointer-events:none;"
         ></model-viewer>
       </div>
-    </div>
+  </div>
 </section>
 
 <div class="wrapper">
