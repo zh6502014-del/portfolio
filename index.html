@@ -209,10 +209,10 @@
   section + section { border-top:none; }
 
   .hero { padding-top:96px; padding-bottom:88px; position:relative; }
-  .hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 224px; gap:60px; align-items:start; }
+  .hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:60px; align-items:start; }
   .hero-text { position:relative; z-index:2; }
-  .hero-3d { position:relative; z-index:1; width:224px; height:280px; overflow:visible; display:flex; align-items:flex-start; }
-  .hero-3d model-viewer { width:224px; height:280px; background:transparent; --poster-color:transparent; flex-shrink:0; }
+  .hero-3d { position:relative; z-index:1; width:320px; height:420px; overflow:visible; }
+  .hero-3d model-viewer { width:320px; height:420px; background:transparent; --poster-color:transparent; }
   @media (max-width:760px) {
     .hero-grid { grid-template-columns:1fr; gap:32px; }
     .hero-3d { max-width:280px; margin:0 auto; }
@@ -483,14 +483,14 @@
           src="./david_head.glb"
           alt="3D model"
           interaction-prompt="none"
-          shadow-intensity="0.3"
-          exposure="1.1"
+          shadow-intensity="0.15"
+          exposure="1.8"
           environment-image="neutral"
           disable-zoom
           disable-pan
           disable-tap
-          camera-orbit="0deg 90deg 6m"
-          field-of-view="30deg"
+          camera-orbit="0deg 90deg 8m"
+          field-of-view="25deg"
           style="pointer-events:none"
         ></model-viewer>
       </div>
@@ -912,7 +912,7 @@ loadData();
       let currentDeg = 0;
       window.addEventListener('scroll', () => {
         currentDeg = window.scrollY * 0.5;
-        model.cameraOrbit = `${currentDeg}deg 90deg 6m`;
+        model.cameraOrbit = `${currentDeg}deg 90deg 8m`;
       }, { passive: true });
     })();
   </script>
