@@ -659,6 +659,7 @@
     alt="3D 大衛頭像"
     loading="eager"
     reveal="auto"
+    ar-status="not-presenting"
     interaction-prompt="none"
     shadow-intensity="0"
     exposure="1.1"
@@ -1111,11 +1112,20 @@ loadData();
   model.addEventListener('load', () => {
     if (bar)   bar.style.width   = '100%';
     if (label) label.textContent = '載入中 100%';
-    // 短暫停留後淡出 overlay
     setTimeout(() => {
       if (loader) loader.classList.add('hidden');
-    }, 300);
+      // 確保 model-viewer 本身可見
+      model.style.visibility = 'visible';
+      model.style.opacity = '1';
+    }, 400);
   });
+
+  // 備援：若 load 事件未觸發，3 秒後強制隱藏 loader
+  setTimeout(() => {
+    if (loader && !loader.classList.contains('hidden')) {
+      loader.classList.add('hidden');
+    }
+  }, 3000);
 
   model.addEventListener('error', () => {
     if (label) label.textContent = '載入失敗';
