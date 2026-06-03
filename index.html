@@ -319,11 +319,11 @@
   .wrapper { max-width:860px; margin:0 auto; padding:0 40px; }
   section { padding:80px 0; }
 
-  .hero { padding-top:96px; padding-bottom:88px; position:relative; }
-  .hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:40px; align-items:start; }
+  .hero { padding-top:96px; padding-bottom:88px; position:relative; z-index:10; }
+  .hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:40px; align-items:start; }
   .hero-text { position:relative; z-index:2; }
-  /* 外層容器 300x300，邊界保留 5% padding，model-viewer 填滿內層 */
-  .hero-3d { position:relative; z-index:1; width:300px; height:300px; overflow:visible; padding:5%; box-sizing:border-box; }
+  /* 外層容器 350x350，邊界保留 10% padding，model-viewer 填滿內層 */
+  .hero-3d { position:relative; z-index:1; width:350px; height:350px; overflow:visible; padding:10%; box-sizing:border-box; }
 
   /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
   .model-loader {
@@ -1102,7 +1102,7 @@ loadData();
     lastScrollY = window.scrollY;
     if (!ticking) {
       requestAnimationFrame(() => {
-        model.cameraOrbit = `${orbitH + lastScrollY * 0.3}deg 75deg auto`;
+        model.cameraOrbit = `${lastScrollY * 0.3}deg 75deg auto`;
         ticking = false;
       });
       ticking = true;
@@ -1111,33 +1111,5 @@ loadData();
 })();
 </script>
 
-
-<!-- 臨時角度調整工具（找到角度後告知即可移除） -->
-<div id="orbit-debug" style="
-  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-  background:var(--card); border:1px solid var(--border);
-  border-radius:var(--radius-lg); padding:16px 20px;
-  display:flex; align-items:center; gap:16px;
-  font-family:var(--font-sans); font-size:14px; color:var(--foreground);
-  box-shadow:0 4px 24px rgba(0,0,0,0.12); z-index:9999;
-">
-  <span>水平角度</span>
-  <input type="range" id="orbit-slider" min="-180" max="180" value="0" step="5"
-    style="width:200px; accent-color:var(--primary);">
-  <span id="orbit-value" style="min-width:52px; font-weight:600;">0deg</span>
-  <button onclick="document.getElementById('orbit-debug').remove()" style="
-    background:var(--secondary); border:none; border-radius:var(--radius-sm);
-    padding:4px 10px; cursor:pointer; font-size:13px; color:var(--foreground);
-  ">關閉</button>
-</div>
-<script>
-  var orbitH = 0;
-  document.getElementById('orbit-slider').addEventListener('input', function() {
-    orbitH = parseInt(this.value);
-    document.getElementById('orbit-value').textContent = orbitH + 'deg';
-    var model = document.getElementById('hero-model');
-    if (model) model.cameraOrbit = orbitH + 'deg 75deg auto';
-  });
-</script>
 </body>
 </html>
