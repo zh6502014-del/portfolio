@@ -621,7 +621,11 @@
   /* ── 手機 ── */
   @media (max-width:560px) {
     .wrapper { padding:0 18px; }
-    .nav-inner { padding:0 18px; }
+    .nav-inner { padding:0 18px; position:relative; }
+    .nav-logo { display:none; }
+    .nav-actions { width:100%; display:flex; align-items:center; justify-content:center; }
+    .nav-links { flex:1; display:flex; justify-content:center; }
+    #theme-toggle { position:absolute; right:18px; }
     .hero { padding-top:56px; padding-bottom:48px; }
     .hero-title { font-size:clamp(32px,9vw,40px); margin-bottom:16px; }
     .hero-desc { font-size:16px; line-height:1.8; margin-bottom:28px; max-width:100%; }
@@ -630,18 +634,19 @@
     .hero-note { max-width:100%; font-size:13px; }
     .hero-badge { font-size:13px; padding:4px 12px; margin-bottom:20px; }
     .sec-label { margin-bottom:16px; }
-    .skill-grid { grid-template-columns:1fr 1fr; gap:8px; margin-bottom:40px; }
+    .skill-grid { grid-template-columns:1fr; gap:8px; margin-bottom:40px; }
     .skill-card { padding:14px; }
     .skill-card-icon { width:28px; height:28px; font-size:15px; margin-bottom:10px; }
     .skill-card-title { font-size:13px; margin-bottom:8px; }
     .tools-grid { gap:7px; }
     .tool-item { font-size:14px; padding:10px 14px; flex:1 1 100%; }
-    .project-row { grid-template-columns:1fr; gap:10px; padding:22px 0; }
-    .project-row-right { flex-direction:row; padding-top:0; }
+    .project-row { grid-template-columns:1fr; gap:12px; padding:22px 0; }
+    /* 小網：封面移到上方，撐滿全寬，16:9 等比 */
+    .project-row-right { flex-direction:column; padding-top:0; align-items:flex-start; width:100%; order:-1; }
+    .project-cover { width:100%; height:auto; aspect-ratio:16/9; }
+    .project-cover-empty { width:100%; height:auto; aspect-ratio:16/9; }
     .project-row-title { font-size:18px; margin-bottom:6px; }
     .project-row-desc { font-size:14px; -webkit-line-clamp:2; }
-    .project-cover { width:100px; height:56px; }
-    .project-cover-empty { width:100px; height:56px; }
     .note-item { flex-wrap:wrap; gap:8px; padding:16px 0; }
     .note-title { font-size:16px; }
     .note-date { font-size:12px; }
