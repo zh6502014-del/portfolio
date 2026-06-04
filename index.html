@@ -387,7 +387,27 @@
     --progress-bar-height:0px;
   }
   @media (max-width:760px) {
-    .hero-3d { display:none; }
+    /* hero-3d：手機版改回靜態定位，在 hero 內容上方置中 */
+    .hero-3d {
+      position:relative;
+      top:auto;
+      right:auto;
+      width:260px;
+      height:260px;
+      margin:0 auto 32px;
+      display:block;
+      z-index:1;
+    }
+    /* hero 加上 flex 讓模型排在文字上方 */
+    .hero {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .hero-text {
+      width:100%;
+    }
   }
 
   /* ── Glass element mixin ── */
@@ -1135,6 +1155,31 @@ loadData();
   model.addEventListener('error', () => {
     if (label) label.textContent = '載入失敗';
   });
+})();
+
+// ── 手機版：hero-3d 移入 hero section 置中顯示 ──
+(function() {
+  const model3d = document.querySelector('.hero-3d');
+  const hero    = document.querySelector('.hero');
+  const heroText = document.querySelector('.hero-text');
+  if (!model3d || !hero || !heroText) return;
+
+  function rearrange() {
+    if (window.innerWidth <= 760) {
+      // 小網：把 hero-3d 插到 hero 的最前面（文字上方）
+      if (model3d.parentElement !== hero) {
+        hero.insertBefore(model3d, heroText);
+      }
+    } else {
+      // 大網：把 hero-3d 移回 body 層（fixed 定位）
+      if (model3d.parentElement !== document.body) {
+        document.body.appendChild(model3d);
+      }
+    }
+  }
+
+  rearrange();
+  window.addEventListener('resize', rearrange, { passive: true });
 })();
 
 // ── Scroll-based 3D model rotation（rAF 節流） ──
