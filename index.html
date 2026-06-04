@@ -630,7 +630,7 @@
     #theme-toggle { position:absolute; right:18px; }
     .hero { padding-top:56px; padding-bottom:48px; }
     .hero-title { font-size:clamp(32px,9vw,40px); margin-bottom:16px; }
-    .hero-desc { font-size:16px; line-height:1.8; margin-bottom:28px; max-width:100%; }
+    .hero-desc { font-size:16px; line-height:1.8; margin-bottom:28px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .hero-contacts { flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:22px; }
     .contact-item { width:100%; justify-content:flex-start; }
     .hero-note { max-width:100%; font-size:13px; }
@@ -834,9 +834,15 @@ function renderNav(items) {
     return `<a href="${item.href || '#'}" class="nav-link${i === 0 ? ' active' : ''}" data-section="${section}">${item.label || ''}</a>`;
   }).join('');
 
-  // 重新綁定 hover 事件
   navEl.querySelectorAll('.nav-link').forEach(link => {
+    // hover
     link.addEventListener('mouseenter', () => movePillTo(link));
+    // 點擊：立即更新 active + pill（不等 scroll 觸發）
+    link.addEventListener('click', () => {
+      navEl.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      movePillTo(link);
+    });
   });
   navEl.addEventListener('mouseleave', () => {
     const active = navEl.querySelector('.nav-link.active');
@@ -1203,8 +1209,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateNav() {
   let current = 'about';
   sections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 100) current = id; });
-  navLinks.forEach(link => link.classList.toggle('active', link.dataset.section === current));
-  // Update pill position on scroll (no stretch)
+  // 動態取，避免 renderNav() 後快取的 NodeList 是舊的空值
+  const links = document.querySelectorAll('.nav-link[data-section]');
+  links.forEach(link => link.classList.toggle('active', link.dataset.section === current));
   const active = document.querySelector('.nav-link.active');
   if (active) setPillPosition(active);
 }
