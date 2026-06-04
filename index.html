@@ -467,7 +467,7 @@
   .projects-grid { display:flex; flex-direction:column; }
   .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
   .project-cover { width:240px; height:135px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
-  .project-cover-empty { width:160px; height:90px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
+  .project-cover-empty { width:240px; height:135px; border-radius:var(--radius-md); border:1px dashed var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--bg-secondary); }
   .project-cover-empty-icon { font-size:20px; opacity:0.25; }
   .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
   .modal-cover-wrap { margin:0 0 20px; overflow:hidden; border-radius:var(--radius-md); }
@@ -509,6 +509,19 @@
   .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
   .modal-title { font-family:var(--font-sans); font-size:24px; font-weight:600; margin-bottom:8px; line-height:1.3; }
   .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  /* collapsible meta：scroll 向下時縮起，滾回頂部展開 */
+  .modal-collapsible {
+    overflow:hidden;
+    max-height:200px;
+    opacity:1;
+    transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, margin 0.3s ease;
+    margin-top:6px;
+  }
+  .modal-collapsible.collapsed {
+    max-height:0;
+    opacity:0;
+    margin-top:0;
+  }
   .modal-time { font-size:14px; color:var(--text-tertiary); margin-right:4px; }
   .modal-desc { font-size:18px; color:var(--text-secondary); line-height:1.85; margin-bottom:28px; }
   .modal-desc h1 { font-size:26px; font-weight:600; margin:16px 0 8px; color:var(--text); }
@@ -922,9 +935,11 @@ function openNote(id) {
     : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + n.title + '</h2>' +
+    '<div class="modal-collapsible" id="modal-collapsible">' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:6px">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
       (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+    '</div>' +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml;
   document.getElementById('modal-overlay').classList.add('open');
@@ -944,6 +959,7 @@ function openModal(id) {
 
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + p.title + '</h2>' +
+    '<div class="modal-collapsible" id="modal-collapsible">' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:8px">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
       (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + membersHtml + '</div>' : '') +
@@ -996,6 +1012,32 @@ function openModal(id) {
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+// ── Modal collapsible header on scroll ──
+(function() {
+  const body = document.getElementById('modal-content');
+  if (!body) return;
+  let lastScrollY = 0;
+  let ticking = false;
+
+  body.addEventListener('scroll', () => {
+    lastScrollY = body.scrollTop;
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const collapsible = document.getElementById('modal-collapsible');
+        if (collapsible) {
+          if (lastScrollY > 20) {
+            collapsible.classList.add('collapsed');
+          } else {
+            collapsible.classList.remove('collapsed');
+          }
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+})();
+
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; }
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
