@@ -605,7 +605,7 @@
     .skill-card-icon { width:28px; height:28px; font-size:15px; margin-bottom:10px; }
     .skill-card-title { font-size:13px; margin-bottom:8px; }
     .tools-grid { gap:7px; }
-    .tool-item { font-size:14px; padding:10px 14px; }
+    .tool-item { font-size:14px; padding:10px 14px; flex:1 1 100%; }
     .project-row { grid-template-columns:1fr; gap:10px; padding:22px 0; }
     .project-row-right { flex-direction:row; padding-top:0; }
     .project-row-title { font-size:18px; margin-bottom:6px; }
@@ -636,9 +636,7 @@
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.008" xChannelSelector="R" yChannelSelector="G"/>
           </filter>
         </svg>
-        <a href="#about" class="nav-link active" data-section="about">關於</a>
-        <a href="#projects" class="nav-link" data-section="projects">作品集</a>
-        <a href="#notes" class="nav-link" data-section="notes">隨筆</a>
+        <!-- nav links 由 JS 從 Supabase nav_items 載入 -->
       </div>
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="切換深色模式"></button>
     </div>
@@ -772,19 +770,37 @@ function sbFetch(table, params = '') {
 
 async function loadData() {
   try {
-    const [profile, skills, tools, projects, notes] = await Promise.all([
+    const [profile, skills, tools, projects, notes, navItems] = await Promise.all([
       sbFetch('profile', 'limit=1'),
       sbFetch('skills', 'order=sort_order'),
       sbFetch('tools',  'order=sort_order'),
       sbFetch('projects', 'published=eq.true&order=sort_order'),
       sbFetch('notes',    'published=eq.true&order=sort_order'),
+      sbFetch('nav_items', 'order=sort_order'),
     ]);
-    if (profile?.[0])  renderProfile(profile[0]);
+    if (profile?.[0])   renderProfile(profile[0]);
     if (skills?.length)  renderSkills(skills);
     if (tools?.length)   renderTools(tools);
     if (projects?.length) renderProjects(projects);
     if (notes?.length)   renderNotes(notes);
+    if (navItems?.length) renderNav(navItems);
   } catch (e) { renderFallback(); }
+}
+
+// ── renderNav ──
+function renderNav(items) {
+  const container = document.getElementById('nav-links');
+  if (!container) return;
+  container.innerHTML = items.map((item, i) => {
+    const section = item.href ? item.href.replace('#', '') : '';
+    return `<a href="${item.href || '#'}" class="nav-link${i === 0 ? ' active' : ''}" data-section="${section}">${item.label || ''}</a>`;
+  }).join('');
+  // DOM 更新後重新讓 scroll observer 觀察新的 link
+  const navEl = document.getElementById('nav-links');
+  navEl.querySelectorAll('.nav-link[data-section]').forEach(link => {
+    const sec = document.getElementById(link.dataset.section);
+    if (sec && window._navObserver) window._navObserver.observe(sec);
+  });
 }
 
 function renderProfile(p) {
