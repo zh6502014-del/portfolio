@@ -789,17 +789,27 @@ async function loadData() {
 
 // ── renderNav ──
 function renderNav(items) {
-  const container = document.getElementById('nav-links');
-  if (!container) return;
-  container.innerHTML = items.map((item, i) => {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl) return;
+
+  navEl.innerHTML = items.map((item, i) => {
     const section = item.href ? item.href.replace('#', '') : '';
     return `<a href="${item.href || '#'}" class="nav-link${i === 0 ? ' active' : ''}" data-section="${section}">${item.label || ''}</a>`;
   }).join('');
-  // DOM 更新後重新讓 scroll observer 觀察新的 link
-  const navEl = document.getElementById('nav-links');
-  navEl.querySelectorAll('.nav-link[data-section]').forEach(link => {
-    const sec = document.getElementById(link.dataset.section);
-    if (sec && window._navObserver) window._navObserver.observe(sec);
+
+  // 重新綁定 hover 事件
+  navEl.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('mouseenter', () => movePillTo(link));
+  });
+  navEl.addEventListener('mouseleave', () => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) movePillTo(active);
+  });
+
+  // 等 DOM reflow 後重算 pill 位置
+  requestAnimationFrame(() => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) setPillPosition(active);
   });
 }
 

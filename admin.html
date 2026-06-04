@@ -1675,6 +1675,51 @@ async function renderNavigationPage() {
   `).join('');
   // 儲存 id 清單供 saveNavigation 使用
   el.dataset.ids = JSON.stringify(data.map(d => d.id));
+
+  // ── 錨點參考表 ──
+  // 從 Supabase 讀取各 section 的實際標題內容
+  const [profileRes, projectsRes, notesRes] = await Promise.all([
+    supabase_client.from('profile').select('name').single(),
+    supabase_client.from('projects').select('title').eq('published', true).order('sort_order').limit(1),
+    supabase_client.from('notes').select('title').eq('published', true).order('sort_order').limit(1),
+  ]);
+
+  const anchors = [
+    { href: '#hero',     label: '頁首',   preview: profileRes.data?.name || '—',                    desc: 'Hero 區塊（姓名、自我介紹）' },
+    { href: '#about',    label: '關於',   preview: '設計技能 / 使用工具',                              desc: '技能卡片與工具清單' },
+    { href: '#projects', label: '作品集', preview: projectsRes.data?.[0]?.title || '（尚無專案）',    desc: '作品集列表' },
+    { href: '#notes',    label: '隨筆',   preview: notesRes.data?.[0]?.title    || '（尚無隨筆）',    desc: '隨筆紀錄列表' },
+  ];
+
+  const refCard = document.createElement('div');
+  refCard.className = 'card';
+  refCard.style.marginTop = '16px';
+  refCard.innerHTML = `
+    <div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:14px;">
+      前台共有 ${anchors.length} 個錨點
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="text-align:left;padding:6px 12px 8px 0;color:var(--text-tertiary);font-weight:500">錨點</th>
+          <th style="text-align:left;padding:6px 12px 8px 0;color:var(--text-tertiary);font-weight:500">對應內容</th>
+          <th style="text-align:left;padding:6px 0 8px 0;color:var(--text-tertiary);font-weight:500">目前資料預覽</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${anchors.map(a => `
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 12px 10px 0">
+              <code style="background:var(--bg-tertiary);padding:2px 7px;border-radius:4px;font-size:12px;color:var(--text-secondary)">${a.href}</code>
+            </td>
+            <td style="padding:10px 12px 10px 0;color:var(--text-secondary)">${a.desc}</td>
+            <td style="padding:10px 0;color:var(--text-tertiary);font-size:12px">${a.preview}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  el.appendChild(refCard);
 }
 
 async function saveNavigation() {
