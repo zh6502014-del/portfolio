@@ -863,7 +863,21 @@ function renderProfile(p) {
   document.getElementById('hero-title').textContent = heroTitle;
   document.getElementById('nav-name').textContent = navName;
   document.getElementById('footer-name').textContent = navName + ' · UI/UX Designer';
-  document.getElementById('hero-desc').innerHTML = p.description || '';
+  const descEl = document.getElementById('hero-desc');
+  if (descEl) {
+    // 小網（≤560px）：把多個 <p> 合成一段，移除手動換行
+    if (window.innerWidth <= 560) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = p.description || '';
+      const text = Array.from(tmp.querySelectorAll('p'))
+        .map(el => el.textContent.trim())
+        .filter(Boolean)
+        .join('');
+      descEl.textContent = text;
+    } else {
+      descEl.innerHTML = p.description || '';
+    }
+  }
   document.getElementById('hero-note').textContent = p.note || '';
   const contacts = document.getElementById('hero-contacts');
   contacts.innerHTML = '';
