@@ -579,6 +579,10 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           隨筆紀錄
         </button>
+        <button class="nav-item" onclick="showPage('navigation',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          導覽列
+        </button>
       </div>
       <div class="sidebar-footer">
         <div class="storage-widget" id="storage-widget">
@@ -613,6 +617,7 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
         <div id="page-tools" class="page" style="display:none"></div>
         <div id="page-projects" class="page" style="display:none"></div>
         <div id="page-notes" class="page" style="display:none"></div>
+        <div id="page-navigation" class="page" style="display:none"></div>
       </div>
     </main>
   </div>
@@ -1114,7 +1119,7 @@ function showApp() {
   document.getElementById('app').style.display = 'block';
   // Restore last page from URL hash
   const hash = location.hash.replace('#','');
-  const validPages = ['profile','skills','tools','projects','notes'];
+  const validPages = ['profile','skills','tools','projects','notes','navigation'];
   const page = validPages.includes(hash) ? hash : 'profile';
   const btn = document.querySelector(`.nav-item[onclick*="'${page}'"]`);
   if (btn) showPage(page, btn);
@@ -1128,7 +1133,7 @@ function showPage(name, btn) {
   document.getElementById('page-' + name).style.display = 'block';
   btn.classList.add('active');
   location.hash = name;
-  const renderers = { profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage, projects: renderProjectsPage, notes: renderNotesPage };
+  const renderers = { profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage, projects: renderProjectsPage, notes: renderNotesPage, navigation: renderNavigationPage };
   if (renderers[name]) renderers[name]();
 }
 
@@ -1630,6 +1635,61 @@ function insertVideo() {
 function closeVideoModal() {
   const m = document.getElementById('video-modal');
   if (m) m.remove();
+}
+
+
+// ─────────────────────────────────────────────
+// NAVIGATION PAGE
+// ─────────────────────────────────────────────
+async function renderNavigationPage() {
+  const el = document.getElementById('page-navigation');
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">導覽列</div><div class="page-desc">前台頂部三個導覽項目的文字與連結</div></div>
+      <button class="btn btn-primary btn-sm" onclick="saveNavigation()">儲存變更</button>
+    </div>
+    <div class="card">
+      <p style="font-size:13px;color:var(--text-tertiary);margin-bottom:20px;">
+        每個項目可設定顯示文字與 href 錨點（例如 <code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">#about</code>）
+      </p>
+      <div id="nav-items-list"></div>
+    </div>
+  `;
+  const { data } = await supabase_client.from('nav_items').select('*').order('sort_order');
+  const list = document.getElementById('nav-items-list');
+  if (!data || !data.length) {
+    list.innerHTML = '<p style="color:var(--text-tertiary);font-size:14px;">尚無資料，請先在 Supabase 執行建表 SQL。</p>';
+    return;
+  }
+  list.innerHTML = data.map((item, i) => `
+    <div class="form-row-2" style="align-items:flex-end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+      <div class="form-row" style="margin-bottom:0">
+        <label class="form-label">顯示文字</label>
+        <input class="form-input" id="nav-label-${item.id}" value="${item.label || ''}" placeholder="關於" />
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <label class="form-label">href 錨點</label>
+        <input class="form-input" id="nav-href-${item.id}" value="${item.href || ''}" placeholder="#about" />
+      </div>
+    </div>
+  `).join('');
+  // 儲存 id 清單供 saveNavigation 使用
+  el.dataset.ids = JSON.stringify(data.map(d => d.id));
+}
+
+async function saveNavigation() {
+  const el = document.getElementById('page-navigation');
+  const ids = JSON.parse(el.dataset.ids || '[]');
+  if (!ids.length) return;
+  const updates = ids.map(id => ({
+    id,
+    label: document.getElementById(`nav-label-${id}`)?.value.trim() || '',
+    href:  document.getElementById(`nav-href-${id}`)?.value.trim() || '',
+  }));
+  for (const u of updates) {
+    await supabase_client.from('nav_items').update({ label: u.label, href: u.href }).eq('id', u.id);
+  }
+  toast('✓ 導覽列已儲存');
 }
 
 // ─────────────────────────────────────────────
