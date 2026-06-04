@@ -312,6 +312,26 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ql-toolbar button:hover .ql-tooltip-tip,
 .ql-toolbar .ql-picker:hover .ql-tooltip-tip { opacity:1; }
 
+/* ── Table insert modal ── */
+.table-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
+.table-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:480px; max-width:92vw; }
+.table-modal-title { font-size:16px; font-weight:500; margin-bottom:18px; }
+.table-modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.table-modal-row { display:flex; flex-direction:column; gap:6px; }
+.table-modal-row label { font-size:12px; color:var(--text-tertiary); font-weight:500; }
+.table-modal-row input[type="number"],
+.table-modal-row input[type="color"] { width:100%; padding:7px 10px; font-size:14px; font-family:inherit; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text); outline:none; }
+.table-modal-row input[type="color"] { height:36px; padding:3px 6px; cursor:pointer; }
+.table-modal-row input[type="number"]:focus { border-color:var(--border-strong); }
+.table-modal-preview { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; margin-bottom:16px; min-height:80px; display:flex; align-items:center; justify-content:center; }
+.table-modal-preview table { border-collapse:collapse; font-size:12px; }
+.table-modal-preview td { border:1px solid #ccc; padding:5px 10px; min-width:40px; }
+.table-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+
+/* ql-editor 表格樣式 */
+.ql-editor table { border-collapse:collapse; width:100%; margin:10px 0; }
+.ql-editor td, .ql-editor th { border:1px solid var(--border-strong); padding:6px 10px; min-width:60px; }
+
 /* Video embed modal */
 .video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
 .video-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:440px; max-width:90vw; }
@@ -1466,7 +1486,7 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
     [{ align: [] }],
     [{ list: 'ordered' }, { list: 'bullet' }],
     ['blockquote', 'code-block'],
-    ['link', 'image', 'video'],
+    ['link', 'image', 'video', 'table'],
     ['clean']
   ] : [
     ['bold', 'italic', 'underline'],
@@ -1479,7 +1499,7 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
     modules: {
       toolbar: {
         container: toolbar,
-        handlers: richMode ? { video: () => openVideoModal(id) } : {}
+        handlers: richMode ? { video: () => openVideoModal(id), table: () => openTableModal(id) } : {}
       }
     }
   });
@@ -1523,6 +1543,7 @@ const QUILL_TIPS = {
   'ql-image':       '上傳圖片',
   'ql-video':       '嵌入影片',
   'ql-clean':       '清除格式',
+  'ql-table':       '插入表格',
   'ql-list-ordered':'有序清單',
   'ql-list-bullet': '無序清單',
   'ql-align':       '對齊方式',
@@ -1571,6 +1592,108 @@ function attachQuillTooltips(id) {
     tip.textContent = label;
     picker.appendChild(tip);
   });
+}
+
+// ─────────────────────────────────────────────
+// TABLE INSERT MODAL
+// ─────────────────────────────────────────────
+function openTableModal(editorId) {
+  const existing = document.getElementById('table-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.className = 'table-modal';
+  modal.id = 'table-modal';
+  modal.innerHTML = `
+    <div class="table-modal-card">
+      <div class="table-modal-title">插入表格</div>
+      <div class="table-modal-grid">
+        <div class="table-modal-row">
+          <label>欄數（垂直）</label>
+          <input type="number" id="tm-cols" value="3" min="1" max="10" oninput="updateTablePreview()">
+        </div>
+        <div class="table-modal-row">
+          <label>列數（水平）</label>
+          <input type="number" id="tm-rows" value="3" min="1" max="20" oninput="updateTablePreview()">
+        </div>
+        <div class="table-modal-row">
+          <label>儲存格背景色</label>
+          <input type="color" id="tm-bg" value="#ffffff" oninput="updateTablePreview()">
+        </div>
+        <div class="table-modal-row">
+          <label>線框顏色</label>
+          <input type="color" id="tm-border" value="#cccccc" oninput="updateTablePreview()">
+        </div>
+        <div class="table-modal-row">
+          <label>表頭背景色</label>
+          <input type="color" id="tm-header-bg" value="#f5f5f5" oninput="updateTablePreview()">
+        </div>
+        <div class="table-modal-row">
+          <label>表頭文字色</label>
+          <input type="color" id="tm-header-color" value="#333333" oninput="updateTablePreview()">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px;">預覽</div>
+      <div class="table-modal-preview" id="tm-preview"></div>
+      <div class="table-modal-actions">
+        <button class="btn btn-sm" onclick="document.getElementById('table-modal').remove()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="insertTable('${editorId}')">插入</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  updateTablePreview();
+}
+
+function updateTablePreview() {
+  const cols        = Math.max(1, Math.min(10,  parseInt(document.getElementById('tm-cols')?.value)         || 3));
+  const rows        = Math.max(1, Math.min(20,  parseInt(document.getElementById('tm-rows')?.value)         || 3));
+  const bg          = document.getElementById('tm-bg')?.value           || '#ffffff';
+  const border      = document.getElementById('tm-border')?.value       || '#cccccc';
+  const headerBg    = document.getElementById('tm-header-bg')?.value    || '#f5f5f5';
+  const headerColor = document.getElementById('tm-header-color')?.value || '#333333';
+  const preview     = document.getElementById('tm-preview');
+  if (!preview) return;
+  const pCols = Math.min(cols, 3);
+  const pRows = Math.min(rows, 3);
+  let html = `<table style="border-collapse:collapse;font-size:12px;">`;
+  for (let r = 0; r < pRows; r++) {
+    html += '<tr>';
+    for (let c = 0; c < pCols; c++) {
+      const isH  = r === 0;
+      html += `<td style="border:1px solid ${border};padding:5px 10px;background:${isH ? headerBg : bg};color:${isH ? headerColor : 'inherit'};min-width:40px;">${isH ? `標題 ${c+1}` : '內容'}</td>`;
+    }
+    html += '</tr>';
+  }
+  if (cols > 3 || rows > 3) html += `<tr><td colspan="${pCols}" style="border:1px solid ${border};padding:4px 8px;text-align:center;color:#999;font-size:11px;background:${bg};">... 共 ${cols} 欄 × ${rows} 列</td></tr>`;
+  html += '</table>';
+  preview.innerHTML = html;
+}
+
+function insertTable(editorId) {
+  const q = quillInstances[editorId];
+  if (!q) return;
+  const cols        = Math.max(1, Math.min(10,  parseInt(document.getElementById('tm-cols')?.value)         || 3));
+  const rows        = Math.max(1, Math.min(20,  parseInt(document.getElementById('tm-rows')?.value)         || 3));
+  const bg          = document.getElementById('tm-bg')?.value           || '#ffffff';
+  const border      = document.getElementById('tm-border')?.value       || '#cccccc';
+  const headerBg    = document.getElementById('tm-header-bg')?.value    || '#f5f5f5';
+  const headerColor = document.getElementById('tm-header-color')?.value || '#333333';
+  let html = `<table style="border-collapse:collapse;width:100%;margin:10px 0;">`;
+  for (let r = 0; r < rows; r++) {
+    html += '<tr>';
+    for (let c = 0; c < cols; c++) {
+      const isH = r === 0;
+      html += `<td style="border:1px solid ${border};padding:6px 10px;background:${isH ? headerBg : bg};color:${isH ? headerColor : 'inherit'};min-width:60px;">${isH ? `標題 ${c+1}` : ''}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table><p><br></p>';
+  const range = q.getSelection(true) || { index: q.getLength() - 1 };
+  q.clipboard.dangerouslyPasteHTML(range.index, html);
+  q.setSelection(range.index + 1);
+  document.getElementById('table-modal').remove();
+  toast('✓ 表格已插入');
 }
 
 // ── Video embed modal ──
