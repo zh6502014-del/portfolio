@@ -1010,6 +1010,11 @@ function applyTheme(theme) {
     btn.textContent = '🌙';
     btn.setAttribute('data-tip', isSystem ? '切換為暗色模式（目前跟隨系統：亮色）' : '切換為暗色模式');
   }
+  // 3D 模型光照跟隨主題
+  const model = document.getElementById('hero-model');
+  if (model) {
+    model.exposure = effective === 'dark' ? 0.6 : 1.1;
+  }
 }
 function toggleTheme() {
   const current = getTheme();
