@@ -700,10 +700,11 @@
     padding:0 100px;
   }
   .lb-img {
-    max-width:100%; max-height:100%;
+    width:100%; height:100%;
     object-fit:contain; border-radius:var(--radius-md);
     user-select:none; -webkit-user-drag:none;
     pointer-events:none;
+    transform-origin:center center;
   }
   .lb-btn {
     position:absolute; top:50%; transform:translateY(-50%);
@@ -1565,7 +1566,10 @@ loadData();
 
   function lbApplyTransform() {
     const img = document.getElementById('lb-img');
-    if (img) img.style.transform = `scale(${_scale}) translate(${_panX/_scale}px,${_panY/_scale}px)`;
+    if (!img) return;
+    // translate 在 scale 外層，pan 座標不受 scale 影響
+    img.style.transform = `translate(${_panX}px,${_panY}px) scale(${_scale})`;
+    img.style.transformOrigin = 'center center';
   }
 
   function lbResetTransform() {
@@ -1611,6 +1615,8 @@ loadData();
         const t1 = e.touches[0], t2 = e.touches[1];
         const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
         _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), 4);
+        // 縮回 1x 時清掉 pan
+        if (_scale <= 1) { _scale = 1; _panX = 0; _panY = 0; }
         lbApplyTransform();
       } else if (e.touches.length === 1 && _scale > 1 && !_isPinch) {
         // Pan when zoomed
@@ -1620,12 +1626,30 @@ loadData();
       }
     }, { passive: false });
 
+    let _lastTapTime = 0;
     overlay.addEventListener('touchend', e => {
       if (e.target.closest('button')) return;
       if (_isPinch && e.touches.length < 2) {
         _isPinch = false;
         return;
       }
+      const now = Date.now();
+      const isDoubleTap = (now - _lastTapTime) < 300;
+      _lastTapTime = now;
+
+      // 雙擊：縮放中 → 回到原始；原始 → 放大 2x
+      if (isDoubleTap && e.touches.length === 0) {
+        if (_scale > 1) {
+          lbResetTransform();
+        } else {
+          _scale = 2; _panX = 0; _panY = 0;
+          _lastScale = 2;
+          lbApplyTransform();
+        }
+        _touchX = null; _touchY = null;
+        return;
+      }
+
       // swipe 切換（只在 scale === 1 且非 pinch）
       if (!_isPinch && _scale <= 1 && _touchX !== null) {
         const dx = e.changedTouches[0].clientX - _touchX;
