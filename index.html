@@ -1366,7 +1366,20 @@ loadData();
     }
   }, { passive: true });
 
-  // touchmove：手機觸控版，邏輯同 mousemove
+  // touchstart：記錄手指是否落在容器內
+  let isTouching3D = false;
+  document.addEventListener('touchstart', (e) => {
+    const container = document.querySelector('.hero-3d');
+    if (!container) return;
+    const touch = e.touches[0];
+    const rect = container.getBoundingClientRect();
+    isTouching3D = (
+      touch.clientX >= rect.left && touch.clientX <= rect.right &&
+      touch.clientY >= rect.top  && touch.clientY <= rect.bottom
+    );
+  }, { passive: true });
+
+  // touchmove：手機觸控版，passive:false 才能 preventDefault 阻止滾動
   document.addEventListener('touchmove', (e) => {
     const container = document.querySelector('.hero-3d');
     if (!container) return;
@@ -1374,14 +1387,15 @@ loadData();
     const rect = container.getBoundingClientRect();
     if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
         touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
+      if (isTouching3D) e.preventDefault(); // 阻止頁面滾動
       if (returnAnim) { returnAnim = null; }
       const relX = (touch.clientX - rect.left) / rect.width;
       const relY = (touch.clientY - rect.top)  / rect.height;
-      mouseOffsetH = (relX - 0.5) * -60; // ±30deg
-      mouseOffsetV = (relY - 0.5) * -60; // ±30deg
+      mouseOffsetH = (relX - 0.5) * -60;
+      mouseOffsetV = (relY - 0.5) * -60;
       applyOrbit(mouseOffsetH, mouseOffsetV);
     }
-  }, { passive: true });
+  }, { passive: false });
 
   // touchend：手指離開後 ease-out 回正
   document.addEventListener('touchend', () => {
