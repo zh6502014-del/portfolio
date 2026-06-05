@@ -1304,10 +1304,11 @@ loadData();
   let lastScrollY = 0;
   let baseH = 25;
   let mouseOffsetH = 0;
+  let mouseOffsetV = 0;
   let returnAnim = null;
 
-  function applyOrbit(offset) {
-    model.cameraOrbit = `${baseH + offset}deg 75deg auto`;
+  function applyOrbit(offsetH, offsetV) {
+    model.cameraOrbit = `${baseH + offsetH}deg ${75 + offsetV}deg auto`;
   }
 
   // scroll
@@ -1316,7 +1317,7 @@ loadData();
     if (!ticking) {
       requestAnimationFrame(() => {
         baseH = 25 + lastScrollY * 0.3;
-        applyOrbit(mouseOffsetH);
+        applyOrbit(mouseOffsetH, mouseOffsetV);
         ticking = false;
       });
       ticking = true;
@@ -1338,23 +1339,27 @@ loadData();
       // 取消回正動畫
       if (returnAnim) { returnAnim = null; }
 
-      const relX = (e.clientX - rect.left) / rect.width; // 0 ~ 1
-      mouseOffsetH = (relX - 0.5) * 30; // -15 ~ +15
-      applyOrbit(mouseOffsetH);
+      const relX = (e.clientX - rect.left) / rect.width;  // 0 ~ 1
+      const relY = (e.clientY - rect.top)  / rect.height; // 0 ~ 1
+      mouseOffsetH = (relX - 0.5) * -30; // 跟著滑鼠：左移→負、右移→正
+      mouseOffsetV = (relY - 0.5) * -30; // 跟著滑鼠：上移→仰、下移→俯
+      applyOrbit(mouseOffsetH, mouseOffsetV);
 
-    } else if (mouseOffsetH !== 0) {
+    } else if (mouseOffsetH !== 0 || mouseOffsetV !== 0) {
       // 離開容器：ease-out 回正
-      const startOffset = mouseOffsetH;
+      const startH = mouseOffsetH;
+      const startV = mouseOffsetV;
       mouseOffsetH = 0;
+      mouseOffsetV = 0;
       const duration = 600;
       const startTime = performance.now();
       const id = {};
       returnAnim = id;
 
       function animate(now) {
-        if (returnAnim !== id) return; // 被新動畫取代
+        if (returnAnim !== id) return;
         const t = Math.min((now - startTime) / duration, 1);
-        applyOrbit(startOffset * (1 - ease(t)));
+        applyOrbit(startH * (1 - ease(t)), startV * (1 - ease(t)));
         if (t < 1) requestAnimationFrame(animate);
       }
       requestAnimationFrame(animate);
