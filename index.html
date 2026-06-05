@@ -701,11 +701,13 @@
   }
   .lb-img {
     max-width:100%; max-height:100%;
-    object-fit:contain; border-radius:var(--radius-md);
+    width:auto; height:auto;
+    object-fit:contain;
+    display:block;
+    border-radius:var(--radius-md);
     user-select:none; -webkit-user-drag:none;
     pointer-events:none;
     transform-origin:center center;
-    will-change:transform;
   }
   .lb-btn {
     position:absolute; top:50%; transform:translateY(-50%);
@@ -1137,7 +1139,7 @@ function openModal(id) {
       const contentImgUrls = contentImgs.map(i => i.src);
       contentImgs.forEach((img, i) => {
         img.style.cursor = 'zoom-in';
-        img.onclick = () => lbOpen(contentImgUrls, i);
+        img.onclick = () => lbOpen(contentImgUrls, i, img.offsetWidth);
       });
     }
     body.appendChild(desc);
@@ -1514,9 +1516,12 @@ loadData();
   let _imgs = [];
   let _idx  = 0;
 
-  window.lbOpen = function(imgs, idx) {
+  let _initWidth = null; // 點擊時圖片的實際顯示寬度
+
+  window.lbOpen = function(imgs, idx, srcWidth) {
     _imgs = imgs;
     _idx  = idx;
+    _initWidth = srcWidth || null;
     const overlay = document.getElementById('lb-overlay');
     overlay.style.display = 'flex';
     requestAnimationFrame(() => overlay.classList.add('visible'));
@@ -1541,7 +1546,16 @@ loadData();
   };
 
   function lbRender() {
-    document.getElementById('lb-img').src = _imgs[_idx];
+    const img = document.getElementById('lb-img');
+    img.src = _imgs[_idx];
+    // 切換圖片時沿用同一 initWidth，保持一致預設大小
+    if (_initWidth) {
+      img.style.maxWidth  = _initWidth + 'px';
+      img.style.maxHeight = '';
+    } else {
+      img.style.maxWidth  = '100%';
+      img.style.maxHeight = '100%';
+    }
     document.getElementById('lb-counter').textContent = `${_idx + 1} / ${_imgs.length}`;
     document.getElementById('lb-prev').disabled = _imgs.length <= 1;
     document.getElementById('lb-next').disabled = _imgs.length <= 1;
@@ -1614,7 +1628,8 @@ loadData();
         // Pinch zoom
         const t1 = e.touches[0], t2 = e.touches[1];
         const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), 2);
+        const maxScale = window.innerWidth <= 760 ? 3 : 2;
+        _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), maxScale);
         // 縮回 1x 時清掉 pan
         if (_scale <= 1) { _scale = 1; _panX = 0; _panY = 0; lbApplyTransform(true); return; }
         lbApplyTransform();
@@ -1642,8 +1657,9 @@ loadData();
         if (_scale > 1) {
           lbResetTransform();
         } else {
-          _scale = 2; _panX = 0; _panY = 0;
-          _lastScale = 2;
+          const dblMax = window.innerWidth <= 760 ? 3 : 2;
+          _scale = dblMax; _panX = 0; _panY = 0;
+          _lastScale = dblMax;
           lbApplyTransform(true);
         }
         _touchX = null; _touchY = null;
