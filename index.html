@@ -700,11 +700,12 @@
     padding:0 100px;
   }
   .lb-img {
-    width:100%; height:100%;
+    max-width:100%; max-height:100%;
     object-fit:contain; border-radius:var(--radius-md);
     user-select:none; -webkit-user-drag:none;
     pointer-events:none;
     transform-origin:center center;
+    will-change:transform;
   }
   .lb-btn {
     position:absolute; top:50%; transform:translateY(-50%);
@@ -1564,18 +1565,17 @@ loadData();
   let _initDist  = 0;
   let _isPinch   = false;
 
-  function lbApplyTransform() {
+  function lbApplyTransform(animate) {
     const img = document.getElementById('lb-img');
     if (!img) return;
-    // translate 在 scale 外層，pan 座標不受 scale 影響
+    img.style.transition = animate ? 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
     img.style.transform = `translate(${_panX}px,${_panY}px) scale(${_scale})`;
-    img.style.transformOrigin = 'center center';
   }
 
   function lbResetTransform() {
     _scale = 1; _panX = 0; _panY = 0;
     _lastScale = 1; _lastPanX = 0; _lastPanY = 0;
-    lbApplyTransform();
+    lbApplyTransform(true); // 動畫回正
   }
 
   const _origMove = window.lbMove;
@@ -1614,9 +1614,9 @@ loadData();
         // Pinch zoom
         const t1 = e.touches[0], t2 = e.touches[1];
         const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), 4);
+        _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), 2);
         // 縮回 1x 時清掉 pan
-        if (_scale <= 1) { _scale = 1; _panX = 0; _panY = 0; }
+        if (_scale <= 1) { _scale = 1; _panX = 0; _panY = 0; lbApplyTransform(true); return; }
         lbApplyTransform();
       } else if (e.touches.length === 1 && _scale > 1 && !_isPinch) {
         // Pan when zoomed
@@ -1644,7 +1644,7 @@ loadData();
         } else {
           _scale = 2; _panX = 0; _panY = 0;
           _lastScale = 2;
-          lbApplyTransform();
+          lbApplyTransform(true);
         }
         _touchX = null; _touchY = null;
         return;
