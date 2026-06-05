@@ -1551,28 +1551,94 @@ loadData();
     if (e.key === 'Escape')     lbClose();
   }
 
-  // touch swipe（passive:false 確保燈箱開啟時接管所有 touch，不被 3D 模型的 touchmove 干擾）
+  // touch：swipe 切換 + pinch-to-zoom 放大
   let _touchX = null;
   let _touchY = null;
+  let _scale  = 1;
+  let _panX   = 0;
+  let _panY   = 0;
+  let _lastScale = 1;
+  let _lastPanX  = 0;
+  let _lastPanY  = 0;
+  let _initDist  = 0;
+  let _initMidX  = 0;
+  let _initMidY  = 0;
+
+  function lbApplyTransform() {
+    const img = document.getElementById('lb-img');
+    if (img) img.style.transform = `scale(${_scale}) translate(${_panX/_scale}px, ${_panY/_scale}px)`;
+  }
+
+  function lbResetTransform() {
+    _scale = 1; _panX = 0; _panY = 0;
+    _lastScale = 1; _lastPanX = 0; _lastPanY = 0;
+    lbApplyTransform();
+  }
+
+  // 切換圖片時重置縮放
+  const origLbRender = window.lbMove;
+  window.lbMove = function(dir) {
+    lbResetTransform();
+    origLbRender(dir);
+  };
+  const origLbOpen = window.lbOpen;
+  window.lbOpen = function(imgs, idx) {
+    lbResetTransform();
+    origLbOpen(imgs, idx);
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('lb-overlay');
     if (!overlay) return;
+
     overlay.addEventListener('touchstart', e => {
-      _touchX = e.touches[0].clientX;
-      _touchY = e.touches[0].clientY;
+      if (e.touches.length === 1) {
+        // 單指：記錄起點（swipe 用）
+        _touchX = e.touches[0].clientX;
+        _touchY = e.touches[0].clientY;
+        _lastPanX = _panX;
+        _lastPanY = _panY;
+      } else if (e.touches.length === 2) {
+        // 雙指：記錄初始距離和中心點（pinch 用）
+        const t1 = e.touches[0], t2 = e.touches[1];
+        _initDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        _initMidX = (t1.clientX + t2.clientX) / 2;
+        _initMidY = (t1.clientY + t2.clientY) / 2;
+        _lastScale = _scale;
+        _touchX = null; // 雙指時不做 swipe
+      }
     }, { passive: false });
+
     overlay.addEventListener('touchmove', e => {
       e.stopPropagation();
       e.preventDefault();
+
+      if (e.touches.length === 2) {
+        // Pinch-to-zoom
+        const t1 = e.touches[0], t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), 4); // 1x ~ 4x
+        lbApplyTransform();
+      } else if (e.touches.length === 1 && _scale > 1) {
+        // 放大狀態下單指 pan
+        _panX = _lastPanX + (e.touches[0].clientX - _touchX);
+        _panY = _lastPanY + (e.touches[0].clientY - _touchY);
+        lbApplyTransform();
+      }
     }, { passive: false });
+
     overlay.addEventListener('touchend', e => {
-      if (_touchX === null) return;
-      const dx = e.changedTouches[0].clientX - _touchX;
-      const dy = e.changedTouches[0].clientY - _touchY;
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) lbMove(dx < 0 ? 1 : -1);
-      _touchX = null;
-      _touchY = null;
+      if (e.touches.length === 0 && _scale <= 1) {
+        // 縮放回 1x 時，判斷是否 swipe 切換
+        if (_touchX === null) return;
+        const dx = e.changedTouches[0].clientX - _touchX;
+        const dy = e.changedTouches[0].clientY - _touchY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) lbMove(dx < 0 ? 1 : -1);
+      }
+      if (e.touches.length === 0) {
+        _touchX = null;
+        _touchY = null;
+      }
     }, { passive: false });
   });
 })();
