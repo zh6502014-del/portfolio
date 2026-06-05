@@ -1377,8 +1377,8 @@ loadData();
       if (returnAnim) { returnAnim = null; }
       const relX = (touch.clientX - rect.left) / rect.width;
       const relY = (touch.clientY - rect.top)  / rect.height;
-      mouseOffsetH = (relX - 0.5) * -30;
-      mouseOffsetV = (relY - 0.5) * -30;
+      mouseOffsetH = (relX - 0.5) * -60; // ±30deg
+      mouseOffsetV = (relY - 0.5) * -60; // ±30deg
       applyOrbit(mouseOffsetH, mouseOffsetV);
     }
   }, { passive: true });
