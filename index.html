@@ -1365,6 +1365,43 @@ loadData();
       requestAnimationFrame(animate);
     }
   }, { passive: true });
+
+  // touchmove：手機觸控版，邏輯同 mousemove
+  document.addEventListener('touchmove', (e) => {
+    const container = document.querySelector('.hero-3d');
+    if (!container) return;
+    const touch = e.touches[0];
+    const rect = container.getBoundingClientRect();
+    if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+        touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
+      if (returnAnim) { returnAnim = null; }
+      const relX = (touch.clientX - rect.left) / rect.width;
+      const relY = (touch.clientY - rect.top)  / rect.height;
+      mouseOffsetH = (relX - 0.5) * -30;
+      mouseOffsetV = (relY - 0.5) * -30;
+      applyOrbit(mouseOffsetH, mouseOffsetV);
+    }
+  }, { passive: true });
+
+  // touchend：手指離開後 ease-out 回正
+  document.addEventListener('touchend', () => {
+    if (mouseOffsetH === 0 && mouseOffsetV === 0) return;
+    const startH = mouseOffsetH;
+    const startV = mouseOffsetV;
+    mouseOffsetH = 0;
+    mouseOffsetV = 0;
+    const duration = 600;
+    const startTime = performance.now();
+    const id = {};
+    returnAnim = id;
+    function animateTouch(now) {
+      if (returnAnim !== id) return;
+      const t = Math.min((now - startTime) / duration, 1);
+      applyOrbit(startH * (1 - ease(t)), startV * (1 - ease(t)));
+      if (t < 1) requestAnimationFrame(animateTouch);
+    }
+    requestAnimationFrame(animateTouch);
+  }, { passive: true });
 })();
 </script>
 
