@@ -521,8 +521,8 @@
   .modal-overlay.open .modal { transform:translateY(0); }
   .modal-header { position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
   .modal-header-left { flex:1; min-width:0; }
-  .modal-close { width:32px; height:32px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:background .15s; flex-shrink:0; margin-top:2px; }
-  .modal-close:hover { background:var(--bg-tertiary); }
+  .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
+  .modal-close:hover { transform:scale(1.08); }
   .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
   .modal-title { font-family:var(--font-sans); font-size:24px; font-weight:600; margin-bottom:8px; line-height:1.3; }
   .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
@@ -668,55 +668,73 @@
     display:none; flex-direction:column;
     align-items:center; justify-content:center;
     opacity:0; transition:opacity .25s;
+    touch-action:none; /* 燈箱開啟時完全接管 touch */
   }
   .lb-overlay.open { display:flex; }
   .lb-overlay.visible { opacity:1; }
   .lb-top {
     position:absolute; top:0; left:0; right:0;
     display:flex; align-items:center; justify-content:center;
-    padding:18px 20px;
+    padding:20px 40px; /* 對齊 wrapper padding */
+    pointer-events:none; /* 讓子元素各自處理事件 */
   }
   .lb-close {
-    position:absolute; left:20px;
+    position:absolute; left:40px; /* 對齊 wrapper padding */
     background:none; border:none; color:#fff;
     font-size:14px; cursor:pointer;
     display:flex; align-items:center; gap:6px;
-    opacity:0.8; transition:opacity .15s;
+    opacity:0.7; transition:opacity .15s;
+    pointer-events:auto;
+    padding:8px; margin:-8px; /* 增大點擊區域 */
   }
   .lb-close:hover { opacity:1; }
   .lb-counter {
     font-size:14px; color:rgba(255,255,255,0.7);
     font-family:var(--font-sans);
+    pointer-events:none;
   }
   .lb-img-wrap {
     position:relative; display:flex;
     align-items:center; justify-content:center;
-    width:100%; height:calc(100vh - 80px);
-    padding:0 80px;
+    width:100%; height:calc(100vh - 72px);
+    padding:0 100px; /* 左右給箭頭留空間 */
   }
   .lb-img {
     max-width:100%; max-height:100%;
-    object-fit:contain; border-radius:4px;
+    object-fit:contain; border-radius:var(--radius-md);
     user-select:none; -webkit-user-drag:none;
+    pointer-events:none;
   }
   .lb-btn {
     position:absolute; top:50%; transform:translateY(-50%);
     width:44px; height:44px; border-radius:50%;
     background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);
-    color:#fff; font-size:18px; cursor:pointer;
+    color:#fff; font-size:20px; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     transition:background .15s; backdrop-filter:blur(8px);
     -webkit-backdrop-filter:blur(8px);
+    pointer-events:auto;
+    -webkit-tap-highlight-color:transparent;
   }
   .lb-btn:hover { background:rgba(255,255,255,0.22); }
-  .lb-btn.prev { left:16px; }
-  .lb-btn.next { right:16px; }
+  .lb-btn:active { background:rgba(255,255,255,0.3); transform:translateY(-50%) scale(0.94); }
+  .lb-btn.prev { left:40px; } /* 對齊 wrapper padding */
+  .lb-btn.next { right:40px; }
   .lb-btn:disabled { opacity:0.25; cursor:default; }
+  @media (max-width:720px) {
+    .lb-top { padding:20px 24px; }
+    .lb-close { left:24px; }
+    .lb-btn.prev { left:24px; }
+    .lb-btn.next { right:24px; }
+    .lb-img-wrap { padding:0 80px; }
+  }
   @media (max-width:560px) {
-    .lb-img-wrap { padding:0 52px; }
-    .lb-btn { width:36px; height:36px; font-size:15px; }
-    .lb-btn.prev { left:8px; }
-    .lb-btn.next { right:8px; }
+    .lb-top { padding:16px 18px; }
+    .lb-close { left:18px; }
+    .lb-img-wrap { padding:0 64px; }
+    .lb-btn { width:40px; height:40px; font-size:18px; }
+    .lb-btn.prev { left:12px; }
+    .lb-btn.next { right:12px; }
   }
 
 </style>
@@ -1083,8 +1101,6 @@ function openModal(id) {
     coverImg.src = coverUrl;
     coverImg.alt = p.title;
     coverImg.loading = 'lazy';
-    coverImg.style.cursor = 'zoom-in';
-    coverImg.onclick = () => lbOpen(imgs, 0);
     coverWrap.appendChild(coverImg);
     body.appendChild(coverWrap);
   }
@@ -1535,16 +1551,30 @@ loadData();
     if (e.key === 'Escape')     lbClose();
   }
 
-  // touch swipe
+  // touch swipe（passive:false 確保燈箱開啟時接管所有 touch，不被 3D 模型的 touchmove 干擾）
   let _touchX = null;
-  const overlay = document.getElementById('lb-overlay');
-  overlay.addEventListener('touchstart', e => { _touchX = e.touches[0].clientX; }, { passive: true });
-  overlay.addEventListener('touchend', e => {
-    if (_touchX === null) return;
-    const dx = e.changedTouches[0].clientX - _touchX;
-    if (Math.abs(dx) > 50) lbMove(dx < 0 ? 1 : -1);
-    _touchX = null;
-  }, { passive: true });
+  let _touchY = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('lb-overlay');
+    if (!overlay) return;
+    overlay.addEventListener('touchstart', e => {
+      _touchX = e.touches[0].clientX;
+      _touchY = e.touches[0].clientY;
+    }, { passive: false });
+    overlay.addEventListener('touchmove', e => {
+      e.stopPropagation();
+      e.preventDefault();
+    }, { passive: false });
+    overlay.addEventListener('touchend', e => {
+      if (_touchX === null) return;
+      const dx = e.changedTouches[0].clientX - _touchX;
+      const dy = e.changedTouches[0].clientY - _touchY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) lbMove(dx < 0 ? 1 : -1);
+      _touchX = null;
+      _touchY = null;
+    }, { passive: false });
+  });
 })();
 </script>
 <div class="lb-overlay" id="lb-overlay" onclick="lbOverlayClick(event)">
