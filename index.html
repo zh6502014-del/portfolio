@@ -1302,14 +1302,62 @@ loadData();
   if (!model) return;
   let ticking = false;
   let lastScrollY = 0;
+  let baseH = 25;
+  let mouseOffsetH = 0;
+  let returnAnim = null;
+
+  function applyOrbit(offset) {
+    model.cameraOrbit = `${baseH + offset}deg 75deg auto`;
+  }
+
+  // scroll
   window.addEventListener('scroll', () => {
     lastScrollY = window.scrollY;
     if (!ticking) {
       requestAnimationFrame(() => {
-        model.cameraOrbit = `${25 + lastScrollY * 0.3}deg 75deg auto`;
+        baseH = 25 + lastScrollY * 0.3;
+        applyOrbit(mouseOffsetH);
         ticking = false;
       });
       ticking = true;
+    }
+  }, { passive: true });
+
+  // mousemove：用 document 監聽，hero-3d 有 pointer-events:none 無法直接接收事件
+  function ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+  document.addEventListener('mousemove', (e) => {
+    const container = document.querySelector('.hero-3d');
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+
+    // 判斷滑鼠是否在容器範圍內
+    if (e.clientX >= rect.left && e.clientX <= rect.right &&
+        e.clientY >= rect.top  && e.clientY <= rect.bottom) {
+
+      // 取消回正動畫
+      if (returnAnim) { returnAnim = null; }
+
+      const relX = (e.clientX - rect.left) / rect.width; // 0 ~ 1
+      mouseOffsetH = (relX - 0.5) * 30; // -15 ~ +15
+      applyOrbit(mouseOffsetH);
+
+    } else if (mouseOffsetH !== 0) {
+      // 離開容器：ease-out 回正
+      const startOffset = mouseOffsetH;
+      mouseOffsetH = 0;
+      const duration = 600;
+      const startTime = performance.now();
+      const id = {};
+      returnAnim = id;
+
+      function animate(now) {
+        if (returnAnim !== id) return; // 被新動畫取代
+        const t = Math.min((now - startTime) / duration, 1);
+        applyOrbit(startOffset * (1 - ease(t)));
+        if (t < 1) requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
     }
   }, { passive: true });
 })();
