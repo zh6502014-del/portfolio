@@ -602,6 +602,7 @@
 
   footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
   .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
+  .footer-links { display:flex; gap:20px; }
   .footer-link { font-size:15px; color:var(--text-tertiary); text-decoration:none; }
   .footer-link:hover { color:var(--text); }
   .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
@@ -797,7 +798,6 @@
     alt="3D 大衛頭像"
     loading="eager"
     reveal="auto"
-    ar-status="not-presenting"
     interaction-prompt="none"
     shadow-intensity="0"
     exposure="1.1"
@@ -829,26 +829,26 @@
   <section id="projects">
     <p class="sec-label">UI / UX 設計專案</p>
     <div class="glass-el glass-container">
-    <div class="projects-grid" id="projects-grid">
+      <div class="projects-grid" id="projects-grid">
       <div class="project-row" style="cursor:default">
         <div><div class="project-row-num">—</div><div class="project-row-title"><span class="skeleton" style="width:200px;height:18px"></span></div></div>
       </div>
     </div>
-    </div>
+      </div>
   </section>
 
   <section id="notes">
     <p class="sec-label">隨筆紀錄</p>
     <div class="glass-el glass-container">
-    <div class="notes-list" id="notes-list">
+      <div class="notes-list" id="notes-list">
       <div class="note-item"><span class="skeleton" style="width:100px;height:13px"></span><span class="skeleton" style="width:250px;height:13px"></span></div>
     </div>
-    </div>
+      </div>
   </section>
 
   <footer>
     <span class="footer-name" id="footer-name">林艾奭 · UI/UX Designer</span>
-    <div style="display:flex;gap:20px">
+    <div class="footer-links">
       <a href="mailto:zh6502014@gmail.com" class="footer-link" id="footer-email">Email</a>
     </div>
   </footer>
@@ -1344,9 +1344,12 @@ loadData();
     if (label) label.textContent = '載入中 100%';
     setTimeout(() => {
       if (loader) loader.classList.add('hidden');
-      // 確保 model-viewer 本身可見
       model.style.visibility = 'visible';
       model.style.opacity = '1';
+      // 模型載入完成後重新套用目前主題的 exposure，確保亮色/暗色模式正確
+      const effective = document.documentElement.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      model.exposure = effective === 'dark' ? 0.6 : 1.1;
     }, 400);
   });
 

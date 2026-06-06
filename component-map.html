@@ -45,6 +45,14 @@ tr:hover td{background:#f5f4f1}
 .bi{background:#dbeafe;color:#1e40af}.ba{background:#dcfce7;color:#166534}.bb{background:#fef3c7;color:#92400e}
 .emp{display:none;text-align:center;padding:28px;color:#9b9a97;font-size:12px}
 .emp svg{display:block;margin:0 auto 8px;opacity:.3}
+
+/* ── Sub-tabs (前台/後台切換) ── */
+.stabs { display:flex; gap:0; border:1px solid rgba(0,0,0,.1); border-radius:8px; overflow:hidden; margin-bottom:20px; width:fit-content; }
+.stab { padding:7px 18px; font-size:12px; font-weight:500; cursor:pointer; border:none; background:#fff; color:#9b9a97; font-family:inherit; transition:background .15s,color .15s; }
+.stab.on { background:#18181b; color:#fff; }
+.stab:hover:not(.on) { background:#f0ede8; color:#1a1917; }
+.spane { display:none; }
+.spane.on { display:block; }
 .demo{border:1px solid rgba(0,0,0,.09);border-radius:9px;overflow:hidden;margin-bottom:22px}
 .demo-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9b9a97;padding:7px 14px;background:#eeecea;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:6px}
 .demo-lbl::before{content:'';width:5px;height:5px;border-radius:50%;background:#22c55e;display:inline-block}
@@ -244,7 +252,7 @@ tr:hover td{background:#f5f4f1}
   <div class="hdr-top">
     <div class="hdr-inner">
       <span class="hdr-t">Portfolio 元件對照表</span>
-      <span class="hdr-s">index.html x admin.html · 2026.05</span>
+      <span class="hdr-s">index.html x admin.html · 2026.06</span>
     </div>
   </div>
   <div class="tabs"><div class="hdr-inner" style="gap:2px">
@@ -253,6 +261,10 @@ tr:hover td{background:#f5f4f1}
     <button class="tab" data-pg="css" onclick="go('css')"><span class="ic">🎨</span>CSS 樣式</button>
     <button class="tab" data-pg="js" onclick="go('js')"><span class="ic">⚡</span>JS 函式</button>
     <button class="tab" data-pg="db" onclick="go('db')"><span class="ic">🗄</span>資料表</button>
+    <button class="tab" data-pg="type" onclick="go('type')"><span class="ic">🔤</span>字級規範</button>
+    <button class="tab" data-pg="color" onclick="go('color')"><span class="ic">🎨</span>色彩系統</button>
+    <button class="tab" data-pg="guide" onclick="go('guide')"><span class="ic">📝</span>修改指南</button>
+    <button class="tab" data-pg="code" onclick="go('code')"><span class="ic">🔍</span>程式碼拆解</button>
   </div></div>
 </div>
 
@@ -307,11 +319,32 @@ tr:hover td{background:#f5f4f1}
       <thead><tr><th>你說的</th><th>對應位置（檔案 · selector / 函式）</th><th>注意事項</th></tr></thead>
       <tbody>
         <tr><td>玻璃效果 / glass-el</td><td>index.html · .glass-el + .tag + .note-type box-shadow 四層（.skill-tag 已合併為 .tag）</td><td>Dark mode 在 [data-theme="dark"] 另有變數</td></tr>
-        <tr><td>Nav 指示器 / pill</td><td>index.html · .nav-links::after + setPillPosition() + movePillTo() + --pill-x / --pill-w</td><td>scroll 跟隨不觸發動畫，hover 才觸發 pillStretch</td></tr>
+        <tr><td>Nav 指示器 / pill</td><td>index.html · .nav-links::after + setPillPosition() + movePillTo() + --pill-x / --pill-w</td><td>scroll 跟隨不觸發動畫，hover 才觸發 pillStretch<br><strong>⚠ navLinks 必須動態查詢（querySelectorAll），不可在載入時快取——renderNav() 是非同步插入 DOM，快取會拿到空 NodeList</strong><br>click 事件在 renderNav() 內綁定，點擊後立即更新 active + pill</td></tr>
         <tr><td>背景光暈球 / orb</td><td>index.html · body::before / body::after + --orb-1 / --orb-2</td><td>position:fixed，z-index:0，filter:blur(80px)</td></tr>
         <tr><td>深淺色切換 / theme</td><td>index.html · toggleTheme() + applyTheme()，localStorage key="theme"</td><td>三態：system / dark / light，theme-transitioning class 控制過渡</td></tr>
         <tr><td>骨架屏 / skeleton</td><td>index.html · .skeleton + @keyframes pulse</td><td>HTML 靜態預填，loadData() 後 innerHTML 覆蓋</td></tr>
         <tr><td>Modal / 彈窗</td><td>index.html · #modal-overlay + .open + openModal() / openNote() / closeModal()</td><td>作品與隨筆共用同一個 modal DOM</td></tr>
+        <tr><td>Modal 標頭收合</td><td>index.html · .modal-collapsible + .collapsed（scroll > 20px 觸發）</td><td>max-height + opacity transition，scroll 回頂展開</td></tr>
+        <tr><td>玻璃容器</td><td>index.html · .glass-el.glass-container（包住 .projects-grid / .notes-list）</td><td>padding:0 24px, border-radius:--radius-lg, overflow:hidden</td></tr>
+        <tr><td>導覽列動態</td><td>index.html · renderNav(items) ← sbFetch('nav_items') · 後台 renderNavigationPage() / saveNavigation()</td><td>label + href 從 Supabase nav_items 表讀取</td></tr>
+        <tr><td>3D 模型</td><td>index.html · .hero-3d（position:fixed, top:100px, right:100px, 400×460px）</td><td>model-viewer@3.5.0, camera-orbit 跟隨 scroll + applyTheme() 切換 exposure<br><strong>Mouse parallax：document mousemove 監聽（繞過 pointer-events:none），滑鼠在容器內 ±15deg H/V 偏移，離開 ease-out cubic 600ms 回正</strong><br><strong>Touch parallax：touchstart 記錄 isTouching3D flag，touchmove passive:false + preventDefault() 阻止滾動，±30deg H/V，touchend ease-out 回正</strong></td></tr>
+        <tr><td>3D 模型 — orbit 計算</td><td>index.html · scroll rotation IIFE（頁尾 script）</td><td>
+          <strong>baseH</strong> = 25 + scrollY × 0.3（scroll 基準水平角）<br>
+          <strong>mouseOffsetH / V</strong>：滑鼠偏移（±15deg）/ 觸控偏移（±30deg）<br>
+          <strong>applyOrbit(H, V)</strong>：cameraOrbit = `${baseH+H}deg ${75+V}deg auto`<br>
+          <strong>document mousemove</strong>：getBoundingClientRect 判斷容器範圍，relX/Y → H/V<br>
+          <strong>returnAnim id</strong>：防止多個回正動畫同時執行<br>
+          <strong>touchstart passive:true</strong> → isTouching3D flag<br>
+          <strong>touchmove passive:false</strong> → isTouching3D 時 preventDefault() 阻止滾動
+        </td></tr>
+        <tr><td>深色模式切換按鈕</td><td>index.html · .theme-toggle（glass-pill 規格，36px 圓形）</td><td>pillStretch animation hover / scale(0.94) active</td></tr>
+        <tr><td>燈箱 Lightbox</td><td>index.html · .lb-overlay / lbOpen(imgs, idx, srcWidth) / lbClose() / lbMove(dir)</td><td>全黑背景 rgba(0,0,0,0.96)，fade 0.25s；頂部「N / 總數」計數器；左右箭頭切換；點擊背景關閉；Esc / ← → 鍵盤操作</td></tr>
+        <tr><td>燈箱 — 預設尺寸</td><td>index.html · lbOpen 第三參數 srcWidth = img.offsetWidth</td><td>開啟時取點擊圖片的 offsetWidth 設為 lb-img 的 max-width，預設尺寸與彈窗內圖片一致</td></tr>
+        <tr><td>燈箱 — 小網 touch</td><td>index.html · overlay touchstart/touchmove/touchend</td><td>touchstart passive:true（按鈕 click 正常）/ touchmove passive:false + preventDefault（阻止頁面滾動）/ e.target.closest('button') return 跳過按鈕干涉</td></tr>
+        <tr><td>燈箱 — Pinch zoom</td><td>index.html · touchmove 雙指距離計算</td><td>Math.hypot 計算兩指距離，scale 1x ~ 2x（手機 3x）；translate 在 scale 外層（translate(x,y) scale(s)）避免縮小時位置漂移；縮回 1x 自動清零 pan 並 ease-out 0.3s 回正</td></tr>
+        <tr><td>燈箱 — 雙擊</td><td>index.html · touchend 300ms 內連點兩下</td><td>放大中 → lbResetTransform()；原始 → scale 2x（手機 3x）</td></tr>
+        <tr><td>燈箱 — 觸發點</td><td>index.html · openModal 內 contentImgs.forEach onclick</td><td>modal-desc 富文字圖片可點；封面圖（cover）不觸發燈箱</td></tr>
+        <tr><td>小網禁止縮放</td><td>index.html · viewport meta maximum-scale=1.0 user-scalable=no</td><td>防止系統預設 pinch 縮放干擾燈箱的 pinch-to-zoom</td></tr>
         <tr><td>作品封面 / cover</td><td>index.html · renderProjects() → parseImgArr()[0] → img.onerror 換 .project-cover-empty</td><td>失敗時改為 empty div，不顯示壞圖</td></tr>
         <tr><td>sections 格 / modal-block</td><td>index.html · openModal() sections loop → .modal-block.glass-el</td><td>sections[].items 以 \n 分隔多行</td></tr>
         <tr><td>TagInput / 標籤輸入</td><td>admin.html · makeTagInput() + .tag-input-wrap / .tag-chip</td><td>data-init 用 || 分隔初始值；getTagInputValue() 讀值</td></tr>
@@ -338,15 +371,34 @@ tr:hover td{background:#f5f4f1}
     </div>
   </div>
 
+  <div class="sec-lbl foundation">System — 基礎重置與全域樣式</div>
+  <div class="sub">不需要特別設定，這些是全域生效的規則</div>
+  <div class="tw"><table><thead><tr><th>選擇器</th><th>設定</th><th>說明</th><th>所在</th></tr></thead><tbody>
+    <tr><td class="m">*, *::before, *::after</td><td>box-sizing:border-box; margin:0; padding:0</td><td>所有元素的寬高含 padding/border，清除預設邊距</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">html</td><td>scroll-behavior:smooth</td><td>錨點跳轉平滑滾動</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">body（前台）</td><td>font-family:var(--font-sans); color:var(--text); background:var(--bg); overflow-x:hidden</td><td>全站字型、文字色、背景色；隱藏橫向捲軸</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">body::before / ::after（前台）</td><td>position:fixed; border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0</td><td>頁面左下/右上的彩色光暈球（不可點擊，在最底層）</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">body（後台）</td><td>background:#0e0d0c; color:#f0ede8; font-size:16px</td><td>後台深色背景，獨立於前台</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">a</td><td>color:inherit; text-decoration:none</td><td>連結繼承文字顏色，取消底線</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">img</td><td>max-width:100%; display:block</td><td>圖片不超出容器；避免底部預設空白</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">section（前台）</td><td>padding:80px 0</td><td>每個 section 上下間距，手機版各自縮小</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">footer（前台）</td><td>border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between</td><td>底部橫線 + 左名字右連結</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">main（前台）</td><td>position:relative; z-index:1</td><td>確保內容在光暈球上方</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">::-webkit-scrollbar（後台）</td><td>width:5px; background:transparent</td><td>後台自訂細滾動條</td><td><span class="b ba">後台</span></td></tr>
+    <tr><td class="m">::-webkit-scrollbar-thumb（後台）</td><td>background:rgba(255,255,255,.15); border-radius:3px</td><td>後台滾動條顏色</td><td><span class="b ba">後台</span></td></tr>
+  </tbody></table></div>
+
   <div class="sec-lbl foundation">Foundation — 設計基礎</div>
   <div class="sub">Design Token — 色彩 / 圓角 / 字型 <span class="b bb" style="font-size:10px;vertical-align:middle">共用</span></div>
   <div class="tw">
     <table><thead><tr><th>變數</th><th>用途</th><th>Light 值</th><th>所在</th></tr></thead><tbody>
-    <tr><td class="m">--bg / --bg-secondary / --bg-tertiary</td><td>背景三層</td><td>#fff / #f4f3f0 / #eceae5</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--text / --text-secondary / --text-tertiary</td><td>文字三層（主/說明/hint）</td><td>#111110 / #4a4945 / #88867f</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--border / --border-strong</td><td>邊框兩階</td><td>rgba(0,0,0,.13) / .28</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--accent / --accent-text</td><td>強調色（按鈕/active）</td><td>#111110 / #fff</td><td><span class="b bb">共用</span></td></tr>
-    <tr><td class="m">--radius-sm / md / lg</td><td>圓角三階</td><td>6 / 8 / 12px</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--background / --bg</td><td>頁面主背景</td><td>oklch(1 0 0) ≈ #fff</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--bg-secondary / --bg-tertiary</td><td>次要/三級背景</td><td>oklch(0.97/0.946 0 0)</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--foreground / --text</td><td>主要文字</td><td>oklch(0.145 0 0) ≈ #111110</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--text-secondary / --text-tertiary</td><td>次要/輔助文字</td><td>oklch(0.369/0.556 0 0)</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--border / --border-strong</td><td>邊框兩階</td><td>oklch(0.922 0 0) / oklch(0.708 0 0)</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--primary / --primary-foreground</td><td>主要按鈕色（shadcn 規範）</td><td>oklch(0.205 0 0) / oklch(0.985 0 0)</td><td><span class="b bb">共用</span></td></tr>
+    <tr><td class="m">--radius-sm / md / lg / xl</td><td>圓角四階（calc 動態）</td><td>≈6 / 8 / 10 / 14px（base: 0.625rem）</td><td><span class="b bb">共用</span></td></tr>
     <tr><td class="m">--font-sans / --font-serif</td><td>字型</td><td>Noto Sans TC / Noto Serif TC</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">--glass-el-bg / --glass-el-border</td><td>glass-el 背景/邊框</td><td>rgba(255,255,255,.6) / rgba(0,0,0,.08)</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">--glass-shine-top / --glass-shine-bottom</td><td>玻璃四層 inset shadow 折射光</td><td>rgba(255,255,255,.9) / .5</td><td><span class="b bi">前台</span></td></tr>
@@ -368,7 +420,7 @@ tr:hover td{background:#f5f4f1}
       <td class="m">.wrapper / .nav-inner</td><td>padding</td><td>0 40px</td><td>0 18px</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">.main-inner（後台）</td><td>padding</td><td>28px 28px 60px</td><td>20px 16px 60px</td><td><span class="b ba">後台</span></td></tr>
     <tr><td class="m">main（前台）</td><td>padding-top</td><td>0（nav sticky）</td><td>60px（nav fixed 補償）</td><td><span class="b bi">前台</span></td></tr>
-    <tr><td class="m">.hero</td><td>padding</td><td>top:96px / bottom:88px</td><td>top:56px / bottom:48px</td><td><span class="b bi">前台</span></td></tr>
+    <tr><td class="m">.hero</td><td>padding</td><td>top:96px / bottom:88px / <strong>left:40px / right:40px</strong></td><td>top:56px / bottom:48px / <strong>left 同 .wrapper</strong>（24px→18px）</td><td><span class="b bi">前台</span></td></tr>
     <tr><td rowspan="5" style="font-weight:600;color:#18181b;white-space:nowrap">Hero 區塊</td>
       <td class="m">.hero-badge</td><td>padding / margin-bottom</td><td>5px 14px / 28px</td><td>4px 12px / 20px</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">.hero-title</td><td>margin-bottom</td><td>20px</td><td>16px</td><td><span class="b bi">前台</span></td></tr>
@@ -376,7 +428,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">.hero-contacts</td><td>gap / margin-bottom</td><td>12px / 28px</td><td>8px（垂直排）/ 22px</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">.contact-item</td><td>padding</td><td>8px 18px</td><td>8px 18px（width:100%）</td><td><span class="b bi">前台</span></td></tr>
     <tr><td rowspan="3" style="font-weight:600;color:#18181b;white-space:nowrap">Skills</td>
-      <td class="m">.skill-grid</td><td>gap</td><td>14px</td><td>8px（1fr 1fr）</td><td><span class="b bi">前台</span></td></tr>
+      <td class="m">.skill-grid</td><td>gap</td><td>14px</td><td>8px（<strong>1fr 單欄</strong>，同工具卡片）</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">.skill-card</td><td>padding</td><td>20px</td><td>14px</td><td><span class="b bi">前台</span></td></tr>
     <tr><td class="m">.skill-card-icon</td><td>margin-bottom</td><td>14px</td><td>10px</td><td><span class="b bi">前台</span></td></tr>
     <tr><td rowspan="2" style="font-weight:600;color:#18181b;white-space:nowrap">Tools</td>
@@ -593,7 +645,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">.tool-item</td><td>✅</td><td>工具膠囊</td><td>含 .tool-name（粗）/ .tool-desc（細）</td></tr>
     <tr><td class="m">.tools-grid</td><td>—</td><td>工具 flex 容器</td><td>flex-wrap:wrap, gap:10px</td></tr>
     <tr><td class="m">.project-row</td><td>—</td><td>作品列表行</td><td>grid 1fr auto，hover 標題色變</td></tr>
-    <tr><td class="m">.project-cover / -cover-empty</td><td>—</td><td>作品封面 / 佔位</td><td>160×90px，onerror 換 empty div</td></tr>
+    <tr><td class="m">.project-cover / -cover-empty</td><td>—</td><td>作品封面 / 佔位</td><td>240×135px（16:9），≤560px: <strong>width:100% + aspect-ratio:16/9（等比撐滿）</strong>，onerror 換 empty div</td></tr>
     <tr><td class="m">.project-row-title / -desc / -num</td><td>—</td><td>作品行文字三層</td><td>num 13px 灰，title 22px 600，desc 三行截斷</td></tr>
     <tr><td class="m">.tag</td><td>✅ 內建</td><td>作品/通用 tag</td><td>共享 glass 外觀，border-radius:100px</td></tr>
     <tr><td class="m">.note-item</td><td>—</td><td>隨筆列表行</td><td>hover opacity:0.75，date + title + type</td></tr>
@@ -618,17 +670,20 @@ tr:hover td{background:#f5f4f1}
     <tr><td rowspan="3" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 720px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">平板</span></td><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 24px（max-width / margin:0 auto 保持不變）</td></tr>
     <tr><td class="m">.hero</td><td>padding-top:72px / padding-bottom:64px</td></tr>
     <tr><td class="m">.hero-desc / .skill-grid / .project-row-title</td><td>font-size:18px / minmax(160px) / font-size:19px</td></tr>
-    <tr><td rowspan="14" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 560px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">手機</span></td><td class="m">.nav</td><td>position:fixed（取代 sticky，解決 Android 失效問題）+ left:0 right:0</td></tr>
+    <tr><td rowspan="17" style="white-space:nowrap;font-weight:600;color:#18181b">≤ 560px<br><span style="font-size:10px;color:#9b9a97;font-weight:400">手機</span></td><td class="m">.nav</td><td>position:fixed（取代 sticky，解決 Android 失效問題）+ left:0 right:0</td></tr>
+    <tr><td class="m">.nav-logo</td><td><strong>display:none</strong>（隱藏表頭品牌名）</td></tr>
+    <tr><td class="m">.nav-actions / .nav-links</td><td>width:100% / justify-content:center（選單<strong>置中</strong>）</td></tr>
+    <tr><td class="m">#theme-toggle</td><td>position:absolute; right:18px（切換按鈕<strong>靠右</strong>）</td></tr>
     <tr><td class="m">main</td><td>padding-top:60px（補回 fixed nav 佔的空間）</td></tr>
-    <tr><td class="m">.wrapper / .nav-inner</td><td>padding 縮為 0 18px（max-width / margin:0 auto 保持不變）</td></tr>
+    <tr><td class="m">.wrapper / .nav-inner / <strong>.hero</strong></td><td>padding 縮為 0 18px（.hero 左右同步對齊）</td></tr>
     <tr><td class="m">.hero</td><td>padding-top:56px / padding-bottom:48px</td></tr>
     <tr><td class="m">.hero-title</td><td>font-size:clamp(32px,9vw,40px)（動態縮放）</td></tr>
-    <tr><td class="m">.hero-desc</td><td>font-size:16px / max-width:100%</td></tr>
+    <tr><td class="m">.hero-desc</td><td>font-size:16px / max-width:100% / <strong>.hero-desc br { display:none }</strong>（CSS）<br><strong>JS：≤560px 時把多個 &lt;p&gt; 合成一段純文字</strong>（移除 Quill 段落換行）</td></tr>
     <tr><td class="m">.hero-contacts</td><td>flex-direction:column / .contact-item width:100%</td></tr>
-    <tr><td class="m">.skill-grid</td><td>grid-template-columns:1fr 1fr（兩欄）/ gap:8px</td></tr>
+    <tr><td class="m">.skill-grid</td><td>grid-template-columns:<strong>1fr（單欄）</strong>/ gap:8px（同工具卡片垂直排列）</td></tr>
     <tr><td class="m">.skill-card / -icon / -title</td><td>padding:14px / icon 縮為 28px / title 13px</td></tr>
     <tr><td class="m">.tool-item</td><td>font-size:14px / padding:10px 14px</td></tr>
-    <tr><td class="m">.project-row</td><td>grid-template-columns:1fr（單欄）/ cover 縮為 100×56px</td></tr>
+    <tr><td class="m">.project-row</td><td>grid-template-columns:1fr（單欄）/ cover: <strong>width:100% aspect-ratio:16/9，圖片移至文字上方（order:-1）</strong></td></tr>
     <tr><td class="m">.note-item</td><td>flex-wrap:wrap / gap:8px</td></tr>
     <tr><td class="m">.modal-header / -body / -grid</td><td>padding 縮小 / modal-grid 改單欄 / title 20px</td></tr>
     </tbody></table>
@@ -754,8 +809,14 @@ tr:hover td{background:#f5f4f1}
   <div class="sub">前台函式 — index.html <span class="b bi" style="font-size:10px;vertical-align:middle">前台</span></div>
   <div class="tw">
     <table><thead><tr><th>函式</th><th>觸發</th><th>功能</th></tr></thead><tbody>
-    <tr><td class="m">loadData()</td><td>頁面載入自動執行</td><td>Promise.all 並行拉取 profile/skills/tools/projects/notes 5 張表；失敗走 renderFallback()</td></tr>
-    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）</td></tr>
+    <tr><td class="m">loadData()</td><td>頁面載入自動執行</td><td>Promise.all 並行拉取 profile/skills/tools/projects/notes/<strong>nav_items</strong> 6 張表（原生 fetch REST API，無 SDK）；失敗走 renderFallback()</td></tr>
+    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）<br><strong>小網（≤560px）：description 的多個 &lt;p&gt; 合成一段 textContent，移除 Quill 段落換行</strong></td></tr>
+    <tr><td class="m">renderNav(items)</td><td>loadData()</td><td>動態產生 .nav-link 元素，重新綁定 hover pill 事件，requestAnimationFrame 重算 pill 位置</td></tr>
+    <tr><td class="m">lbOpen(imgs, idx, srcWidth)</td><td>contentImgs.onclick</td><td>開啟燈箱，傳入圖片陣列、初始索引、來源圖片寬度；srcWidth 設為 lb-img max-width 維持原始顯示大小</td></tr>
+    <tr><td class="m">lbClose()</td><td>關閉按鈕 / Esc / 點擊背景</td><td>fade out 0.25s，移除 keydown listener</td></tr>
+    <tr><td class="m">lbMove(dir)</td><td>箭頭按鈕 / ← → 鍵 / swipe</td><td>±1 循環切換，同時 lbResetTransform() 重置縮放</td></tr>
+    <tr><td class="m">lbApplyTransform(animate)</td><td>pinch/pan/reset</td><td>translate(x,y) scale(s)；animate=true 時加 transition 0.3s ease</td></tr>
+    <tr><td class="m">lbResetTransform()</td><td>lbMove / lbOpen / 雙擊 / 縮回 1x</td><td>scale=1, panX/Y=0，animate=true 平滑歸位</td></tr>
     <tr><td class="m">renderSkills(data)</td><td>loadData()</td><td>createElement 建 .skill-card grid（icon / title / tags[]）</td></tr>
     <tr><td class="m">renderTools(data)</td><td>loadData()</td><td>createElement 建 .tool-item（name / description）</td></tr>
     <tr><td class="m">renderProjects(data)</td><td>loadData()</td><td>createElement 建 .project-row，parseImgArr() 取封面，img.onerror → empty div</td></tr>
@@ -770,7 +831,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">movePillTo(link)</td><td>nav-link mouseenter / mouseleave</td><td>更新 pill 位置 + 加 hover-slide class 觸發 pillStretch 動畫</td></tr>
     <tr><td class="m">getPillMetrics(link)</td><td>setPillPosition / movePillTo 內部</td><td>計算 link 相對 .nav-links 的 x 偏移與寬度</td></tr>
     <tr><td class="m">toggleTheme()</td><td>theme-toggle onclick</td><td>system → dark → light 三態循環，存 localStorage key="theme"</td></tr>
-    <tr><td class="m">applyTheme(theme)</td><td>toggleTheme / 頁面初始 / matchMedia change</td><td>設 html[data-theme]，更新按鈕 emoji 與 data-tip tooltip</td></tr>
+    <tr><td class="m">applyTheme(theme)</td><td>toggleTheme / 頁面初始 / matchMedia change</td><td>設 html[data-theme]，更新按鈕 emoji 與 data-tip tooltip；<strong>同步調整 model-viewer exposure（dark:0.6 / light:1.1）</strong></td></tr>
     <tr><td class="m">getTheme() / getSystemTheme()</td><td>applyTheme 內部</td><td>讀 localStorage / matchMedia prefers-color-scheme</td></tr>
     <tr><td class="m">parseImgArr(val)</td><td>renderProjects / openModal 內部</td><td>images 欄位解析：JSON string / Array / null → string[]</td></tr>
     <tr><td class="m">stripHtml(html)</td><td>renderProjects 內部</td><td>innerHTML → 純文字（description 截斷用）</td></tr>
@@ -846,8 +907,14 @@ tr:hover td{background:#f5f4f1}
   <div class="sub">前台函式（index.html）</div>
   <div class="tw">
     <table><thead><tr><th>函式</th><th>觸發</th><th>功能</th></tr></thead><tbody>
-    <tr><td class="m">loadData()</td><td>頁面載入自動執行</td><td>Promise.all 並行拉取 profile/skills/tools/projects/notes 5 張表；失敗走 renderFallback()</td></tr>
+    <tr><td class="m">loadData()</td><td>頁面載入自動執行</td><td>Promise.all 並行拉取 profile/skills/tools/projects/notes/<strong>nav_items</strong> 6 張表（原生 fetch REST API，無 SDK）；失敗走 renderFallback()</td></tr>
     <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）</td></tr>
+    <tr><td class="m">renderNav(items)</td><td>loadData()</td><td>動態產生 .nav-link 元素，重新綁定 hover pill 事件，requestAnimationFrame 重算 pill 位置</td></tr>
+    <tr><td class="m">lbOpen(imgs, idx, srcWidth)</td><td>contentImgs.onclick</td><td>開啟燈箱，傳入圖片陣列、初始索引、來源圖片寬度；srcWidth 設為 lb-img max-width 維持原始顯示大小</td></tr>
+    <tr><td class="m">lbClose()</td><td>關閉按鈕 / Esc / 點擊背景</td><td>fade out 0.25s，移除 keydown listener</td></tr>
+    <tr><td class="m">lbMove(dir)</td><td>箭頭按鈕 / ← → 鍵 / swipe</td><td>±1 循環切換，同時 lbResetTransform() 重置縮放</td></tr>
+    <tr><td class="m">lbApplyTransform(animate)</td><td>pinch/pan/reset</td><td>translate(x,y) scale(s)；animate=true 時加 transition 0.3s ease</td></tr>
+    <tr><td class="m">lbResetTransform()</td><td>lbMove / lbOpen / 雙擊 / 縮回 1x</td><td>scale=1, panX/Y=0，animate=true 平滑歸位</td></tr>
     <tr><td class="m">renderSkills(data)</td><td>loadData()</td><td>createElement 建 .skill-card grid（icon / title / tags[]）</td></tr>
     <tr><td class="m">renderTools(data)</td><td>loadData()</td><td>createElement 建 .tool-item（name / description）</td></tr>
     <tr><td class="m">renderProjects(data)</td><td>loadData()</td><td>createElement 建 .project-row，parseImgArr() 取封面，img.onerror → empty div</td></tr>
@@ -862,7 +929,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">movePillTo(link)</td><td>nav-link mouseenter / mouseleave</td><td>更新 pill 位置 + 加 hover-slide class 觸發 pillStretch 動畫</td></tr>
     <tr><td class="m">getPillMetrics(link)</td><td>setPillPosition / movePillTo 內部</td><td>計算 link 相對 .nav-links 的 x 偏移與寬度</td></tr>
     <tr><td class="m">toggleTheme()</td><td>theme-toggle onclick</td><td>system → dark → light 三態循環，存 localStorage key="theme"</td></tr>
-    <tr><td class="m">applyTheme(theme)</td><td>toggleTheme / 頁面初始 / matchMedia change</td><td>設 html[data-theme]，更新按鈕 emoji 與 data-tip tooltip</td></tr>
+    <tr><td class="m">applyTheme(theme)</td><td>toggleTheme / 頁面初始 / matchMedia change</td><td>設 html[data-theme]，更新按鈕 emoji 與 data-tip tooltip；<strong>同步調整 model-viewer exposure（dark:0.6 / light:1.1）</strong></td></tr>
     <tr><td class="m">getTheme() / getSystemTheme()</td><td>applyTheme 內部</td><td>讀 localStorage / matchMedia prefers-color-scheme</td></tr>
     <tr><td class="m">parseImgArr(val)</td><td>renderProjects / openModal 內部</td><td>images 欄位解析：JSON string / Array / null → string[]</td></tr>
     <tr><td class="m">stripHtml(html)</td><td>renderProjects 內部</td><td>innerHTML → 純文字（description 截斷用）</td></tr>
@@ -925,7 +992,7 @@ tr:hover td{background:#f5f4f1}
 <div class="pg" id="pg-db">
   <div class="pgh">
     <div class="pgh-row"><span class="pgh-ic">🗄</span><span class="pgh-t">資料表</span></div>
-    <div class="pgh-d">Supabase PostgreSQL · 5 張表 · RLS 需自行設定</div>
+    <div class="pgh-d">Supabase PostgreSQL · 6 張表 · RLS 需自行設定</div>
   </div>
 
   <div class="sec-lbl foundation">關聯說明</div>
@@ -978,15 +1045,776 @@ tr:hover td{background:#f5f4f1}
       <td>saveNote(id)<br>deleteNote(id)</td>
       <td>無 images 欄位<br>note_type 以 · 分隔多類型</td>
     </tr>
+    <tr>
+      <td class="m">nav_items</td>
+      <td>id SERIAL<br>label TEXT<br>href TEXT<br>sort_order INT</td>
+      <td>renderNav(items)</td>
+      <td>saveNavigation()</td>
+      <td>前台導覽列文字與 href<br>後台「導覽列」頁管理</td>
+    </tr>
     </tbody></table>
   </div>
 
 </div>
 
+
+<!-- ══ 字級規範 ══ -->
+<div class="pg" id="pg-type">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">🔤</span><span class="pgh-t">字級規範</span></div>
+    <div class="pgh-d">前台 index.html 所有文字尺寸、字重、行高完整規格</div>
+  </div>
+
+  <div class="sec-lbl foundation">Live Demo — 字級視覺</div>
+
+  <div class="demo">
+    <div class="demo-lbl">前台 — Hero 到 Section 字級階層</div>
+    <div class="demo-bd">
+      <div class="orb" style="background:#f0ede8;padding:20px 24px">
+        <div class="ix" style="font-size:16px">
+          <!-- hero-title -->
+          <div style="font-size:clamp(44px,6vw,68px);font-weight:700;line-height:1.15;letter-spacing:-.02em;color:#111110;margin-bottom:6px">您好，我是艾奭</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.hero-title · clamp(44px,6vw,68px) · fw700 · lh1.15</div>
+          <!-- hero-desc -->
+          <div style="font-size:22px;color:#4a4945;line-height:1.9;margin-bottom:4px">從事 UI/UX 設計工作 4 年左右，是個跨領域的工作者。</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.hero-desc · 22px · fw400 · lh1.9 · --text-secondary</div>
+          <!-- sec-label -->
+          <div style="font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#88867f;margin-bottom:4px">設計技能</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.sec-label · 13px · fw600 · ls.1em · uppercase · --text-tertiary</div>
+          <!-- project-row-title -->
+          <div style="font-size:22px;font-weight:600;color:#111110;margin-bottom:4px">永豐數位銀行 UI/UX 專案</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.project-row-title · 22px · fw600 · --text</div>
+          <!-- project-row-desc -->
+          <div style="font-size:16px;color:#4a4945;line-height:1.7;margin-bottom:4px">加入永豐新網銀專案，接手廠商設計稿並建立設計系統。</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.project-row-desc · 16px · fw400 · lh1.7 · --text-secondary</div>
+          <!-- modal-title -->
+          <div style="font-size:24px;font-weight:600;line-height:1.3;color:#111110;margin-bottom:4px">Modal 標題</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.modal-title · 24px · fw600 · lh1.3</div>
+          <!-- note-title + date -->
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:4px">
+            <span style="font-size:18px;color:#111110">如果我不做設計，我還能做什麼？</span>
+            <span style="font-size:14px;color:#88867f">2026.04.25</span>
+          </div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f;margin-bottom:16px">.note-title · 18px / .note-date · 14px · --text-tertiary</div>
+          <!-- skill-card-title -->
+          <div style="font-size:16px;font-weight:500;color:#111110;margin-bottom:4px">UI / UX Design</div>
+          <div style="font-size:10px;font-family:monospace;color:#88867f">.skill-card-title · 16px · fw500</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <div class="demo-lbl">前台 — 小網（≤560px）字級縮放</div>
+    <div class="demo-bd">
+      <div style="max-width:375px;border:1px dashed rgba(0,0,0,.12);border-radius:8px;padding:18px;background:#fafafa">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9b9a97;margin-bottom:10px">模擬 375px 手機視窗</div>
+        <div style="font-size:clamp(32px,9vw,40px);font-weight:700;line-height:1.15;letter-spacing:-.02em;color:#111110;margin-bottom:4px">您好，我是艾奭</div>
+        <div style="font-size:9px;font-family:monospace;color:#9b9a97;margin-bottom:10px">.hero-title · clamp(32px,9vw,40px)</div>
+        <div style="font-size:16px;color:#4a4945;line-height:1.8;margin-bottom:4px">從事 UI/UX 設計工作 4 年左右的跨領域工作者。</div>
+        <div style="font-size:9px;font-family:monospace;color:#9b9a97;margin-bottom:10px">.hero-desc · 16px</div>
+        <div style="font-size:18px;font-weight:600;color:#111110;margin-bottom:4px">永豐數位銀行</div>
+        <div style="font-size:9px;font-family:monospace;color:#9b9a97;margin-bottom:10px">.project-row-title · 18px</div>
+        <div style="font-size:16px;color:#111110;margin-bottom:4px">如果我不做設計...</div>
+        <div style="font-size:9px;font-family:monospace;color:#9b9a97">.note-title · 16px</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <div class="demo-lbl">後台 — 字級階層</div>
+    <div class="demo-bd">
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:480px">
+        <div>
+          <div style="font-size:32px;font-weight:500;letter-spacing:-.02em;color:#1a1917;border-bottom:2px solid rgba(0,0,0,.1);padding-bottom:4px;margin-bottom:4px">作品集專案標題</div>
+          <div style="font-size:10px;font-family:monospace;color:#9b9a97">.title-input · 32px · fw500 · ls-.02em · border-bottom only</div>
+        </div>
+        <div>
+          <div style="font-size:20px;font-weight:500;color:#1a1917;margin-bottom:2px">個人資料</div>
+          <div style="font-size:10px;font-family:monospace;color:#9b9a97">.page-title · 20px · fw500</div>
+        </div>
+        <div>
+          <div style="font-size:14px;color:#9b9a97;margin-bottom:2px">首頁 Hero 區塊的內容</div>
+          <div style="font-size:10px;font-family:monospace;color:#9b9a97">.page-desc · 14px · --text-tertiary</div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#5c5b58;margin-bottom:2px">Hero 標題</div>
+          <div style="font-size:10px;font-family:monospace;color:#9b9a97">.form-label · 13px · fw500 · --text-secondary</div>
+        </div>
+        <div>
+          <div style="font-size:15px;color:#1a1917;background:#f8f8f7;border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:8px 11px;margin-bottom:2px">您好，我是林艾奭</div>
+          <div style="font-size:10px;font-family:monospace;color:#9b9a97">.form-input · 15px</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#9b9a97;margin-bottom:2px">字數上限 80 字</div>
+          <div style="font-size:10px;font-family:monospace;color:#9b9a97">.form-hint · 11px · --text-tertiary</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button style="font-size:13px;font-weight:500;padding:8px 16px;border-radius:8px;background:#18181b;color:#fff;border:none;cursor:pointer">儲存</button>
+          <button style="font-size:12px;font-weight:500;padding:5px 12px;border-radius:8px;background:#f8f8f7;color:#5c5b58;border:1px solid rgba(0,0,0,.1);cursor:pointer">取消</button>
+        </div>
+        <div style="font-size:10px;font-family:monospace;color:#9b9a97">.btn · 13px fw500 / .btn-sm · 12px fw500</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-lbl foundation">Typography Scale — 前台字級</div>
+  <div class="sub">Hero 區塊</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size（Desktop）</th><th>font-size（≤720px）</th><th>font-size（≤560px）</th><th>font-weight</th><th>備注</th></tr></thead><tbody>
+    <tr><td class="m">.hero-title</td><td>clamp(44px, 6vw, 68px)</td><td>—</td><td>clamp(32px, 9vw, 40px)</td><td>700</td><td>line-height:1.15, letter-spacing:-.02em</td></tr>
+    <tr><td class="m">.hero-desc</td><td>22px</td><td>18px</td><td>16px</td><td>400</td><td>line-height:1.9, color:--text-secondary</td></tr>
+    <tr><td class="m">.hero-note</td><td>14px</td><td>—</td><td>—</td><td>400</td><td>border-left:2px, bg-secondary</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">Nav 導覽列</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size</th><th>font-weight</th><th>備注</th></tr></thead><tbody>
+    <tr><td class="m">.nav-logo</td><td>18px</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.nav-link</td><td>13px</td><td>400 / active:500</td><td>padding:5px 12px</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">區塊標題 / 標籤</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size</th><th>font-weight</th><th>備注</th></tr></thead><tbody>
+    <tr><td class="m">.sec-label</td><td>13px</td><td>600</td><td>letter-spacing:.1em, uppercase, color:--text-tertiary</td></tr>
+    <tr><td class="m">.skill-card-title</td><td>16px（≤560px: 13px）</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.skill-tag-list .tag</td><td>13px</td><td>400</td><td>padding:4px 12px, border-radius:100px</td></tr>
+    <tr><td class="m">.tool-item .tool-name</td><td>16px（≤560px: 14px）</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.tool-item .tool-desc</td><td>13px</td><td>400</td><td>color:--text-tertiary</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">專案列表</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size（Desktop）</th><th>font-size（≤720px）</th><th>font-size（≤560px）</th><th>font-weight</th></tr></thead><tbody>
+    <tr><td class="m">.project-row-num</td><td>13px</td><td>—</td><td>—</td><td>400</td></tr>
+    <tr><td class="m">.project-row-title</td><td>22px</td><td>19px</td><td>18px</td><td>600</td></tr>
+    <tr><td class="m">.project-row-desc</td><td>16px</td><td>—</td><td>14px</td><td>400</td></tr>
+    <tr><td class="m">.project-cover</td><td colspan="3">240×135px（≤560px: <strong>width:100% / aspect-ratio:16/9</strong>）</td><td>—</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">隨筆列表</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size（Desktop）</th><th>font-size（≤560px）</th><th>font-weight</th></tr></thead><tbody>
+    <tr><td class="m">.note-item .note-title</td><td>18px</td><td>16px</td><td>400</td></tr>
+    <tr><td class="m">.note-item .note-date</td><td>14px</td><td>12px</td><td>400</td></tr>
+    <tr><td class="m">.note-type</td><td>13px</td><td>—</td><td>400</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">Modal 彈窗</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size（Desktop）</th><th>font-size（≤560px）</th><th>font-weight</th><th>備注</th></tr></thead><tbody>
+    <tr><td class="m">.modal-title</td><td>24px</td><td>20px</td><td>600</td><td>line-height:1.3</td></tr>
+    <tr><td class="m">.modal-time</td><td>14px</td><td>—</td><td>400</td><td>color:--text-tertiary</td></tr>
+    <tr><td class="m">.modal-desc</td><td>18px</td><td>—</td><td>400</td><td>line-height:1.85, color:--text-secondary</td></tr>
+    <tr><td class="m">.modal-desc h1/h2/h3</td><td>26/22/19px</td><td>—</td><td>600</td><td>color:--text</td></tr>
+    <tr><td class="m">.modal-block-label</td><td>12px</td><td>—</td><td>500</td><td>letter-spacing:.08em, uppercase</td></tr>
+    <tr><td class="m">.modal-block li</td><td>16px</td><td>—</td><td>400</td><td>color:--text-secondary</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl foundation" style="background:#ca8a04">Typography Scale — 後台字級</div>
+  <div class="sub">後台通用字級</div>
+  <div class="tw"><table><thead><tr><th>Class</th><th>font-size</th><th>font-weight</th><th>備注</th></tr></thead><tbody>
+    <tr><td class="m">body（後台）</td><td>16px</td><td>400</td><td>—</td></tr>
+    <tr><td class="m">.page-title</td><td>20px</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.page-desc</td><td>14px</td><td>400</td><td>color:--text-tertiary</td></tr>
+    <tr><td class="m">.form-label</td><td>13px</td><td>500</td><td>color:--text-secondary</td></tr>
+    <tr><td class="m">.form-input / .form-textarea</td><td>15px</td><td>400</td><td>—</td></tr>
+    <tr><td class="m">.form-hint</td><td>13px</td><td>400</td><td>color:--text-tertiary</td></tr>
+    <tr><td class="m">.title-input（大標題框）</td><td>32px</td><td>500</td><td>letter-spacing:-.02em, border-bottom only</td></tr>
+    <tr><td class="m">.btn</td><td>13px</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.btn-sm</td><td>12px</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.nav-item（sidebar）</td><td>13px</td><td>400 / active:500</td><td>—</td></tr>
+    <tr><td class="m">.item-card-title</td><td>14px</td><td>500</td><td>—</td></tr>
+    <tr><td class="m">.item-card-meta</td><td>12px</td><td>400</td><td>color:--text-tertiary</td></tr>
+  </tbody></table></div>
+</div>
+
+<!-- ══ 色彩系統 ══ -->
+<div class="pg" id="pg-color">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">🎨</span><span class="pgh-t">色彩系統</span></div>
+    <div class="pgh-d">基於 shadcn/ui neutral theme · oklch 色彩空間 · Light / Dark 雙模式</div>
+  </div>
+
+  <div class="sec-lbl foundation">Live Demo — 色票預覽</div>
+
+  <div class="demo">
+    <div class="demo-lbl">Light Mode — Background &amp; Text</div>
+    <div class="demo-bd">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(1 0 0);border:1px solid rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:12px;color:#111">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--background<br>oklch(1 0 0) · #fff</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.97 0 0);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:#111">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--bg-secondary<br>oklch(0.97 0 0)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.946 0 0);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:#111">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--bg-tertiary<br>oklch(0.946 0 0)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.145 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--foreground / --text<br>oklch(0.145) · #111110</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.369 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--text-secondary<br>oklch(0.369 0 0)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.556 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--muted-foreground<br>oklch(0.556 0 0)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.205 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">Primary</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--primary<br>oklch(0.205) · #18181b</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.922 0 0);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:#555">Border</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--border<br>oklch(0.922 0 0)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.577 0.245 27.325);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">Danger</div>
+          <div style="font-size:10px;font-family:monospace;color:#5c5b58;line-height:1.5">--destructive<br>#ef4444</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <div class="demo-lbl">Dark Mode — data-theme="dark"</div>
+    <div class="demo-bd" style="background:#111110;padding:16px;border-radius:6px">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.145 0 0);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fafafa">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--background<br>oklch(0.145)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.205 0 0);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fafafa">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--card / bg2<br>oklch(0.205)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.269 0 0);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fafafa">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--secondary / bg3<br>oklch(0.269)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.985 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#111">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--foreground<br>#fafafa</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.708 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#111">Aa</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--muted-foreground<br>oklch(0.708)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.922 0 0);display:flex;align-items:center;justify-content:center;font-size:12px;color:#111">Primary</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--primary (dark)<br>oklch(0.922)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="height:48px;width:128px;border-radius:7px;background:oklch(0.704 0.191 22.216);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff">Danger</div>
+          <div style="font-size:10px;font-family:monospace;color:#706d68;line-height:1.5">--destructive (dark)<br>#f87171</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <div class="demo-lbl">Liquid Glass — 玻璃色票 Light / Dark</div>
+    <div class="demo-bd" style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="orb" style="flex:1;min-width:240px;background:#f0ede8">
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div class="ix" style="font-size:0"><span class="gel" style="display:block;height:44px;width:100px;border-radius:7px"></span></div>
+            <div style="font-size:9px;font-family:monospace;color:#5c5b58">glass-el-bg<br>rgba(255,255,255,.6)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.08)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#5c5b58">glass-pill-bg<br>rgba(0,0,0,.06)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.06)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#5c5b58">indicator-bg<br>rgba(255,255,255,.72)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(99,179,237,.45)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#5c5b58">--orb-1 (light)<br>藍 45%</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(154,230,180,.4)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#5c5b58">--orb-2 (light)<br>綠 40%</div>
+          </div>
+        </div>
+      </div>
+      <div class="orb dk" style="flex:1;min-width:240px">
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div class="ix dk" style="font-size:0"><span class="gel" style="display:block;height:44px;width:100px;border-radius:7px"></span></div>
+            <div style="font-size:9px;font-family:monospace;color:#706d68">glass-el-bg<br>rgba(255,255,255,.07)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#706d68">glass-pill-bg<br>rgba(255,255,255,.06)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#706d68">indicator-bg<br>rgba(255,255,255,.12)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(66,153,225,.38)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#706d68">--orb-1 (dark)<br>藍 38%</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="height:44px;width:100px;border-radius:7px;background:rgba(72,187,120,.34)"></div>
+            <div style="font-size:9px;font-family:monospace;color:#706d68">--orb-2 (dark)<br>綠 34%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-lbl foundation">shadcn/ui Neutral — 標準 Token</div>
+  <div class="sub">Light Mode（:root）</div>
+  <div class="tw"><table><thead><tr><th>Token</th><th>值（oklch）</th><th>近似 HEX</th><th>用途</th></tr></thead><tbody>
+    <tr><td class="m">--background</td><td>oklch(1 0 0)</td><td>#ffffff</td><td>頁面主背景</td></tr>
+    <tr><td class="m">--foreground</td><td>oklch(0.145 0 0)</td><td>#111110</td><td>主要文字</td></tr>
+    <tr><td class="m">--card</td><td>oklch(1 0 0)</td><td>#ffffff</td><td>卡片背景</td></tr>
+    <tr><td class="m">--card-foreground</td><td>oklch(0.145 0 0)</td><td>#111110</td><td>卡片文字</td></tr>
+    <tr><td class="m">--primary</td><td>oklch(0.205 0 0)</td><td>#18181b</td><td>主要按鈕、強調色</td></tr>
+    <tr><td class="m">--primary-foreground</td><td>oklch(0.985 0 0)</td><td>#fafafa</td><td>主要按鈕上的文字</td></tr>
+    <tr><td class="m">--secondary</td><td>oklch(0.97 0 0)</td><td>#f5f5f5</td><td>次要背景</td></tr>
+    <tr><td class="m">--secondary-foreground</td><td>oklch(0.205 0 0)</td><td>#18181b</td><td>次要按鈕文字</td></tr>
+    <tr><td class="m">--muted</td><td>oklch(0.97 0 0)</td><td>#f5f5f5</td><td>靜音背景</td></tr>
+    <tr><td class="m">--muted-foreground</td><td>oklch(0.556 0 0)</td><td>#737373</td><td>輔助文字（hint）</td></tr>
+    <tr><td class="m">--border</td><td>oklch(0.922 0 0)</td><td>#e5e5e5</td><td>通用邊框</td></tr>
+    <tr><td class="m">--input</td><td>oklch(0.922 0 0)</td><td>#e5e5e5</td><td>輸入框邊框</td></tr>
+    <tr><td class="m">--ring</td><td>oklch(0.708 0 0)</td><td>#a3a3a3</td><td>focus ring</td></tr>
+    <tr><td class="m">--destructive</td><td>oklch(0.577 0.245 27.325)</td><td>#ef4444</td><td>刪除 / 錯誤紅</td></tr>
+    <tr><td class="m">--radius</td><td>0.625rem</td><td>10px</td><td>基礎圓角（scale 用）</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">Dark Mode（[data-theme="dark"]）</div>
+  <div class="tw"><table><thead><tr><th>Token</th><th>值（oklch）</th><th>近似 HEX</th><th>用途</th></tr></thead><tbody>
+    <tr><td class="m">--background</td><td>oklch(0.145 0 0)</td><td>#111110</td><td>頁面主背景</td></tr>
+    <tr><td class="m">--foreground</td><td>oklch(0.985 0 0)</td><td>#fafafa</td><td>主要文字</td></tr>
+    <tr><td class="m">--primary</td><td>oklch(0.922 0 0)</td><td>#e5e5e5</td><td>主要按鈕</td></tr>
+    <tr><td class="m">--primary-foreground</td><td>oklch(0.205 0 0)</td><td>#18181b</td><td>主要按鈕文字</td></tr>
+    <tr><td class="m">--secondary</td><td>oklch(0.269 0 0)</td><td>#3f3f46</td><td>次要背景</td></tr>
+    <tr><td class="m">--muted-foreground</td><td>oklch(0.708 0 0)</td><td>#a3a3a3</td><td>輔助文字</td></tr>
+    <tr><td class="m">--border</td><td>oklch(1 0 0 / 10%)</td><td>rgba(255,255,255,.1)</td><td>通用邊框</td></tr>
+    <tr><td class="m">--destructive</td><td>oklch(0.704 0.191 22.216)</td><td>#f87171</td><td>刪除 / 錯誤紅（亮化）</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl glass-sys">Liquid Glass — 玻璃色彩 Token</div>
+  <div class="sub">Glass Token（前台專用）</div>
+  <div class="tw"><table><thead><tr><th>Token</th><th>Light 值</th><th>Dark 值</th><th>用途</th></tr></thead><tbody>
+    <tr><td class="m">--glass-el-bg</td><td>rgba(255,255,255,0.6)</td><td>rgba(255,255,255,0.07)</td><td>.glass-el 背景</td></tr>
+    <tr><td class="m">--glass-el-border</td><td>rgba(0,0,0,0.08)</td><td>rgba(255,255,255,0.12)</td><td>.glass-el 邊框</td></tr>
+    <tr><td class="m">--glass-shine-top</td><td>rgba(255,255,255,0.9)</td><td>rgba(255,255,255,0.18)</td><td>inset 頂部折射光</td></tr>
+    <tr><td class="m">--glass-shine-bottom</td><td>rgba(255,255,255,0.5)</td><td>rgba(255,255,255,0.06)</td><td>inset 底部折射光</td></tr>
+    <tr><td class="m">--glass-pill-bg</td><td>rgba(0,0,0,0.06)</td><td>rgba(255,255,255,0.06)</td><td>Nav Pill 背景</td></tr>
+    <tr><td class="m">--glass-pill-border</td><td>rgba(0,0,0,0.08)</td><td>rgba(255,255,255,0.1)</td><td>Nav Pill 邊框</td></tr>
+    <tr><td class="m">--glass-indicator-bg</td><td>rgba(255,255,255,0.72)</td><td>rgba(255,255,255,0.12)</td><td>Nav active 指示器填色</td></tr>
+    <tr><td class="m">--glass-pill-shadow</td><td>rgba(0,0,0,0.08)</td><td>rgba(0,0,0,0.3)</td><td>Pill 外陰影</td></tr>
+    <tr><td class="m">--glass-modal-bg</td><td>rgba(255,255,255,0.78)</td><td>rgba(20,18,16,0.82)</td><td>Modal 背景</td></tr>
+    <tr><td class="m">--nav-bg</td><td>rgba(255,255,255,0.65)</td><td>rgba(14,13,12,0.7)</td><td>Nav 玻璃背景</td></tr>
+    <tr><td class="m">--overlay-bg</td><td>rgba(0,0,0,0.3)</td><td>rgba(0,0,0,0.6)</td><td>Modal 遮罩</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">背景光暈球（Orb）</div>
+  <div class="tw"><table><thead><tr><th>Token</th><th>Light 值</th><th>Dark 值</th><th>位置</th></tr></thead><tbody>
+    <tr><td class="m">--orb-1</td><td>rgba(99,179,237,0.45)</td><td>rgba(66,153,225,0.38)</td><td>body::before，右上</td></tr>
+    <tr><td class="m">--orb-2</td><td>rgba(154,230,180,0.4)</td><td>rgba(72,187,120,0.34)</td><td>body::after，左下</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl component">Lightbox — 間距規範</div>
+  <div class="sub">對齊 wrapper padding，三斷點</div>
+  <div class="tw"><table><thead><tr><th>斷點</th><th>.lb-top padding</th><th>.lb-close left</th><th>.lb-btn left/right</th><th>.lb-img-wrap padding</th></tr></thead><tbody>
+    <tr><td>Desktop</td><td>24px 40px</td><td>40px</td><td>40px</td><td>0 100px</td></tr>
+    <tr><td>≤720px</td><td>20px 24px</td><td>24px</td><td>24px</td><td>0 80px</td></tr>
+    <tr><td>≤560px</td><td>16px 18px</td><td>18px</td><td>12px</td><td>0 64px</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl component">相容變數對照（舊 → shadcn alias）</div>
+  <div class="sub">舊變數保留作 alias，不需修改使用端</div>
+  <div class="tw"><table><thead><tr><th>舊變數</th><th>對應 shadcn Token</th><th>說明</th></tr></thead><tbody>
+    <tr><td class="m">--bg</td><td>var(--background)</td><td>—</td></tr>
+    <tr><td class="m">--text</td><td>var(--foreground)</td><td>—</td></tr>
+    <tr><td class="m">--bg-secondary</td><td>oklch(0.97 0 0)</td><td>≈ --secondary</td></tr>
+    <tr><td class="m">--bg-tertiary</td><td>oklch(0.946 0 0)</td><td>—</td></tr>
+    <tr><td class="m">--text-secondary</td><td>oklch(0.369 0 0)</td><td>—</td></tr>
+    <tr><td class="m">--text-tertiary</td><td>var(--muted-foreground)</td><td>—</td></tr>
+    <tr><td class="m">--border-strong</td><td>oklch(0.708 0 0)</td><td>≈ --ring</td></tr>
+    <tr><td class="m">--accent</td><td>—（語意不同，勿混用）</td><td>shadcn --accent 是 hover 背景色，舊 --accent 是按鈕主色（現改用 --primary）</td></tr>
+    <tr><td class="m">--radius-sm/md/lg</td><td>calc(var(--radius) * 0.6/0.8/1)</td><td>≈ 6/8/10px</td></tr>
+  </tbody></table></div>
+</div>
+
+
+<!-- ══ 修改指南 ══ -->
+<div class="pg" id="pg-guide">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">📝</span><span class="pgh-t">修改指南</span></div>
+    <div class="pgh-d">常見修改項目 · 找到哪裡改什麼 · 注意事項</div>
+  </div>
+
+  <div class="stabs">
+    <button class="stab on" onclick="switchSubTab(this,'guide','front')">🖥 前台 index.html</button>
+    <button class="stab" onclick="switchSubTab(this,'guide','admin')">🛠 後台 admin.html</button>
+  </div>
+
+  <div class="spane on" id="guide-front">
+
+  <div class="sec-lbl foundation">🙋 個人資料</div>
+  <div class="sub">改名字、自我介紹、聯絡方式</div>
+  <div class="tw"><table><thead><tr><th>想改什麼</th><th>在哪裡改</th><th>注意事項</th></tr></thead><tbody>
+    <tr><td>姓名（Hero 大標題）</td><td>Supabase → profile 表 → <code>name</code> 欄位</td><td>後台「個人資料」頁可直接編輯</td></tr>
+    <tr><td>自我介紹</td><td>Supabase → profile 表 → <code>description</code> 欄位</td><td>Quill 富文字，大網顯示段落，小網（≤560px）自動合成一行</td></tr>
+    <tr><td>導覽列名稱</td><td>Supabase → profile 表 → <code>nav_name</code> 欄位</td><td>顯示在左上角 nav-logo</td></tr>
+    <tr><td>Email / 電話</td><td>Supabase → profile 表 → <code>email</code> / <code>phone</code> 欄位</td><td>自動產生聯絡按鈕，email 會加 mailto: 連結</td></tr>
+    <tr><td>底部提示文字</td><td>Supabase → profile 表 → <code>note</code> 欄位</td><td>顯示在聯絡按鈕下方的灰色小字</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl foundation">🧭 導覽列</div>
+  <div class="sub">改選單文字、連結</div>
+  <div class="tw"><table><thead><tr><th>想改什麼</th><th>在哪裡改</th><th>注意事項</th></tr></thead><tbody>
+    <tr><td>選單項目文字 / href</td><td>Supabase → nav_items 表，或後台「導覽列」頁</td><td>href 要填 #about / #projects / #notes 錨點格式；sort_order 決定排列順序</td></tr>
+    <tr><td>新增 / 刪除選單項目</td><td>Supabase → nav_items 表直接新增或刪除列</td><td>前台 renderNav() 動態讀取，不需改 HTML</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl foundation">🎨 視覺風格</div>
+  <div class="sub">改顏色、圓角、字型</div>
+  <div class="tw"><table><thead><tr><th>想改什麼</th><th>找到哪一行</th><th>注意事項</th></tr></thead><tbody>
+    <tr><td>主色調（按鈕、active 狀態）</td><td>CSS <code>:root</code> → <code>--primary</code>（第 26 行）</td><td>改 oklch 值；搭配改 --primary-foreground（文字色）</td></tr>
+    <tr><td>背景色</td><td>CSS <code>:root</code> → <code>--background</code>（第 20 行）</td><td>同時確認 dark mode 的 [data-theme="dark"] 區塊</td></tr>
+    <tr><td>圓角大小</td><td>CSS <code>:root</code> → <code>--radius</code>（第 19 行）</td><td>預設 0.625rem；改這一個值，sm/md/lg/xl 全部等比縮放</td></tr>
+    <tr><td>字型</td><td>CSS <code>:root</code> → <code>--font-sans</code>（第 56 行）</td><td>同時要在 &lt;head&gt; 引入對應的 Google Fonts</td></tr>
+    <tr><td>玻璃效果透明度</td><td>CSS <code>:root</code> → <code>--glass-el-bg</code>（第 67 行）</td><td>rgba 第四個值是透明度，調大更不透明</td></tr>
+    <tr><td>背景光暈顏色</td><td>CSS <code>:root</code> → <code>--orb-1</code> / <code>--orb-2</code>（第 71–72 行）</td><td>body::before / ::after 使用；改 rgba 前三個值換色</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl component">📐 版面尺寸</div>
+  <div class="sub">改容器寬度、間距、圖片大小</div>
+  <div class="tw"><table><thead><tr><th>想改什麼</th><th>找到哪一行</th><th>注意事項</th></tr></thead><tbody>
+    <tr><td>頁面最大寬度</td><td>CSS <code>.wrapper</code>（第 336 行）→ <code>max-width</code></td><td>預設 860px；同時改 .hero 的 max-width 保持一致</td></tr>
+    <tr><td>左右邊距</td><td>CSS <code>.wrapper</code> → <code>padding:0 40px</code></td><td>小網在 @media ≤720px（24px）和 ≤560px（18px）分別覆蓋</td></tr>
+    <tr><td>專案列表封面圖尺寸</td><td>CSS <code>.project-cover</code>（第 486 行）→ width / height</td><td>預設 240×135px（16:9）；小網自動改為 width:100% aspect-ratio:16/9</td></tr>
+    <tr><td>3D 模型位置</td><td>CSS <code>.hero-3d</code>（第 356 行）→ top / right</td><td>預設 top:100px right:100px；fixed 定位，獨立於頁面結構</td></tr>
+    <tr><td>3D 模型大小</td><td>CSS <code>.hero-3d</code> → width / height</td><td>預設 400×460px；改大小後 model-viewer 自動重新計算鏡頭</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl component">🔢 斷點 / RWD</div>
+  <div class="sub">三個斷點的位置</div>
+  <div class="tw"><table><thead><tr><th>斷點</th><th>CSS 位置</th><th>主要行為</th></tr></thead><tbody>
+    <tr><td>≤ 720px（平板）</td><td>第 612 行 @media</td><td>wrapper padding 縮為 24px，hero-desc 縮小，skill-grid 改兩欄</td></tr>
+    <tr><td>≤ 560px（手機）</td><td>第 624 行 @media</td><td>padding 縮為 18px，nav-logo 隱藏，選單置中，hero 單欄，project-cover 全寬</td></tr>
+    <tr><td>3D 模型手機版</td><td>第 407 行 @media + JS rearrange()</td><td>CSS 改為 position:relative；JS 動態把 .hero-3d 移入 .hero 內部</td></tr>
+  </tbody></table></div>
+
+  <div class="sec-lbl pattern">⚠ 常見陷阱</div>
+  <div class="sub">這些地方容易改壞</div>
+  <div class="tw"><table><thead><tr><th>陷阱</th><th>說明</th><th>正確做法</th></tr></thead><tbody>
+    <tr><td>navLinks 快取</td><td>nav-link 是非同步由 renderNav() 插入，不能在頁面載入時用 querySelectorAll 快取</td><td>updateNav() 內每次動態查詢：<code>document.querySelectorAll('.nav-link[data-section]')</code></td></tr>
+    <tr><td>model-viewer pointer-events</td><td>.hero-3d 和 model-viewer 都有 pointer-events:none，無法直接監聽 touch/mouse 事件</td><td>改用 document 監聽，getBoundingClientRect 判斷是否在容器內</td></tr>
+    <tr><td>Quill 段落在小網</td><td>Quill 存的換行是 &lt;p&gt; 標籤，.hero-desc br { display:none } 無效</td><td>renderProfile() 在 ≤560px 時把 &lt;p&gt; 合成一段 textContent</td></tr>
+    <tr><td>燈箱 touch 衝突</td><td>3D 模型的 touchmove 用 passive:false，會吃掉燈箱的 touch 事件</td><td>燈箱 touchstart 用 passive:true；e.target.closest('button') 時直接 return 不干涉</td></tr>
+    <tr><td>transform 順序</td><td>scale() translate() 的 translate 單位會被 scale 放大，縮小後座標漂移</td><td>改為 translate(x,y) scale(s)，pan 座標不受 scale 影響</td></tr>
+    <tr><td>Supabase SDK</td><td>@supabase/supabase-js CDN 有 BroadcastChannel，觸發 DataCloneError</td><td>已全部改用原生 fetch 打 REST API，不引入 SDK</td></tr>
+    <tr><td>glass-el 與自訂 background 衝突</td><td>同時有 glass-el class 和自訂 background 屬性時，自訂的會蓋掉玻璃背景</td><td>擇一：只用 glass-el，或移除 glass-el 改自訂</td></tr>
+  </tbody></table></div>
+
+  </div><!-- /guide-front -->
+
+  <!-- 後台 -->
+  <div class="spane" id="guide-admin">
+  <div class="sec-lbl" style="background:#7c3aed">🛠 後台管理（admin.html）</div>
+  <div class="sub">後台各頁面功能說明</div>
+  <div class="tw"><table><thead><tr><th>頁面</th><th>sidebar 入口</th><th>能做什麼</th><th>對應 Supabase 表</th></tr></thead><tbody>
+    <tr><td>個人資料</td><td>首頁入口，預設開啟</td><td>改名字、自我介紹、email、電話、導覽列名稱、底部提示文字</td><td>profile</td></tr>
+    <tr><td>設計技能</td><td>sidebar → 設計技能</td><td>新增/編輯/刪除技能卡片；可設定技能名稱、icon emoji、技能標籤清單、排序</td><td>skills</td></tr>
+    <tr><td>使用工具</td><td>sidebar → 使用工具</td><td>新增/編輯/刪除工具項目；工具名稱、說明、icon emoji、排序</td><td>tools</td></tr>
+    <tr><td>作品集專案</td><td>sidebar → 作品集專案</td><td>新增/編輯/刪除作品；封面圖上傳（自動裁切 16:9）、標題、日期、成員標籤、技能標籤、Sections 區塊、富文字內容、多圖上傳、發布開關</td><td>projects</td></tr>
+    <tr><td>隨筆紀錄</td><td>sidebar → 隨筆紀錄</td><td>新增/編輯/刪除隨筆；標題、日期、類型標籤、富文字內容、發布開關</td><td>notes</td></tr>
+    <tr><td>導覽列</td><td>sidebar → 導覽列</td><td>修改前台三個選單的顯示文字和 href 錨點；底部顯示前台錨點對照表</td><td>nav_items</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">後台特殊元件操作說明</div>
+  <div class="tw"><table><thead><tr><th>元件</th><th>操作方式</th><th>注意事項</th></tr></thead><tbody>
+    <tr><td>標籤輸入（TagInput）</td><td>輸入文字後按 <kbd>Enter</kbd> 新增；點擊標籤上的 ✕ 刪除</td><td>multi=true 可多個；single-value 模式只能有一個值（例如 note_type）；讀取值必須用 <code>getTagInputValue(id)</code>，不能用 input.value</td></tr>
+    <tr><td>封面圖上傳</td><td>點擊上傳區域或拖曳圖片</td><td>自動裁切成 16:9 比例（processImage）；上傳到 Supabase Storage，回傳 public URL 存入資料庫</td></tr>
+    <tr><td>多圖上傳</td><td>作品專案頁 → 附圖區域</td><td>可上傳多張；儲存為 URL 陣列，前台以格狀排列顯示，點擊開啟燈箱</td></tr>
+    <tr><td>Sections 區塊</td><td>作品專案 → 新增區塊</td><td>每個區塊有標題 + 條列項目；最多可自由擴充；前台以 glass-el 卡片顯示</td></tr>
+    <tr><td>富文字編輯器（Quill）</td><td>作品 content / 隨筆 content 欄位</td><td>支援標題、粗體、清單、連結、圖片、影片嵌入、<strong>插入表格</strong>（工具列最右方格狀圖示）</td></tr>
+    <tr><td>插入表格</td><td>Quill 工具列 → 表格圖示</td><td>可設定欄數（1–10）、列數（1–20）、儲存格背景色、線框色、表頭背景/文字色；有即時預覽</td></tr>
+    <tr><td>發布開關</td><td>作品/隨筆編輯頁底部</td><td>published = false 時前台不顯示；可以先存草稿再發布</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">後台登入說明</div>
+  <div class="tw"><table><thead><tr><th>項目</th><th>說明</th></tr></thead><tbody>
+    <tr><td>登入方式</td><td>Supabase Auth Email + Password；第一次輸入會自動建立帳號（signUp）再登入（signIn）</td></tr>
+    <tr><td>session 保持</td><td>登入後 session 存在 localStorage，關掉頁面重開不需要再登入</td></tr>
+    <tr><td>登出</td><td>右上角登出按鈕</td></tr>
+    <tr><td>URL 記憶</td><td>切換到不同頁面時 URL hash 會更新（如 #projects），重新整理後自動回到同一頁</td></tr>
+  </tbody></table></div>
+
+  </div><!-- /guide-admin -->
+
+  <div class="sec-lbl pattern">🔄 新增內容流程</div>
+  <div class="sub">標準流程，按順序做</div>
+  <div class="tw"><table><thead><tr><th>#</th><th>步驟</th><th>在哪裡做</th></tr></thead><tbody>
+    <tr><td>1</td><td>在 Supabase 後台新增專案 / 隨筆 / 技能 / 工具資料</td><td>admin.html 對應頁面</td></tr>
+    <tr><td>2</td><td>上傳圖片到 Supabase Storage（bucket: portfolio-images）</td><td>admin.html 圖片上傳欄位</td></tr>
+    <tr><td>3</td><td>設定 published = true 讓前台顯示</td><td>admin.html 編輯頁面的「發布」toggle</td></tr>
+    <tr><td>4</td><td>重新整理前台確認</td><td>index.html（loadData 自動從 Supabase 讀取）</td></tr>
+  </tbody></table></div>
+
+</div>
+
+
+<!-- ══ 程式碼拆解 ══ -->
+<div class="pg" id="pg-code">
+  <div class="pgh">
+    <div class="pgh-row"><span class="pgh-ic">🔍</span><span class="pgh-t">程式碼拆解</span></div>
+    <div class="pgh-d">完整解析 · 你看到的 → 對應的程式碼 · 適合完全不懂程式的人閱讀</div>
+  </div>
+
+  <div class="stabs">
+    <button class="stab on" onclick="switchSubTab(this,'code','front')">🖥 前台 index.html</button>
+    <button class="stab" onclick="switchSubTab(this,'code','admin')">🛠 後台 admin.html</button>
+  </div>
+
+  <!-- 前台 -->
+  <div class="spane on" id="code-front">
+
+  <!-- ════ 檔案結構 ════ -->
+  <div class="sec-lbl foundation">📄 index.html 結構（共 ~1700 行）</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>區塊</th><th>內容說明</th></tr></thead><tbody>
+    <tr><td>1–9</td><td>&lt;head&gt; 引入</td><td>viewport 禁止縮放、網頁標題、model-viewer CDN、Google Fonts 字型</td></tr>
+    <tr><td>10–82</td><td>:root（Light token）</td><td>shadcn 顏色系統 + 玻璃效果變數；改顏色從這裡改</td></tr>
+    <tr><td>84–130</td><td>Dark mode（系統）</td><td>系統深色時自動套用；@media (prefers-color-scheme:dark)</td></tr>
+    <tr><td>131–210</td><td>[data-theme="dark"]</td><td>手動切換深色模式套用；與上方系統偵測雙軌並行</td></tr>
+    <tr><td>211–262</td><td>theme-toggle 按鈕 CSS</td><td>燈泡切換按鈕的玻璃樣式；hover 用 pillStretch 動畫</td></tr>
+    <tr><td>263–288</td><td>body / orb 光暈</td><td>背景光暈球（::before 右上藍、::after 左下綠）；調顏色改 --orb-1 / --orb-2</td></tr>
+    <tr><td>290–334</td><td>Nav 導覽列 CSS</td><td>fixed 定位、玻璃背景、pill 指示器動畫</td></tr>
+    <tr><td>336–428</td><td>Hero 區塊 CSS</td><td>hero wrapper / hero-3d 3D 模型容器 / 手機版 RWD</td></tr>
+    <tr><td>430–462</td><td>glass-el / glass-card</td><td>玻璃效果共用 class；所有玻璃元件都用這個</td></tr>
+    <tr><td>463–471</td><td>Hero 文字 CSS</td><td>hero-title / hero-desc / hero-note / contact-item</td></tr>
+    <tr><td>473–516</td><td>Skills / Tools CSS</td><td>技能卡片、工具清單的樣式</td></tr>
+    <tr><td>484–517</td><td>Projects CSS</td><td>作品列表行、封面圖、標題、描述、tag 標籤</td></tr>
+    <tr><td>518–596</td><td>Modal 彈窗 CSS</td><td>overlay、modal 本體、header、body、collapsible 動畫、圖片燈箱</td></tr>
+    <tr><td>597–720</td><td>Notes / Footer / Skeleton CSS</td><td>隨筆列表、底部、載入骨架屏</td></tr>
+    <tr><td>720–740</td><td>@media 斷點</td><td>≤720px 平板、≤560px 手機版覆蓋規則</td></tr>
+    <tr><td>740–870</td><td>HTML 結構</td><td>Nav → Hero → main（about/projects/notes/footer）→ Modal → Lightbox</td></tr>
+    <tr><td>870–1510</td><td>&lt;script&gt; 主要邏輯</td><td>Supabase fetch → render 函式 → modal → theme → nav pill → 模型互動</td></tr>
+    <tr><td>1513–1696</td><td>&lt;script&gt; Lightbox</td><td>燈箱開關、切換、pinch-to-zoom、swipe</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ 顏色 ════ -->
+  <div class="sec-lbl foundation">🎨 顏色 — 精確行號與影響範圍</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>變數</th><th>預設值</th><th>影響的元件</th><th>改了會怎樣</th></tr></thead><tbody>
+    <tr><td>19</td><td><code>--radius</code></td><td>0.625rem (10px)</td><td>所有按鈕、卡片、Modal、input 的圓角</td><td>改大 → 全站更圓潤；改小 → 更方正；0 → 完全直角</td></tr>
+    <tr><td>20</td><td><code>--background</code></td><td>oklch(1 0 0) = 純白</td><td>頁面底色</td><td>改成 oklch(0.95 0 0) 會有淡灰底</td></tr>
+    <tr><td>21</td><td><code>--foreground</code></td><td>oklch(0.145 0 0) = 近黑</td><td>所有主要文字（標題、正文）</td><td>調淺 → 文字變灰；調深 → 更黑</td></tr>
+    <tr><td>26</td><td><code>--primary</code></td><td>oklch(0.205 0 0) = 深灰黑</td><td>按鈕背景、active 選單指示器、進度條</td><td>改成有彩度的值（如 oklch(0.5 0.2 250) 藍色）→ 全站強調色換色</td></tr>
+    <tr><td>31</td><td><code>--muted-foreground</code></td><td>oklch(0.556 0 0) = 中灰</td><td>次要說明文字、日期、hint</td><td>調深 → 輔助文字更清楚；調淺 → 更低調</td></tr>
+    <tr><td>35</td><td><code>--border</code></td><td>oklch(0.922 0 0) = 淡灰</td><td>所有分隔線、卡片邊框、input 邊框</td><td>調深 → 邊框更明顯；調淺 → 更淡</td></tr>
+    <tr><td>55</td><td><code>--font-sans</code></td><td>Noto Sans TC</td><td>全站字型</td><td>改字型名稱後需在 &lt;head&gt; 第 9 行換 Google Fonts 引入連結</td></tr>
+    <tr><td>69</td><td><code>--orb-1</code></td><td>rgba(99,179,237,0.45) 藍</td><td>右上角光暈球（body::before 第 279 行）</td><td>改 rgb 值換顏色，改最後數字（0.45）調透明度</td></tr>
+    <tr><td>70</td><td><code>--orb-2</code></td><td>rgba(154,230,180,0.4) 綠</td><td>左下角光暈球（body::after 第 283 行）</td><td>同上</td></tr>
+    <tr><td>80</td><td><code>--glass-el-bg</code></td><td>rgba(255,255,255,0.6)</td><td>所有 .glass-el 元件的半透明背景</td><td>最後數字調大 → 玻璃更不透明；調小 → 更透明</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ 尺寸佈局 ════ -->
+  <div class="sec-lbl foundation">📐 尺寸佈局 — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>選擇器</th><th>屬性</th><th>目前值</th><th>改了會怎樣</th></tr></thead><tbody>
+    <tr><td>292</td><td><code>.nav-inner</code></td><td>max-width / height</td><td>860px / 60px</td><td>max-width 改大 → 導覽列更寬；height 改 → 導覽列高度變</td></tr>
+    <tr><td>325–334</td><td><code>.nav-link</code></td><td>font-size / padding</td><td>16px / 6px 14px</td><td>font-size 改 → 選單文字大小；padding 改 → 選單按鈕寬度</td></tr>
+    <tr><td>336</td><td><code>.wrapper</code></td><td>max-width / padding</td><td>860px / 0 40px</td><td>860px 改 → 全站內容區寬度；40px 改 → 左右邊距</td></tr>
+    <tr><td>337</td><td><code>section</code></td><td>padding</td><td>80px 0</td><td>80px 改 → 每個 section 上下空白</td></tr>
+    <tr><td>341–346</td><td><code>.hero</code></td><td>padding-top / padding-bottom</td><td>96px / 88px</td><td>改 → Hero 區塊上下空白</td></tr>
+    <tr><td>356–365</td><td><code>.hero-3d</code></td><td>top / right / width / height</td><td>100px / 100px / 400px / 460px</td><td>top 改 → 模型往上/下移；right 改 → 往左/右移；width/height → 模型顯示大小</td></tr>
+    <tr><td>465</td><td><code>.hero-title</code></td><td>font-size</td><td>clamp(44px, 6vw, 68px)</td><td>第一個值是最小字號，第三個是最大；中間 6vw 是隨視窗縮放的比例</td></tr>
+    <tr><td>467</td><td><code>.hero-desc</code></td><td>font-size / margin-bottom</td><td>22px / 44px</td><td>22px 改 → 自我介紹字號；44px 改 → 介紹與按鈕之間空白</td></tr>
+    <tr><td>486</td><td><code>.project-cover</code></td><td>width / height</td><td>240px / 135px</td><td>改寬高要維持 16:9（width × 9/16 = height）；手機版在第 643 行自動改為全寬</td></tr>
+    <tr><td>520</td><td><code>.modal</code></td><td>max-width / max-height</td><td>860px / 88vh</td><td>max-width 改 → 彈窗最大寬度；88vh 改 → 彈窗最大高度佔螢幕比例</td></tr>
+    <tr><td>579</td><td><code>.modal-images</code></td><td>grid minmax / height</td><td>260px / 180px</td><td>260px 改 → 圖片最小寬度（影響一行幾欄）；180px 改 → 縮圖固定高度</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ RWD 斷點 ════ -->
+  <div class="sec-lbl foundation">📱 RWD 斷點 — 每個 @media 在哪裡改什麼</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>斷點</th><th>套用的規則</th><th>改了會怎樣</th></tr></thead><tbody>
+    <tr><td>406–428</td><td>≤760px（hero-3d 手機）</td><td>hero-3d 改 position:relative，大小 260×260，移入 hero 最上方</td><td>想讓模型手機版更大 → 改 412–413 行的 width/height</td></tr>
+    <tr><td>610–622</td><td>≤720px（平板）</td><td>wrapper / nav padding 縮為 24px；hero padding 跟隨；hero-desc 縮為 18px；skill-grid 兩欄 1fr</td><td>改斷點數字（720 → 800）→ 更早縮小；改 padding → 平板邊距</td></tr>
+    <tr><td>623–660</td><td>≤560px（手機）</td><td>padding 縮 18px；nav-logo 隱藏；選單置中；theme-toggle 靠右；skill-grid 單欄；project-cover 全寬；hero-title 縮字號；hero-desc br 隱藏</td><td>想讓手機版字更大 → 改 632 行 clamp(32px,9vw,40px)；想改邊距 → 改 624 行 18px</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ JS 函式行號 ════ -->
+  <div class="sec-lbl foundation">⚙️ JavaScript 函式 — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>函式</th><th>做什麼</th><th>可以調什麼</th></tr></thead><tbody>
+    <tr><td>874</td><td><code>const SUPABASE_URL / KEY</code></td><td>Supabase 連線設定</td><td>換專案時改這兩個值</td></tr>
+    <tr><td>878</td><td><code>sbFetch(table, params)</code></td><td>原生 fetch 打 Supabase REST API</td><td>params 可加過濾條件（如 'order=sort_order'）</td></tr>
+    <tr><td>886</td><td><code>loadData()</code></td><td>Promise.all 同時讀 6 張表</td><td>要加新資料表 → 在這裡加一行 sbFetch('新表名')</td></tr>
+    <tr><td>909</td><td><code>renderNav(items)</code></td><td>產生導覽列按鈕，綁 hover / click 事件</td><td>不建議直接改；選單內容從 Supabase nav_items 改</td></tr>
+    <tr><td>928</td><td><code>renderProfile(p)</code></td><td>填入 Hero 區的名字、介紹、email、電話</td><td>小網合成單行邏輯在第 940–947 行</td></tr>
+    <tr><td>966</td><td><code>renderSkills(data)</code></td><td>產生技能卡片</td><td>想改卡片 HTML → 改 968–976 行的 innerHTML 模板</td></tr>
+    <tr><td>987</td><td><code>renderTools(data)</code></td><td>產生工具清單</td><td>想改工具 HTML → 改 989–996 行</td></tr>
+    <tr><td>1001</td><td><code>renderProjects(data)</code></td><td>產生作品列表行</td><td>想改每列 HTML → 改 renderProjectRow() 函式（約 1003 行）</td></tr>
+    <tr><td>1050</td><td><code>openModal(id)</code></td><td>開啟作品彈窗，填入 cover / sections / content / images</td><td>想改彈窗排版 → 改 1060–1145 行</td></tr>
+    <tr><td>1150</td><td><code>renderNotes(data)</code></td><td>產生隨筆列表</td><td>想改列表 HTML → 改 1155–1163 行的 map 模板</td></tr>
+    <tr><td>1168</td><td><code>openNote(id)</code></td><td>開啟隨筆彈窗</td><td>不建議改；內容從 Supabase 更新</td></tr>
+    <tr><td>1200</td><td><code>closeModal()</code></td><td>關閉彈窗，清空內容</td><td>通常不需改</td></tr>
+    <tr><td>1240</td><td><code>applyTheme(theme)</code></td><td>套用深色/淺色模式；同步調整 3D 模型亮度</td><td>第 1256 行 exposure 值：dark=0.6 / light=1.1；想更亮改大，更暗改小</td></tr>
+    <tr><td>1280</td><td><code>setPillPosition(el)</code></td><td>計算並更新 Nav pill 位置（--pill-x / --pill-w）</td><td>通常不需改</td></tr>
+    <tr><td>1330</td><td><code>scroll rotation IIFE</code></td><td>scroll 帶動模型旋轉 + mousemove ±15° + touch ±30°</td><td>第 1338 行 <code>* 0.3</code> 是 scroll 旋轉速度；第 1381 行 <code>* -30</code> 是滑鼠偏移幅度；第 1451 行 <code>* -60</code> 是觸控偏移幅度</td></tr>
+    <tr><td>1513</td><td><code>lbOpen / lbClose / lbMove</code></td><td>燈箱開關切換</td><td>第 1555–1608 行是 pinch-to-zoom；手機最大 3x，桌面 2x（第 1574 行）</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ 模型參數 ════ -->
+  <div class="sec-lbl foundation">🗿 3D 模型參數 — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>屬性</th><th>目前值</th><th>改了會怎樣</th></tr></thead><tbody>
+    <tr><td>796</td><td><code>src</code></td><td>./david_head.glb</td><td>換成其他 .glb 路徑 → 替換 3D 模型</td></tr>
+    <tr><td>803</td><td><code>exposure</code></td><td>1.1（亮色模式）</td><td>調大 → 更亮；調小 → 更暗；深色模式由 JS 改為 0.6</td></tr>
+    <tr><td>808</td><td><code>camera-orbit</code></td><td>0deg 75deg auto</td><td>第一個數字是水平角（0=正面）；第二個是垂直角（75=稍微仰視）；auto = 自動計算距離</td></tr>
+    <tr><td>809</td><td><code>field-of-view</code></td><td>auto</td><td>改固定值（如 30deg）→ 縮小視角讓模型看起來更大；改大 → 更廣角</td></tr>
+    <tr><td>1338</td><td>scroll 旋轉速度</td><td><code>scrollY * 0.3</code></td><td>0.3 改大 → 滾動時模型轉更快；改 0 → 不隨 scroll 旋轉</td></tr>
+    <tr><td>1381</td><td>滑鼠偏移幅度</td><td><code>* -30</code>（±15°）</td><td>-30 改 -60 → 偏移 ±30°（更大幅度）；改 0 → 不跟滑鼠移動</td></tr>
+    <tr><td>1395</td><td>回正動畫時間</td><td>600ms</td><td>改小 → 更快回位；改大 → 更慢彈回</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ HTML 結構 ════ -->
+  <div class="sec-lbl component">🧩 HTML 結構 — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>元素</th><th>說明</th><th>可以改什麼</th></tr></thead><tbody>
+    <tr><td>6</td><td><code>&lt;title&gt;</code></td><td>瀏覽器標籤頁標題</td><td>直接改文字</td></tr>
+    <tr><td>748–764</td><td><code>&lt;nav&gt;</code></td><td>頂部導覽列 HTML</td><td>Logo 文字在 750 行；選單由 JS 動態填入</td></tr>
+    <tr><td>768–784</td><td><code>&lt;section class="hero"&gt;</code></td><td>Hero 區塊（標題、介紹、聯絡）</td><td>所有文字由 JS 從 Supabase 填入，不用改 HTML</td></tr>
+    <tr><td>786–815</td><td><code>&lt;div class="hero-3d"&gt;</code></td><td>3D 模型容器（在 section 外，fixed 定位）</td><td>改 CSS 第 356 行的 top/right 調位置</td></tr>
+    <tr><td>817–827</td><td><code>section#about</code></td><td>關於我（技能 + 工具）</td><td>section 標題「設計技能」「使用工具」在 819/822 行，可直接改文字</td></tr>
+    <tr><td>829–838</td><td><code>section#projects</code></td><td>作品集列表</td><td>section 標題「UI / UX 設計專案」在 830 行可改；列表由 JS 填入</td></tr>
+    <tr><td>840–847</td><td><code>section#notes</code></td><td>隨筆紀錄</td><td>section 標題「隨筆紀錄」在 841 行可改</td></tr>
+    <tr><td>849–854</td><td><code>&lt;footer&gt;</code></td><td>底部</td><td>名字和 email 由 JS 填入；想加更多連結在 footer-links div 新增 &lt;a&gt;</td></tr>
+    <tr><td>859–868</td><td><code>#modal-overlay</code></td><td>彈窗 HTML 骨架</td><td>不用改；內容由 openModal() 動態填入</td></tr>
+    <tr><td>1598–1612</td><td><code>#lb-overlay</code></td><td>燈箱 HTML 骨架</td><td>不用改；lbOpen() 控制</td></tr>
+  </tbody></table></div>
+  </div><!-- /code-front -->
+
+  <!-- 後台 -->
+  <div class="spane" id="code-admin">
+
+  <!-- ════ 檔案結構 ════ -->
+  <div class="sec-lbl" style="background:#7c3aed">📄 admin.html 結構（共 ~2540 行）</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>區塊</th><th>內容說明</th></tr></thead><tbody>
+    <tr><td>1–13</td><td>&lt;head&gt; 引入</td><td>Supabase SDK（後台需要 Auth + Storage）、Quill 1.3.7 編輯器、Google Fonts</td></tr>
+    <tr><td>15–35</td><td>:root（Light）</td><td>後台專屬設計 token；與前台完全獨立的一套變數</td></tr>
+    <tr><td>36–49</td><td>Dark mode</td><td>系統深色自動套用深色背景（#111110）</td></tr>
+    <tr><td>50–430</td><td>&lt;style&gt; 全部 CSS</td><td>body / login / sidebar / main / 表單 / 按鈕 / 編輯器 / toast / RWD</td></tr>
+    <tr><td>431–620</td><td>HTML 骨架</td><td>#login-screen（登入表單）+ #app（sidebar + main-inner + page divs）</td></tr>
+    <tr><td>646–670</td><td>全域變數 + Config</td><td>supabase_client、quillInstances；Supabase URL/Key 存在 localStorage</td></tr>
+    <tr><td>672–698</td><td>Auth 登入/登出</td><td>registerAndLogin / doLogin / doLogout</td></tr>
+    <tr><td>701–793</td><td>日期選擇器 helpers</td><td>作品日期範圍 / 隨筆日期的格式化、同步、picker 初始化</td></tr>
+    <tr><td>795–1077</td><td>TagInput 元件</td><td>標籤輸入、自動補全、chip 操作（1000+ 行核心元件，不建議改）</td></tr>
+    <tr><td>1079–1120</td><td>Storage 用量</td><td>checkStorageUsage()：計算 Supabase Storage 已用空間</td></tr>
+    <tr><td>1122–1168</td><td>Boot / App 啟動</td><td>boot() 檢查 session → showApp() 顯示介面 → showPage() 切換頁面</td></tr>
+    <tr><td>1169–1370</td><td>工具函式</td><td>toast / parseImgArr / processImage / uploadImage / makeImageUploader</td></tr>
+    <tr><td>1371–1470</td><td>Group Editor</td><td>作品 Sections 編輯器（可新增/刪除/排序 Section 區塊）</td></tr>
+    <tr><td>1473–1765</td><td>Quill 編輯器</td><td>makeQuill / tooltips / 插入表格 Modal / 插入影片 Modal</td></tr>
+    <tr><td>1767–1865</td><td>導覽列管理</td><td>renderNavigationPage / saveNavigation</td></tr>
+    <tr><td>1866–1922</td><td>個人資料管理</td><td>renderProfilePage / saveProfile</td></tr>
+    <tr><td>1923–2003</td><td>技能管理</td><td>renderSkillsPage / loadSkills / renderSkillForm / saveSkill / deleteSkill</td></tr>
+    <tr><td>2004–2073</td><td>工具管理</td><td>renderToolsPage / loadTools / renderToolForm / saveTool / deleteTool</td></tr>
+    <tr><td>2075–2419</td><td>作品集管理</td><td>renderProjectsPage / loadProjects / editProject / renderProjectForm / saveProject / deleteProject（最大頁面，340+ 行）</td></tr>
+    <tr><td>2421–2541</td><td>隨筆管理</td><td>renderNotesPage / loadNotes / editNote / renderNoteForm / saveNote / deleteNote</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ CSS 行號 ════ -->
+  <div class="sec-lbl" style="background:#7c3aed">🎨 後台 CSS — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>選擇器</th><th>目前值</th><th>改了會怎樣</th></tr></thead><tbody>
+    <tr><td>19</td><td><code>--bg</code></td><td>#ffffff（Light）/ #111110（Dark）</td><td>後台主背景色；改成其他顏色換後台風格</td></tr>
+    <tr><td>27</td><td><code>--accent</code></td><td>#18181b（Light）</td><td>所有主要按鈕背景色；改 → 換按鈕主色</td></tr>
+    <tr><td>29</td><td><code>--danger</code></td><td>#dc2626（紅）</td><td>刪除按鈕顏色</td></tr>
+    <tr><td>30</td><td><code>--success</code></td><td>#16a34a（綠）</td><td>成功狀態顏色（目前較少使用）</td></tr>
+    <tr><td>34</td><td><code>--sidebar-w</code></td><td>220px</td><td>左側 sidebar 寬度；改大 → sidebar 更寬</td></tr>
+    <tr><td>50</td><td><code>body</code></td><td>font-size:16px; background:var(--bg-secondary)</td><td>全站預設字號；背景是 bg-secondary（略深於 bg）</td></tr>
+    <tr><td>67–75</td><td><code>.title-input</code></td><td>font-size:32px; border-bottom only</td><td>作品/隨筆標題大輸入框；32px 改 → 標題大小</td></tr>
+    <tr><td>76–82</td><td><code>.field input</code></td><td>padding:9px 12px; font-size:15px</td><td>所有表單 input 的基礎樣式</td></tr>
+    <tr><td>83–105</td><td><code>.btn</code></td><td>padding:8px 16px; font-size:13px; font-weight:500</td><td>所有按鈕樣式；.btn-sm 是小版本（5px 12px）</td></tr>
+    <tr><td>113–156</td><td><code>#app / .sidebar</code></td><td>sidebar width:var(--sidebar-w)=220px; height:100vh</td><td>sidebar 固定高度佔滿螢幕；改 --sidebar-w 調寬</td></tr>
+    <tr><td>157</td><td><code>.main-inner</code></td><td>max-width:860px; padding:28px 28px 60px</td><td>內容最大寬度；padding 改 → 內容邊距</td></tr>
+    <tr><td>159</td><td><code>.page-title</code></td><td>font-size:20px; font-weight:500</td><td>每頁大標題（如「作品集專案」）</td></tr>
+    <tr><td>174–180</td><td><code>.form-input / .form-textarea</code></td><td>padding:9px 12px; border-radius:var(--radius-md)</td><td>所有表單欄位樣式</td></tr>
+    <tr><td>384–393</td><td><code>#toast</code></td><td>position:fixed; bottom:24px; right:24px</td><td>操作成功提示的位置；bottom/right 改 → 移動位置</td></tr>
+    <tr><td>419–422</td><td>≤768px RWD</td><td>sidebar display:none; main-inner padding 縮小</td><td>手機版隱藏 sidebar；改斷點數字 → 更早/晚收合</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ JS 函式 ════ -->
+  <div class="sec-lbl" style="background:#7c3aed">⚙️ 後台 JS 函式 — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>函式</th><th>做什麼</th><th>可以調什麼</th></tr></thead><tbody>
+    <tr><td>654</td><td><code>getConfig() / saveConfig()</code></td><td>從 localStorage 讀/存 Supabase URL + Key</td><td>不需改；換專案時在登入頁面輸入框填新的 URL/Key</td></tr>
+    <tr><td>672</td><td><code>registerAndLogin(email, pw)</code></td><td>第一次使用時自動 signUp 再 signIn</td><td>不需改</td></tr>
+    <tr><td>682</td><td><code>initSupabase(url, key)</code></td><td>初始化 Supabase SDK client，後台唯一使用 SDK 的地方</td><td>不需改；前台已改為原生 fetch</td></tr>
+    <tr><td>687</td><td><code>doLogin()</code></td><td>讀取表單的 email/password，呼叫 initSupabase + signIn</td><td>不需改</td></tr>
+    <tr><td>695</td><td><code>doLogout()</code></td><td>登出並清空 session</td><td>不需改</td></tr>
+    <tr><td>1080</td><td><code>checkStorageUsage()</code></td><td>列出 Storage bucket 所有檔案，計算總用量</td><td>第 1086 行 bucket 名稱 'portfolio-images'；換 bucket 改這裡</td></tr>
+    <tr><td>1122</td><td><code>boot()</code></td><td>頁面載入時執行：有 config → initSupabase → 檢查 session → showApp 或顯示登入</td><td>不需改；這是啟動流程的入口</td></tr>
+    <tr><td>1136</td><td><code>showApp()</code></td><td>顯示 #app、隱藏 #login-screen；讀取 URL hash 決定預設頁面</td><td>第 1143 行 validPages 陣列：新增頁面時要在這裡加頁面 id</td></tr>
+    <tr><td>1150</td><td><code>showPage(name, btn)</code></td><td>切換頁面：更新 sidebar active 狀態、顯示對應 page div、呼叫 renderer</td><td>第 1156 行 renderers 物件：新增頁面時在這裡加 name: renderXxxPage</td></tr>
+    <tr><td>1161</td><td><code>toast(msg, duration)</code></td><td>右下角顯示操作提示；duration 預設 2200ms</td><td>duration 改 → 訊息顯示時間；第 388 行 CSS 改顏色/位置</td></tr>
+    <tr><td>1180</td><td><code>processImage(file)</code></td><td>Canvas 裁切圖片為 16:9；再壓縮到 1280px 寬以內</td><td>第 1194 行 <code>const W = 1280</code> → 改輸出最大寬度<br>第 1207 行 <code>canvas.height = Math.round(W * 9 / 16)</code> → 改比例（9/16 = 16:9）<br>第 1225 行 <code>quality = 0.88</code> → 改 JPEG 壓縮品質（0–1）</td></tr>
+    <tr><td>1240</td><td><code>uploadImage(file, bucket)</code></td><td>上傳到 Supabase Storage，回傳 public URL</td><td>第 1240 行 bucket 預設 'portfolio-images'；改 → 換儲存位置</td></tr>
+    <tr><td>1251</td><td><code>makeImageUploader(containerId, existingUrls)</code></td><td>初始化圖片上傳區：拖曳/點擊上傳，顯示預覽，可刪除</td><td>第 1280 行 accept 類型；第 1285 行限制單次上傳數量</td></tr>
+    <tr><td>1371</td><td><code>makeGroupEditor(containerId, sections)</code></td><td>初始化 Sections 編輯器（作品「工作重點」區塊）</td><td>不建議改；section 結構：{title, items:[]} </td></tr>
+    <tr><td>1465</td><td><code>getGroupSections()</code></td><td>取得目前所有 sections 的值（存表前呼叫）</td><td>不需改；saveProject() 內會呼叫</td></tr>
+    <tr><td>1473</td><td><code>makeQuill(id, placeholder, richMode)</code></td><td>初始化 Quill 編輯器；richMode=true 開啟完整工具列（含表格/影片）</td><td>第 1487 行 toolbar 陣列：可增減工具列按鈕<br>第 1502 行 handlers：新增自訂按鈕處理器</td></tr>
+    <tr><td>1600</td><td><code>openTableModal(editorId)</code></td><td>彈出插入表格對話框</td><td>欄數上限第 1648 行 max=10；列數上限 max=20</td></tr>
+    <tr><td>1767</td><td><code>renderNavigationPage()</code></td><td>從 nav_items 表讀取 3 個選單項目，顯示編輯欄位 + 錨點對照表</td><td>不需改；選單文字和 href 在欄位輸入後儲存</td></tr>
+    <tr><td>1848</td><td><code>saveNavigation()</code></td><td>逐一更新 nav_items 表的 label/href</td><td>不需改</td></tr>
+    <tr><td>1866</td><td><code>renderProfilePage()</code></td><td>從 profile 表讀取資料，填入所有表單欄位</td><td>想新增欄位 → 在表單 HTML 新增 input + 在 saveProfile() 加入對應欄位</td></tr>
+    <tr><td>1900</td><td><code>saveProfile()</code></td><td>收集表單值，upsert 到 profile 表</td><td>第 1901 行 id:1 是固定 profile 的 row id；不需改</td></tr>
+    <tr><td>1923</td><td><code>renderSkillsPage() / loadSkills()</code></td><td>列出所有技能，每筆有編輯/刪除按鈕</td><td>想改卡片顯示格式 → 改 loadSkills() 的 innerHTML 模板（約 1938 行）</td></tr>
+    <tr><td>1956</td><td><code>renderSkillForm(skill)</code></td><td>渲染技能新增/編輯表單（名稱、icon、標籤、排序）</td><td>想新增技能欄位 → 在 HTML 模板新增 + saveSkill() 加欄位</td></tr>
+    <tr><td>1982</td><td><code>saveSkill(id)</code></td><td>收集技能表單值，upsert 到 skills 表</td><td>第 1987 行 skills 表的欄位對應</td></tr>
+    <tr><td>2075</td><td><code>renderProjectsPage() / loadProjects()</code></td><td>列出所有作品，含發布狀態標籤</td><td>想改列表顯示 → 改 loadProjects() 約 2090 行的模板</td></tr>
+    <tr><td>2128</td><td><code>renderProjectForm(proj)</code></td><td>渲染作品編輯表單（最複雜的表單：封面圖 + 標題 + 日期 + 成員 + 技能 + sections + 富文字 + 多圖）</td><td>新增欄位 → 在 HTML 模板加 input + saveProject() 加對應欄位</td></tr>
+    <tr><td>2368</td><td><code>saveProject(id)</code></td><td>收集所有作品欄位，upsert 到 projects 表</td><td>第 2380 行 sections: getGroupSections()；第 2390 行 images: 圖片 URL 陣列</td></tr>
+    <tr><td>2453</td><td><code>renderNoteForm(note)</code></td><td>渲染隨筆編輯表單</td><td>想新增欄位 → 同 renderProjectForm 方式</td></tr>
+    <tr><td>2502</td><td><code>saveNote(id)</code></td><td>收集隨筆表單值，upsert 到 notes 表</td><td>第 2512 行 notes 表的欄位對應</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ HTML 結構 ════ -->
+  <div class="sec-lbl" style="background:#7c3aed">🧩 後台 HTML 結構 — 精確行號</div>
+  <div class="tw"><table><thead><tr><th>行號</th><th>元素</th><th>說明</th><th>可以改什麼</th></tr></thead><tbody>
+    <tr><td>431–520</td><td><code>#login-screen</code></td><td>登入頁面：URL / Key 輸入 + email / password</td><td>第 450 行 placeholder 文字；不建議改邏輯</td></tr>
+    <tr><td>521–545</td><td><code>#app</code></td><td>登入後的主介面骨架（sidebar + .main）</td><td>不需改</td></tr>
+    <tr><td>546–620</td><td><code>.sidebar</code></td><td>左側導覽：logo、nav-item 按鈕、登出按鈕</td><td>第 549 行 sidebar-logo 文字；第 582–608 行各頁面按鈕（新增頁面在這裡加按鈕）</td></tr>
+    <tr><td>621–644</td><td><code>.main / .main-inner</code></td><td>右側主內容區；各頁面的 page div 都在這裡</td><td>不需改骨架；各頁面內容由 renderXxxPage() 動態填入</td></tr>
+    <tr><td>625–643</td><td><code>#page-profile / #page-skills / ...</code></td><td>每個管理頁的空 div（共 6 個）</td><td>新增頁面時在這裡加 <code>&lt;div id="page-xxx" class="page" style="display:none"&gt;&lt;/div&gt;</code></td></tr>
+    <tr><td>646</td><td><code>#toast</code></td><td>操作提示彈出層（空 div，JS 動態填文字）</td><td>不需改 HTML；改 CSS 第 384 行調位置/樣式</td></tr>
+  </tbody></table></div>
+
+  <!-- ════ 新增功能流程 ════ -->
+  <div class="sec-lbl" style="background:#7c3aed">🔧 如何在後台新增一個管理頁面</div>
+  <div class="tw"><table><thead><tr><th>#</th><th>步驟</th><th>在哪裡做</th><th>範例</th></tr></thead><tbody>
+    <tr><td>1</td><td>在 Supabase 建新資料表</td><td>Supabase Dashboard → Table Editor</td><td>建立 new_table（id, title, published, sort_order）</td></tr>
+    <tr><td>2</td><td>sidebar 加按鈕</td><td>HTML 第 582–608 行區塊</td><td><code>&lt;button class="nav-item" onclick="showPage('new_table',this)"&gt;新頁面&lt;/button&gt;</code></td></tr>
+    <tr><td>3</td><td>加 page div</td><td>HTML 第 625–643 行區塊</td><td><code>&lt;div id="page-new_table" class="page" style="display:none"&gt;&lt;/div&gt;</code></td></tr>
+    <tr><td>4</td><td>加入 validPages</td><td>JS 第 1143 行</td><td><code>['profile','skills',...,'new_table']</code></td></tr>
+    <tr><td>5</td><td>加入 renderers</td><td>JS 第 1156 行</td><td><code>new_table: renderNewTablePage</code></td></tr>
+    <tr><td>6</td><td>撰寫 renderNewTablePage()</td><td>新增函式，參考 renderSkillsPage 的結構</td><td>從 supabase_client 讀資料 → innerHTML 填入列表</td></tr>
+    <tr><td>7</td><td>撰寫 saveNewTable(id)</td><td>新增函式，參考 saveSkill 的結構</td><td>收集表單值 → supabase_client.from('new_table').upsert()</td></tr>
+  </tbody></table></div>
+  </div><!-- /code-admin -->
+
+</div>
 </div>
 </div>
 
 <script>
+function switchSubTab(btn, pageId, paneId) {
+  var group = btn.parentElement;
+  var btns = group.querySelectorAll('.stab');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
+  btn.classList.add('on');
+  var pg = document.getElementById('pg-' + pageId);
+  if (!pg) return;
+  var panes = pg.querySelectorAll('.spane');
+  for (var j = 0; j < panes.length; j++) panes[j].classList.remove('on');
+  var target = document.getElementById(pageId + '-' + paneId);
+  if (target) target.classList.add('on');
+}
+
 function go(id) {
   var i, pages, tabs, pg, tab, mn, inputs, rows, emps;
   pages = document.querySelectorAll('.pg');
