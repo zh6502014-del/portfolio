@@ -800,7 +800,7 @@
     reveal="auto"
     interaction-prompt="none"
     shadow-intensity="0"
-    exposure="1.1"
+    exposure="1.6"
     environment-image=""
     disable-zoom
     disable-pan
@@ -1237,7 +1237,7 @@ function applyTheme(theme) {
   // 3D 模型光照跟隨主題
   const model = document.getElementById('hero-model');
   if (model) {
-    model.exposure = effective === 'dark' ? 0.6 : 1.1;
+    model.exposure = effective === 'dark' ? 0.6 : 1.6;
   }
 }
 function toggleTheme() {
@@ -1349,7 +1349,7 @@ loadData();
       // 模型載入完成後重新套用目前主題的 exposure，確保亮色/暗色模式正確
       const effective = document.documentElement.getAttribute('data-theme') ||
         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      model.exposure = effective === 'dark' ? 0.6 : 1.1;
+      model.exposure = effective === 'dark' ? 0.6 : 1.6;
     }, 400);
   });
 
