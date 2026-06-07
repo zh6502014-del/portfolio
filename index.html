@@ -1263,7 +1263,6 @@ applyTheme(getTheme());
 
 // Nav scroll highlight
 const sections = ['about','projects','notes'];
-const navLinks = document.querySelectorAll('.nav-link[data-section]');
 // ── Glass Nav pill ──
 function getPillMetrics(link) {
   const navEl = document.getElementById('nav-links');
@@ -1316,9 +1315,12 @@ function updateNav() {
   const links = document.querySelectorAll('.nav-link[data-section]');
   if (!links.length) return;
 
-  // 預設是第一個 nav-link 的 section
-  let current = links[0].dataset.section;
-  sections.forEach(id => {
+  // 從 nav-link 的 data-section 動態建立 section 清單（不寫死，跟 Supabase nav_items 同步）
+  const sectionIds = Array.from(links).map(l => l.dataset.section).filter(id => document.getElementById(id));
+
+  // 預設 active 是第一個有對應 section 的 link
+  let current = sectionIds[0] || links[0].dataset.section;
+  sectionIds.forEach(id => {
     const el = document.getElementById(id);
     if (el && window.scrollY >= el.offsetTop - 100) current = id;
   });
