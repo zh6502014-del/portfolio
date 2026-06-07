@@ -1313,10 +1313,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateNav() {
-  let current = 'about';
-  sections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 100) current = id; });
-  // 動態取，避免 renderNav() 後快取的 NodeList 是舊的空值
   const links = document.querySelectorAll('.nav-link[data-section]');
+  if (!links.length) return;
+
+  // 預設是第一個 nav-link 的 section
+  let current = links[0].dataset.section;
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 100) current = id;
+  });
   links.forEach(link => link.classList.toggle('active', link.dataset.section === current));
   const active = document.querySelector('.nav-link.active');
   if (active) setPillPosition(active);
