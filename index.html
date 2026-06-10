@@ -626,7 +626,6 @@
     .wrapper { padding:0 18px; }
     .nav-inner { padding:0 18px; position:relative; }
     .hero { padding-left:18px; padding-right:18px; }
-    section { padding:40px 0; }
     .nav-logo { display:none; }
     .nav-actions { width:100%; display:flex; align-items:center; justify-content:center; }
     .nav-links { flex:1; display:flex; justify-content:center; }
@@ -848,7 +847,7 @@
   </section>
 
   <footer>
-    <span class="footer-name" id="footer-name">林艾奭 · UI/UX Designer</span>
+    <span class="footer-name" id="footer-name">林艾奭・UI/UX Designer</span>
     <div class="footer-links">
       <a href="mailto:zh6502014@gmail.com" class="footer-link" id="footer-email">Email</a>
     </div>
@@ -945,7 +944,7 @@ function renderProfile(p) {
   const navName = (p.nav_name && p.nav_name.trim()) || '林艾奭';
   document.getElementById('hero-title').textContent = heroTitle;
   document.getElementById('nav-name').textContent = navName;
-  document.getElementById('footer-name').textContent = navName + ' · UI/UX Designer';
+  // footer-name 為靜態文字，不由後台控制
   const descEl = document.getElementById('hero-desc');
   if (descEl) {
     // 小網（≤560px）：把多個 <p> 合成一段，移除手動換行
