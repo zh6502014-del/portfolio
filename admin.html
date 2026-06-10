@@ -337,25 +337,108 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ql-toolbar button:hover .ql-tooltip-tip,
 .ql-toolbar .ql-picker:hover .ql-tooltip-tip { opacity:1; }
 
-/* ── Table insert modal ── */
-.table-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
-.table-modal-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:480px; max-width:92vw; }
-.table-modal-title { font-size:16px; font-weight:500; margin-bottom:18px; }
-.table-modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
-.table-modal-row { display:flex; flex-direction:column; gap:6px; }
-.table-modal-row label { font-size:12px; color:var(--text-tertiary); font-weight:500; }
-.table-modal-row input[type="number"],
-.table-modal-row input[type="color"] { width:100%; padding:7px 10px; font-size:14px; font-family:inherit; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text); outline:none; }
-.table-modal-row input[type="color"] { height:36px; padding:3px 6px; cursor:pointer; }
-.table-modal-row input[type="number"]:focus { border-color:var(--border-strong); }
-.table-modal-preview { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; margin-bottom:16px; min-height:80px; display:flex; align-items:center; justify-content:center; }
-.table-modal-preview table { border-collapse:collapse; font-size:12px; }
-.table-modal-preview td { border:1px solid #ccc; padding:5px 10px; min-width:40px; }
-.table-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+/* ── Table insert modal (shadcn style) ── */
+.table-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.table-modal-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 520px; max-width: 94vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.table-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.table-modal-title { font-size: 16px; font-weight: 600; }
+.table-modal-close {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  border: none; background: none; cursor: pointer;
+  color: var(--text-tertiary); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+.table-modal-close:hover { background: var(--bg-secondary); color: var(--text); }
+.table-modal-section { margin-bottom: 16px; }
+.table-modal-section-label {
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  margin-bottom: 10px; display: block;
+}
+.table-modal-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tm-field { display: flex; flex-direction: column; gap: 5px; }
+.tm-field label {
+  font-size: 12px; color: var(--text-tertiary); font-weight: 500;
+}
+.tm-field input[type="number"] {
+  width: 100%; padding: 7px 10px; font-size: 14px; font-family: inherit;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text); outline: none;
+  transition: border-color 0.15s;
+}
+.tm-field input[type="number"]:focus { border-color: var(--border-strong); }
+/* 顏色選擇器：色塊 + 透明選項 */
+.tm-color-wrap { display: flex; align-items: center; gap: 8px; }
+.tm-color-swatch {
+  width: 32px; height: 32px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); cursor: pointer;
+  flex-shrink: 0; overflow: hidden; position: relative;
+}
+.tm-color-swatch input[type="color"] {
+  position: absolute; inset: 0; opacity: 0;
+  width: 100%; height: 100%; cursor: pointer; border: none; padding: 0;
+}
+.tm-color-swatch .swatch-bg {
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+.tm-transparent-btn {
+  font-size: 12px; padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer; font-family: inherit;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+.tm-transparent-btn:hover { background: var(--bg-tertiary); color: var(--text); }
+.tm-transparent-btn.active {
+  background: var(--accent); color: var(--accent-text);
+  border-color: var(--accent);
+}
+/* 預覽 */
+.table-modal-preview-label {
+  font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px;
+}
+.table-modal-preview {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px; margin-bottom: 20px;
+  min-height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: auto;
+}
+.table-modal-preview table { border-collapse: collapse; font-size: 12px; }
+.table-modal-preview td { padding: 5px 10px; min-width: 48px; text-align: left; }
+.table-modal-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding-top: 4px;
+}
 
-/* ql-editor 表格樣式 */
-.ql-editor table { border-collapse:collapse; width:100%; margin:10px 0; }
-.ql-editor td, .ql-editor th { border:1px solid var(--border-strong); padding:6px 10px; min-width:60px; }
+/* ql-editor 表格樣式（前台也適用） */
+.ql-editor table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+.ql-editor td, .ql-editor th {
+  border: 1px solid var(--border-strong);
+  padding: 6px 10px; min-width: 60px;
+  vertical-align: top;
+}
 
 /* Video embed modal */
 .video-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
@@ -1880,98 +1963,237 @@ function applyImgRatio(imgEl, ratio, quillInstance) {
 function openTableModal(editorId) {
   const existing = document.getElementById('table-modal');
   if (existing) existing.remove();
+
   const modal = document.createElement('div');
   modal.className = 'table-modal';
   modal.id = 'table-modal';
   modal.innerHTML = `
     <div class="table-modal-card">
-      <div class="table-modal-title">插入表格</div>
-      <div class="table-modal-grid">
-        <div class="table-modal-row">
-          <label>欄數（垂直）</label>
-          <input type="number" id="tm-cols" value="3" min="1" max="10" oninput="updateTablePreview()">
-        </div>
-        <div class="table-modal-row">
-          <label>列數（水平）</label>
-          <input type="number" id="tm-rows" value="3" min="1" max="20" oninput="updateTablePreview()">
-        </div>
-        <div class="table-modal-row">
-          <label>儲存格背景色</label>
-          <input type="color" id="tm-bg" value="#ffffff" oninput="updateTablePreview()">
-        </div>
-        <div class="table-modal-row">
-          <label>線框顏色</label>
-          <input type="color" id="tm-border" value="#cccccc" oninput="updateTablePreview()">
-        </div>
-        <div class="table-modal-row">
-          <label>表頭背景色</label>
-          <input type="color" id="tm-header-bg" value="#f5f5f5" oninput="updateTablePreview()">
-        </div>
-        <div class="table-modal-row">
-          <label>表頭文字色</label>
-          <input type="color" id="tm-header-color" value="#333333" oninput="updateTablePreview()">
+      <div class="table-modal-header">
+        <span class="table-modal-title">插入表格</span>
+        <button class="table-modal-close" onclick="document.getElementById('table-modal').remove()">✕</button>
+      </div>
+
+      <div class="table-modal-section">
+        <span class="table-modal-section-label">尺寸</span>
+        <div class="table-modal-row-2">
+          <div class="tm-field">
+            <label>欄數</label>
+            <input type="number" id="tm-cols" value="3" min="1" max="10" oninput="updateTablePreview()">
+          </div>
+          <div class="tm-field">
+            <label>列數（含表頭）</label>
+            <input type="number" id="tm-rows" value="4" min="2" max="30" oninput="updateTablePreview()">
+          </div>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px;">預覽</div>
+
+      <div class="table-modal-section">
+        <span class="table-modal-section-label">樣式</span>
+        <div class="table-modal-row-2">
+          <div class="tm-field">
+            <label>線框顏色</label>
+            <div class="tm-color-wrap">
+              <div class="tm-color-swatch" id="tm-border-swatch">
+                <div class="swatch-bg" id="tm-border-swatch-bg" style="background:#e2e8f0;"></div>
+                <input type="color" id="tm-border" value="#e2e8f0" oninput="onTmColorChange('border')">
+              </div>
+              <span style="font-size:12px;color:var(--text-tertiary);" id="tm-border-val">#e2e8f0</span>
+            </div>
+          </div>
+          <div class="tm-field">
+            <label>表頭文字色</label>
+            <div class="tm-color-wrap">
+              <div class="tm-color-swatch" id="tm-header-color-swatch">
+                <div class="swatch-bg" id="tm-header-color-swatch-bg" style="background:#1a1917;"></div>
+                <input type="color" id="tm-header-color" value="#1a1917" oninput="onTmColorChange('header-color')">
+              </div>
+              <span style="font-size:12px;color:var(--text-tertiary);" id="tm-header-color-val">#1a1917</span>
+            </div>
+          </div>
+          <div class="tm-field">
+            <label>表頭背景色</label>
+            <div class="tm-color-wrap">
+              <div class="tm-color-swatch" id="tm-header-bg-swatch">
+                <div class="swatch-bg" id="tm-header-bg-swatch-bg" style="background:#f8f8f7;"></div>
+                <input type="color" id="tm-header-bg" value="#f8f8f7" oninput="onTmColorChange('header-bg')">
+              </div>
+              <button class="tm-transparent-btn" id="tm-header-bg-trans" onclick="toggleTmTransparent('header-bg')">無色彩</button>
+            </div>
+          </div>
+          <div class="tm-field">
+            <label>儲存格背景色</label>
+            <div class="tm-color-wrap">
+              <div class="tm-color-swatch" id="tm-bg-swatch">
+                <div class="swatch-bg" id="tm-bg-swatch-bg" style="background:transparent;background-image:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%);background-size:10px 10px;"></div>
+                <input type="color" id="tm-bg" value="#ffffff" oninput="onTmColorChange('bg')" style="pointer-events:none;">
+              </div>
+              <button class="tm-transparent-btn active" id="tm-bg-trans" onclick="toggleTmTransparent('bg')">無色彩</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-modal-preview-label">預覽</div>
       <div class="table-modal-preview" id="tm-preview"></div>
-      <div class="table-modal-actions">
-        <button class="btn btn-sm" onclick="document.getElementById('table-modal').remove()">取消</button>
-        <button class="btn btn-primary btn-sm" onclick="insertTable('${editorId}')">插入</button>
+
+      <div class="table-modal-footer">
+        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('table-modal').remove()">取消</button>
+        <button class="btn btn-sm btn-primary" onclick="insertTable('${editorId}')">插入表格</button>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  // 初始化透明狀態：儲存格背景預設透明
+  window._tmTransparent = { bg: true, 'header-bg': false };
   updateTablePreview();
 }
 
+function onTmColorChange(key) {
+  const val = document.getElementById('tm-' + key)?.value || '#ffffff';
+  const sbg = document.getElementById('tm-' + key + '-swatch-bg');
+  const lbl = document.getElementById('tm-' + key + '-val');
+  if (sbg) sbg.style.background = val;
+  if (lbl) lbl.textContent = val;
+  // 選了顏色就取消透明
+  if (window._tmTransparent && (key === 'bg' || key === 'header-bg')) {
+    window._tmTransparent[key] = false;
+    const btn = document.getElementById('tm-' + key + '-trans');
+    if (btn) btn.classList.remove('active');
+    // 恢復 swatch 為純色
+    if (sbg) sbg.style.backgroundImage = 'none';
+    // 讓 color input 可互動
+    const inp = document.getElementById('tm-' + key);
+    if (inp) inp.style.pointerEvents = '';
+  }
+  updateTablePreview();
+}
+
+function toggleTmTransparent(key) {
+  if (!window._tmTransparent) window._tmTransparent = {};
+  window._tmTransparent[key] = !window._tmTransparent[key];
+  const btn = document.getElementById('tm-' + key + '-trans');
+  const sbg = document.getElementById('tm-' + key + '-swatch-bg');
+  const inp = document.getElementById('tm-' + key);
+  if (window._tmTransparent[key]) {
+    if (btn) btn.classList.add('active');
+    // 格子花紋表示透明
+    if (sbg) {
+      sbg.style.background = 'transparent';
+      sbg.style.backgroundImage = 'repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%)';
+      sbg.style.backgroundSize = '10px 10px';
+    }
+    if (inp) inp.style.pointerEvents = 'none';
+  } else {
+    if (btn) btn.classList.remove('active');
+    const col = inp ? inp.value : '#ffffff';
+    if (sbg) {
+      sbg.style.background = col;
+      sbg.style.backgroundImage = 'none';
+    }
+    if (inp) inp.style.pointerEvents = '';
+  }
+  updateTablePreview();
+}
+
+function getTmColor(key) {
+  if (window._tmTransparent && window._tmTransparent[key]) return 'transparent';
+  return document.getElementById('tm-' + key)?.value || '#ffffff';
+}
+
 function updateTablePreview() {
-  const cols        = Math.max(1, Math.min(10,  parseInt(document.getElementById('tm-cols')?.value)         || 3));
-  const rows        = Math.max(1, Math.min(20,  parseInt(document.getElementById('tm-rows')?.value)         || 3));
-  const bg          = document.getElementById('tm-bg')?.value           || '#ffffff';
-  const border      = document.getElementById('tm-border')?.value       || '#cccccc';
-  const headerBg    = document.getElementById('tm-header-bg')?.value    || '#f5f5f5';
-  const headerColor = document.getElementById('tm-header-color')?.value || '#333333';
-  const preview     = document.getElementById('tm-preview');
+  const cols     = Math.max(1, Math.min(10, parseInt(document.getElementById('tm-cols')?.value) || 3));
+  const rows     = Math.max(2, Math.min(30, parseInt(document.getElementById('tm-rows')?.value) || 4));
+  const border   = document.getElementById('tm-border')?.value || '#e2e8f0';
+  const headerBg = getTmColor('header-bg');
+  const headerColor = document.getElementById('tm-header-color')?.value || '#1a1917';
+  const cellBg   = getTmColor('bg');
+
+  const preview  = document.getElementById('tm-preview');
   if (!preview) return;
-  const pCols = Math.min(cols, 3);
-  const pRows = Math.min(rows, 3);
-  let html = `<table style="border-collapse:collapse;font-size:12px;">`;
+
+  const pCols = Math.min(cols, 4);
+  const pRows = Math.min(rows, 4);
+
+  let html = `<table style="border-collapse:collapse;font-size:12px;width:100%;">`;
   for (let r = 0; r < pRows; r++) {
     html += '<tr>';
     for (let c = 0; c < pCols; c++) {
-      const isH  = r === 0;
-      html += `<td style="border:1px solid ${border};padding:5px 10px;background:${isH ? headerBg : bg};color:${isH ? headerColor : 'inherit'};min-width:40px;">${isH ? `標題 ${c+1}` : '內容'}</td>`;
+      const isH = r === 0;
+      const bg  = isH ? headerBg : cellBg;
+      const col = isH ? headerColor : 'inherit';
+      const fw  = isH ? '600' : '400';
+      html += `<td style="border:1px solid ${border};padding:6px 10px;background:${bg};color:${col};font-weight:${fw};min-width:48px;">${isH ? ('欄 ' + (c+1)) : '—'}</td>`;
     }
     html += '</tr>';
   }
-  if (cols > 3 || rows > 3) html += `<tr><td colspan="${pCols}" style="border:1px solid ${border};padding:4px 8px;text-align:center;color:#999;font-size:11px;background:${bg};">... 共 ${cols} 欄 × ${rows} 列</td></tr>`;
+  if (cols > 4 || rows > 4) {
+    html += `<tr><td colspan="${pCols}" style="border:1px solid ${border};padding:4px 8px;text-align:center;color:#999;font-size:11px;background:${cellBg};">… 共 ${cols} 欄 × ${rows} 列</td></tr>`;
+  }
   html += '</table>';
   preview.innerHTML = html;
 }
 
 function insertTable(editorId) {
   const q = quillInstances[editorId];
-  if (!q) return;
-  const cols        = Math.max(1, Math.min(10,  parseInt(document.getElementById('tm-cols')?.value)         || 3));
-  const rows        = Math.max(1, Math.min(20,  parseInt(document.getElementById('tm-rows')?.value)         || 3));
-  const bg          = document.getElementById('tm-bg')?.value           || '#ffffff';
-  const border      = document.getElementById('tm-border')?.value       || '#cccccc';
-  const headerBg    = document.getElementById('tm-header-bg')?.value    || '#f5f5f5';
-  const headerColor = document.getElementById('tm-header-color')?.value || '#333333';
-  let html = `<table style="border-collapse:collapse;width:100%;margin:10px 0;">`;
+  if (!q) { toast('找不到編輯器'); return; }
+
+  const cols     = Math.max(1, Math.min(10, parseInt(document.getElementById('tm-cols')?.value) || 3));
+  const rows     = Math.max(2, Math.min(30, parseInt(document.getElementById('tm-rows')?.value) || 4));
+  const border   = document.getElementById('tm-border')?.value || '#e2e8f0';
+  const headerBg = getTmColor('header-bg');
+  const headerColor = document.getElementById('tm-header-color')?.value || '#1a1917';
+  const cellBg   = getTmColor('bg');
+
+  // 建立真實 DOM table，再取得 outerHTML
+  const table = document.createElement('table');
+  table.style.cssText = 'border-collapse:collapse;width:100%;margin:12px 0;';
+
   for (let r = 0; r < rows; r++) {
-    html += '<tr>';
+    const tr = document.createElement('tr');
     for (let c = 0; c < cols; c++) {
-      const isH = r === 0;
-      html += `<td style="border:1px solid ${border};padding:6px 10px;background:${isH ? headerBg : bg};color:${isH ? headerColor : 'inherit'};min-width:60px;">${isH ? `標題 ${c+1}` : ''}</td>`;
+      const td = document.createElement('td');
+      td.style.cssText = 'border:1px solid ' + border + ';padding:7px 12px;min-width:60px;vertical-align:top;'
+        + 'background:' + (r === 0 ? headerBg : cellBg) + ';'
+        + 'color:' + (r === 0 ? headerColor : 'inherit') + ';'
+        + (r === 0 ? 'font-weight:600;' : '');
+      td.textContent = r === 0 ? ('欄 ' + (c + 1)) : '';
+      tr.appendChild(td);
     }
-    html += '</tr>';
+    table.appendChild(tr);
   }
-  html += '</table><p><br></p>';
-  const range = q.getSelection(true) || { index: q.getLength() - 1 };
-  q.clipboard.dangerouslyPasteHTML(range.index, html);
-  q.setSelection(range.index + 1);
+
+  const tableHTML = table.outerHTML + '<p><br></p>';
+
+  // Quill 1.x 用 root 直接插入後再 sync（dangerouslyPasteHTML 會濾掉 table）
+  const range = q.getSelection(true) || { index: Math.max(0, q.getLength() - 1) };
+
+  // 在游標位置拆出一個 <p> 插入點
+  const editorRoot = q.root;
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = tableHTML;
+
+  // 找到對應的葉節點並在其後插入
+  const [leaf] = q.getLeaf(range.index);
+  let insertNode = leaf && leaf.domNode;
+  // 往上找到直接子節點
+  while (insertNode && insertNode.parentNode !== editorRoot) {
+    insertNode = insertNode.parentNode;
+  }
+  if (insertNode && insertNode.parentNode === editorRoot) {
+    Array.from(tempDiv.childNodes).reverse().forEach(node => {
+      editorRoot.insertBefore(node.cloneNode(true), insertNode.nextSibling);
+    });
+  } else {
+    editorRoot.appendChild(tempDiv.firstChild.cloneNode(true));
+  }
+
+  // 強制 Quill 重新同步
+  q.update();
+  q.setSelection(q.getLength() - 1, 0);
+
   document.getElementById('table-modal').remove();
   toast('✓ 表格已插入');
 }
