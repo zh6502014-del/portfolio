@@ -7,9 +7,7 @@
 
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Quill Editor -->
-<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+<!-- Tiptap loaded via ESM in script type=module -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -239,24 +237,86 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
-/* ── Quill override ── */
-.ql-container { font-family: 'Noto Sans TC', sans-serif; font-size: 14px; border-radius: 0 0 var(--radius-md) var(--radius-md); }
-.ql-toolbar { border-radius: var(--radius-md) var(--radius-md) 0 0; border-color: var(--border) !important; background: var(--bg-secondary); flex-wrap: wrap; }
-.ql-container { border-color: var(--border) !important; }
-.ql-editor { min-height: 300px; color: var(--text); line-height: 1.8; }
-.ql-editor.ql-blank::before { color: var(--text-tertiary); font-style: normal; }
-.ql-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
-.ql-editor h2 { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
-.ql-editor h3 { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
-.ql-editor p { margin: 6px 0; }
-.ql-editor img { max-width: 100%; border-radius: var(--radius-md); margin: 8px 0; cursor: pointer; }
-.ql-editor blockquote { border-left: 3px solid var(--border-strong); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
-.ql-editor .ql-video { width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-md); border: none; margin: 10px 0; display: block; }
-.ql-editor a { color: var(--text); text-decoration: underline; }
-.ql-editor ul, .ql-editor ol { padding-left: 20px; }
-.ql-snow .ql-picker-label { color: var(--text-secondary); }
-.ql-snow .ql-stroke { stroke: var(--text-secondary); }
-.ql-snow .ql-fill { fill: var(--text-secondary); }
+/* ── Tiptap editor ── */
+.tt-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.tt-toolbar {
+  display: flex; flex-wrap: wrap; gap: 2px;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.tt-btn {
+  height: 28px; min-width: 28px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text-secondary); background: none;
+  border: 1px solid transparent; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background 0.1s, color 0.1s, border-color 0.1s;
+  position: relative; white-space: nowrap;
+}
+.tt-btn:hover { background: var(--bg-tertiary); color: var(--text); }
+.tt-btn.is-active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.tt-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tt-sep { width: 1px; background: var(--border); margin: 2px 4px; align-self: stretch; }
+.tt-select {
+  height: 28px; padding: 0 6px; font-size: 13px; font-family: inherit;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-secondary);
+  cursor: pointer; outline: none;
+}
+.tt-select:hover { border-color: var(--border-strong); color: var(--text); }
+/* Tooltip */
+.tt-btn::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--text); color: var(--bg);
+  font-size: 12px; white-space: nowrap;
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  z-index: 999;
+}
+.tt-btn[data-tip]:hover::after { opacity: 1; }
+/* Editor area */
+.tt-editor {
+  min-height: 300px; padding: 14px 16px;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 14px;
+  color: var(--text); line-height: 1.8;
+  outline: none; background: var(--bg);
+}
+.tt-editor p { margin: 4px 0; }
+.tt-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
+.tt-editor h2 { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
+.tt-editor h3 { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
+.tt-editor blockquote { border-left: 3px solid var(--border-strong); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
+.tt-editor code { background: var(--bg-tertiary); padding: 2px 5px; border-radius: 3px; font-size: 13px; }
+.tt-editor pre { background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md); overflow-x: auto; }
+.tt-editor pre code { background: none; padding: 0; }
+.tt-editor a { color: var(--text); text-decoration: underline; }
+.tt-editor ul, .tt-editor ol { padding-left: 22px; }
+.tt-editor img { max-width: 100%; border-radius: var(--radius-md); margin: 8px 0; cursor: pointer; display: block; }
+.tt-editor iframe { width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-md); border: none; margin: 10px 0; display: block; }
+.tt-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-tertiary); pointer-events: none;
+  float: left; height: 0;
+}
+/* Table */
+.tt-editor table { border-collapse: collapse; width: 100%; margin: 12px 0; table-layout: fixed; }
+.tt-editor td, .tt-editor th {
+  border: 1px solid var(--border-strong);
+  padding: 7px 10px; min-width: 40px; vertical-align: top;
+  position: relative;
+}
+.tt-editor th { background: var(--bg-secondary); font-weight: 600; }
+.tt-editor .selectedCell::after {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(100,150,255,0.15); pointer-events: none;
+}
+.tt-editor .column-resize-handle {
+  position: absolute; right: -2px; top: 0; bottom: 0;
+  width: 4px; background: #adf; cursor: col-resize;
+}
 /* ── Group editor ── */
 .group-list { display:flex; flex-direction:column; gap:12px; }
 .group-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .15s; }
@@ -290,48 +350,7 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .single-date-row .date-picker-input { width:180px; }
 .single-date-row .date-range-hint { white-space:nowrap; }
 
-/* ── 自訂工具列按鈕（影片 / 表格）── 附加在 Quill toolbar 末尾，不被 Quill 管理 ── */
-.ql-extra-btn {
-  height: 24px;
-  padding: 0 7px;
-  font-size: 13px;
-  font-family: 'Noto Sans TC', sans-serif;
-  color: var(--text-secondary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: 3px;
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-  transition: color 0.1s, background 0.1s;
-}
-.ql-extra-btn:hover {
-  color: var(--text);
-  background: var(--bg-tertiary);
-}
 
-/* ── Toolbar tooltips ── */
-.ql-toolbar button[title],
-.ql-toolbar .ql-picker[title] { position:relative; }
-.ql-tooltip-tip {
-  position:absolute; bottom:calc(100% + 6px); left:50%;
-  transform:translateX(-50%);
-  background:var(--text); color:var(--bg);
-  font-size:13px; white-space:nowrap;
-  padding:4px 8px; border-radius:var(--radius-sm);
-  pointer-events:none; opacity:0;
-  transition:opacity 0.15s;
-  z-index:999;
-}
-.ql-tooltip-tip::after {
-  content:''; position:absolute; top:100%; left:50%;
-  transform:translateX(-50%);
-  border:4px solid transparent;
-  border-top-color:var(--text);
-}
-.ql-toolbar button:hover .ql-tooltip-tip,
-.ql-toolbar .ql-picker:hover .ql-tooltip-tip { opacity:1; }
 
 
 
@@ -342,7 +361,7 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .video-modal-hint { font-size:13px; color:var(--text-tertiary); margin-top:8px; line-height:1.6; }
 .video-modal-actions { display:flex; gap:8px; margin-top:18px; }
 
-/* ── Image ratio popover (in Quill editor) ── */
+/* ── Image ratio popover ── */
 .img-ratio-popover {
   position: absolute;
   z-index: 9999;
@@ -693,17 +712,18 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
 <script>
 // ── Globals ──
 let supabase_client = null;
-let quillInstances = {};
+// ── Tiptap instances ──
+let tiptapInstances = {};
 
 // ── Config ──
 function getConfig() {
   try { return JSON.parse(localStorage.getItem('sb_config') || 'null'); } catch { return null; }
 }
 function saveConfig() {
-  const url = document.getElementById('cfg-url').value.trim();
-  const key = document.getElementById('cfg-key').value.trim();
+  const url   = document.getElementById('cfg-url').value.trim();
+  const key   = document.getElementById('cfg-key').value.trim();
   const email = document.getElementById('cfg-admin-email').value.trim();
-  const pw = document.getElementById('cfg-admin-pw').value;
+  const pw    = document.getElementById('cfg-admin-pw').value;
   if (!url || !key) { document.getElementById('cfg-error').textContent = '請填入 URL 和 Key'; return; }
   if (!email || pw.length < 8) { document.getElementById('cfg-error').textContent = '請填入 Email 及 8 字元以上密碼'; return; }
   localStorage.setItem('sb_config', JSON.stringify({ url, key }));
@@ -717,11 +737,11 @@ function resetConfig() { localStorage.removeItem('sb_config'); location.reload()
 async function registerAndLogin(email, pw) {
   document.getElementById('cfg-error').textContent = '';
   try {
-    const { error: signUpError } = await supabase_client.auth.signUp({ email, password: pw });
-    const { error: signInError } = await supabase_client.auth.signInWithPassword({ email, password: pw });
-    if (signInError) { document.getElementById('cfg-error').textContent = '設定失敗：' + signInError.message; return; }
+    await supabase_client.auth.signUp({ email, password: pw });
+    const { error } = await supabase_client.auth.signInWithPassword({ email, password: pw });
+    if (error) { document.getElementById('cfg-error').textContent = '設定失敗：' + error.message; return; }
     showApp();
-  } catch (e) { document.getElementById('cfg-error').textContent = '連線失敗，請確認 URL 和 Key'; }
+  } catch(e) { document.getElementById('cfg-error').textContent = '連線失敗，請確認 URL 和 Key'; }
 }
 
 function initSupabase(url, key) {
@@ -731,7 +751,7 @@ function initSupabase(url, key) {
 // ── Auth ──
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
-  const pw = document.getElementById('login-pw').value;
+  const pw    = document.getElementById('login-pw').value;
   document.getElementById('login-error').textContent = '登入中...';
   const { error } = await supabase_client.auth.signInWithPassword({ email, password: pw });
   if (error) { document.getElementById('login-error').textContent = '帳號或密碼錯誤'; return; }
@@ -743,423 +763,28 @@ async function doLogout() {
   document.getElementById('login-screen').style.display = 'flex';
 }
 
-// ── Date range picker helpers ──
-function formatMonthDisplay(ym) {
-  // ym = "2022-02" → "2022/02"
-  if (!ym) return '';
-  return ym.replace('-', '/');
-}
-
-function syncManualFromPickers() {
-  const start = document.getElementById('pj-date-start')?.value;
-  const end = document.getElementById('pj-date-end')?.value;
-  const ongoing = document.getElementById('pj-date-ongoing')?.checked;
-  const manual = document.getElementById('pj-time');
-  if (!manual) return;
-  if (!start && !end) return;
-  const startStr = start ? formatMonthDisplay(start) : '';
-  const endStr = ongoing ? '開發中' : (end ? formatMonthDisplay(end) : '');
-  if (startStr && endStr) manual.value = startStr + ' — ' + endStr;
-  else if (startStr) manual.value = startStr;
-  else manual.value = endStr;
-}
-
-function toggleOngoing() {
-  const ongoing = document.getElementById('pj-date-ongoing')?.checked;
-  const endInput = document.getElementById('pj-date-end');
-  if (endInput) endInput.disabled = ongoing;
-  syncManualFromPickers();
-}
-
-function syncDatePickersFromManual() {
-  // Parse manual input back to pickers if possible
-  const val = document.getElementById('pj-time')?.value || '';
-  const parts = val.split('—').map(s => s.trim());
-  const parseToMonth = (str) => {
-    // Accept "2022/02" or "2022-02"
-    const m = str.match(/(\d{4})[\/-](\d{2})/);
-    return m ? m[1] + '-' + m[2] : '';
-  };
-  if (parts.length >= 1) {
-    const s = document.getElementById('pj-date-start');
-    if (s) s.value = parseToMonth(parts[0]);
-  }
-  if (parts.length >= 2) {
-    const ongoing = parts[1].includes('開發中') || parts[1].includes('present') || parts[1] === '';
-    const cb = document.getElementById('pj-date-ongoing');
-    const e = document.getElementById('pj-date-end');
-    if (cb) cb.checked = ongoing;
-    if (e) { e.disabled = ongoing; e.value = ongoing ? '' : parseToMonth(parts[1]); }
-  }
-}
-
-function initDatePickers(timeRange) {
-  // Pre-fill pickers from existing time_range value
-  const manual = document.getElementById('pj-time');
-  if (manual) manual.value = timeRange || '';
-  syncDatePickersFromManual();
-}
-
-// ── Note single date helpers ──
-function formatNoteDate(dateStr) {
-  // "2026-04-25" → "2026/04/25"
-  if (!dateStr) return '';
-  return dateStr.replace(/-/g, '/');
-}
-
-function parseNoteDate(str) {
-  // Accept "2026/04/25" or "2026-04-25"
-  const m = str.match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/);
-  return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
-}
-
-function syncNoteDateManualFromPicker() {
-  const picker = document.getElementById('nt-date-picker');
-  const manual = document.getElementById('nt-date');
-  if (picker && manual && picker.value) {
-    manual.value = formatNoteDate(picker.value);
-  }
-}
-
-function syncNoteDatePickerFromManual() {
-  const manual = document.getElementById('nt-date');
-  const picker = document.getElementById('nt-date-picker');
-  if (manual && picker) {
-    const parsed = parseNoteDate(manual.value);
-    if (parsed) picker.value = parsed;
-  }
-}
-
-function initNoteDatePicker(dateStr) {
-  const manual = document.getElementById('nt-date');
-  const picker = document.getElementById('nt-date-picker');
-  if (manual) manual.value = formatNoteDate(dateStr || '');
-  if (picker) picker.value = dateStr || '';
-}
-
-// ── Tag Input Component ──
-const AC_KEYS = { tags: 'ac_tags', role: 'ac_roles', members: 'ac_members', skill_tags: 'ac_skill_tags', note_type: 'ac_note_types' };
-
-function acLoad(key) {
-  try { return JSON.parse(localStorage.getItem(AC_KEYS[key] || key) || '[]'); } catch { return []; }
-}
-function acSave(key, values) {
-  const existing = acLoad(key);
-  const merged = [...new Set([...values, ...existing])].filter(Boolean).slice(0, 60);
-  localStorage.setItem(AC_KEYS[key] || key, JSON.stringify(merged));
-}
-
-// ── Single-value TagInput (role, note_type) ──
-// ── Multi-value TagInput (tags, members, skill_tags) ──
-function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入後按 Enter 新增' } = {}) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  let selected = [];
-
-  // Read initial values from data-init attribute
-  const containerEl = document.getElementById(containerId);
-  const dataInit = containerEl ? containerEl.getAttribute('data-init') : '';
-  if (dataInit) {
-    selected = dataInit.split('||').map(v=>v.trim()).filter(Boolean);
-  }
-
-  // Build DOM
-  container.innerHTML = `
-    <div class="tag-input-wrap" id="${containerId}-wrap">
-      <input class="tag-input-field" id="${containerId}-field"
-        placeholder="${placeholder}" autocomplete="off" />
-      <div class="tag-dropdown" id="${containerId}-dd"></div>
-    </div>
-  `;
-
-  const wrap = document.getElementById(containerId + '-wrap');
-  const field = document.getElementById(containerId + '-field');
-  const dd = document.getElementById(containerId + '-dd');
-
-  function renderChips() {
-    wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
-    selected.forEach((val, idx) => {
-      const chip = document.createElement('span');
-      chip.className = 'tag-chip';
-      const label = document.createTextNode(val);
-      const btn = document.createElement('button');
-      btn.className = 'tag-chip-del';
-      btn.title = '移除';
-      btn.textContent = '×';
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selected.splice(idx, 1);
-        syncHidden(containerId, acKey, selected);
-        renderChips();
-        renderDropdown(field ? field.value : '');
-      });
-      chip.appendChild(label);
-      chip.appendChild(btn);
-      wrap.insertBefore(chip, field);
-    });
-  }
-
-  function renderDropdown(filter = '') {
-    const all = acLoad(acKey);
-    const filtered = filter ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase())) : all;
-    const isNew = filter && !all.map(v=>v.toLowerCase()).includes(filter.toLowerCase()) && !selected.includes(filter);
-
-    dd.innerHTML = '';
-    if (filtered.length) {
-      const hint = document.createElement('div');
-      hint.className = 'tag-dropdown-hint';
-      hint.textContent = '歷史紀錄';
-      dd.appendChild(hint);
-
-      filtered.forEach(v => {
-        const sel = selected.includes(v);
-        const row = document.createElement('div');
-        row.className = 'tag-option' + (sel ? ' selected' : '');
-
-        const check = document.createElement('span');
-        check.className = 'tag-option-check';
-        check.textContent = sel ? '✓' : '';
-
-        const labelEl = document.createElement('span');
-        labelEl.className = 'tag-option-label';
-        labelEl.textContent = v;
-
-        // Edit button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'tag-option-edit';
-        editBtn.title = '編輯';
-        editBtn.textContent = '✎';
-        editBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          tagEditHistory(containerId, acKey, v, renderDropdown, selected, syncHidden, renderChips);
-        });
-
-        // Delete button
-        const delBtn = document.createElement('button');
-        delBtn.className = 'tag-option-del';
-        delBtn.title = '從紀錄中刪除';
-        delBtn.textContent = '×';
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const all2 = acLoad(acKey).filter(x => x !== v);
-          localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all2));
-          // Also remove from selected if present
-          const si = selected.indexOf(v);
-          if (si > -1) { selected.splice(si, 1); syncHidden(containerId, acKey, selected); renderChips(); }
-          renderDropdown(field ? field.value : '');
-        });
-
-        row.appendChild(check);
-        row.appendChild(labelEl);
-        row.appendChild(editBtn);
-        row.appendChild(delBtn);
-        row.addEventListener('click', () => {
-          if (sel) {
-            state.selected = selected.filter(x => x !== v);
-          } else {
-            selected.push(v);
-          }
-          syncHidden(containerId, acKey, selected);
-          renderChips();
-          renderDropdown(field ? field.value : '');
-        });
-        dd.appendChild(row);
-      });
-    }
-
-    if (isNew) {
-      const newRow = document.createElement('div');
-      newRow.className = 'tag-option tag-option-new';
-      newRow.innerHTML = '<span class="tag-option-check">＋</span><span class="tag-option-label">新增「' + filter + '」</span>';
-      newRow.addEventListener('click', () => tagAddNew(containerId, acKey, filter, multi));
-      dd.appendChild(newRow);
-    }
-
-    if (!dd.children.length || (dd.children.length === 1 && dd.children[0].classList.contains('tag-dropdown-hint'))) {
-      const empty = document.createElement('div');
-      empty.className = 'tag-empty';
-      empty.textContent = '輸入文字新增選項';
-      dd.appendChild(empty);
-    }
-
-    dd.classList.add('open');
-  }
-  // expose state for renderDropdown closure
-  const state = window['_tagInput_' + containerId] || {};
-
-  function closeDropdown() { dd.classList.remove('open'); }
-
-  field.addEventListener('focus', () => renderDropdown(field.value));
-  field.addEventListener('input', () => renderDropdown(field.value));
-  field.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const val = field.value.trim();
-      if (val) tagAddNew(containerId, acKey, val, multi);
-    }
-    if (e.key === 'Backspace' && !field.value && selected.length) {
-      selected.splice(selected.length - 1, 1);
-      syncHidden(containerId, acKey, selected);
-      renderChips();
-      renderDropdown('');
-    }
-    if (e.key === 'Escape') closeDropdown();
-  });
-
-  wrap.addEventListener('click', e => {
-    if (e.target === wrap) field.focus();
-  });
-
-  document.addEventListener('click', e => {
-    if (!wrap.contains(e.target)) closeDropdown();
-  }, true);
-
-  // Store state
-  window['_tagInput_' + containerId] = { selected, renderChips, renderDropdown, multi };
-  syncHidden(containerId, acKey, selected);
-  renderChips();
-}
-
-function syncHidden(containerId, acKey, selected) {
-  window['_tagInput_' + containerId].selected = selected;
-}
-
-function tagToggleOption(containerId, acKey, val, multi) {
-  const state = window['_tagInput_' + containerId];
-  if (!state) return;
-  if (state.selected.includes(val)) {
-    state.selected = state.selected.filter(v => v !== val);
-  } else {
-    state.selected.push(val);
-  }
-  const field = document.getElementById(containerId + '-field');
-  syncHidden(containerId, acKey, state.selected);
-  state.renderChips();
-  state.renderDropdown(field ? field.value : '');
-}
-
-function tagAddNew(containerId, acKey, val, multi) {
-  val = val.trim(); if (!val) return;
-  const state = window['_tagInput_' + containerId];
-  if (!state) return;
-  if (!state.selected.includes(val)) {
-    if (!multi) state.selected = [val];
-    else state.selected.push(val);
-  }
-  acSave(acKey, [val]);
-  const field = document.getElementById(containerId + '-field');
-  if (field) field.value = '';
-  syncHidden(containerId, acKey, state.selected);
-  state.renderChips();
-  state.renderDropdown('');
-}
-
-function tagRemoveChip(containerId, idx) {
-  const state = window['_tagInput_' + containerId];
-  if (!state) return;
-  state.selected.splice(idx, 1);
-  syncHidden(containerId, acKey_for(containerId), state.selected);
-  state.renderChips();
-  state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
-}
-
-function tagDelHistory(e, acKey, val, containerId) {
-  e.stopPropagation();
-  const all = acLoad(acKey).filter(v => v !== val);
-  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
-  const state = window['_tagInput_' + containerId];
-  if (state) state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
-}
-
-function tagEditHistory(containerId, acKey, oldVal, renderDropdown, selected, syncHidden, renderChips) {
-  const newVal = prompt('編輯標籤', oldVal);
-  if (!newVal || newVal.trim() === oldVal) return;
-  const trimmed = newVal.trim();
-  // Update history
-  const all = acLoad(acKey).map(v => v === oldVal ? trimmed : v);
-  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
-  // Update selected if needed
-  const si = selected.indexOf(oldVal);
-  if (si > -1) { selected[si] = trimmed; syncHidden(containerId, acKey, selected); renderChips(); }
-  renderDropdown(document.getElementById(containerId + '-field')?.value || '');
-}
-
-function acKey_for(containerId) {
-  const map = { 'pj-tags-ti':'tags','pj-role-ti':'role','pj-members-ti':'members','sk-tags-ti':'skill_tags','nt-type-ti':'note_type' };
-  return map[containerId] || 'tags';
-}
-
-function getTagInputValue(containerId) {
-  const state = window['_tagInput_' + containerId];
-  return state ? state.selected : [];
-}
-
-// ── Multi-line autocomplete (tags / members textarea) ──
-
-function acToggleLine(textareaId, acKey, val) {
-  const ta = document.getElementById(textareaId);
-  if (!ta) return;
-  const lines = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
-  if (lines.includes(val)) {
-    ta.value = lines.filter(v => v !== val).join('\n');
-  } else {
-    ta.value = [...lines, val].join('\n');
-  }
-  ta.dispatchEvent(new Event('input'));
-  // Refresh chips
-  const suggestWrap = document.getElementById(textareaId + '-suggestions');
-  if (suggestWrap) {
-    const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
-    const all = acLoad(acKey);
-    suggestWrap.innerHTML = all.slice(0,30).map(v => {
-      const active = existing.includes(v);
-      return `<span class="ac-tag-chip ${active ? 'ac-tag-active' : ''}"
-        onclick="acToggleLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">
-        ${active ? '✓ ' : '+ '}${v}</span>`;
-    }).join('');
-  }
-}
-
-// ── Storage usage ──
 async function checkStorageUsage() {
-  const bar = document.getElementById('storage-bar');
-  const pctEl = document.getElementById('storage-pct');
+  const bar    = document.getElementById('storage-bar');
+  const pctEl  = document.getElementById('storage-pct');
   const usedEl = document.getElementById('storage-used');
-
   const fmt = (b) => {
     if (b < 1024) return b + ' B';
-    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
-    if (b < 1024 * 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
-    return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    if (b < 1024*1024*1024) return (b/(1024*1024)).toFixed(1) + ' MB';
+    return (b/(1024*1024*1024)).toFixed(2) + ' GB';
   };
-
   try {
-    // List all files in portfolio-images bucket and sum sizes
     const { data: files, error } = await supabase_client.storage
-      .from('portfolio-images')
-      .list('', { limit: 1000, offset: 0 });
-
+      .from('portfolio-images').list('', { limit: 1000, offset: 0 });
     if (error) throw error;
-
-    const usedBytes = (files || []).reduce((sum, f) => {
-      return sum + (f.metadata?.size || 0);
-    }, 0);
-
-    const LIMIT = 1 * 1024 * 1024 * 1024; // 1 GB free plan limit
+    const usedBytes = (files || []).reduce((s, f) => s + (f.metadata?.size || 0), 0);
+    const LIMIT = 1 * 1024 * 1024 * 1024;
     const pct = Math.min(100, (usedBytes / LIMIT) * 100);
-
-    if (bar) {
-      bar.style.width = pct + '%';
-      bar.className = 'storage-bar-fill' +
-        (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
-    }
+    if (bar) { bar.style.width = pct + '%'; bar.className = 'storage-bar-fill' + (pct>=90?' danger':pct>=70?' warn':''); }
     if (pctEl) pctEl.textContent = pct.toFixed(1) + '%';
     if (usedEl) usedEl.textContent = fmt(usedBytes) + ' 已使用';
-
-  } catch (e) {
+  } catch(e) {
     if (usedEl) usedEl.textContent = '無法讀取';
-    console.error('Storage usage error:', e);
   }
 }
 
@@ -1171,8 +796,8 @@ async function boot() {
   const { data: { session } } = await supabase_client.auth.getSession();
   if (session) { showApp(); }
   else {
-    const saved_email = localStorage.getItem('admin_email') || '';
-    if (document.getElementById('login-email')) document.getElementById('login-email').value = saved_email;
+    const el = document.getElementById('login-email');
+    if (el) el.value = localStorage.getItem('admin_email') || '';
     document.getElementById('login-screen').style.display = 'flex';
   }
 }
@@ -1182,23 +807,24 @@ function showApp() {
   document.getElementById('config-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // Restore last page from URL hash
   const hash = location.hash.replace('#','');
-  const validPages = ['profile','skills','tools','projects','notes','navigation'];
-  const page = validPages.includes(hash) ? hash : 'profile';
-  const btn = document.querySelector(`.nav-item[onclick*="'${page}'"]`);
+  const valid = ['profile','skills','tools','projects','notes','navigation'];
+  const page = valid.includes(hash) ? hash : 'profile';
+  const btn = document.querySelector('.nav-item[onclick*="' + page + '"]');
   if (btn) showPage(page, btn);
   else renderProfilePage();
-  // Check storage usage
   checkStorageUsage();
 }
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).style.display = 'block';
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   location.hash = name;
-  const renderers = { profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage, projects: renderProjectsPage, notes: renderNotesPage, navigation: renderNavigationPage };
+  const renderers = {
+    profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage,
+    projects: renderProjectsPage, notes: renderNotesPage, navigation: renderNavigationPage
+  };
   if (renderers[name]) renderers[name]();
 }
 
@@ -1210,661 +836,252 @@ function toast(msg, duration = 2200) {
   window._toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
-// ── Image Upload ──
-function parseImgArr(val) {
-  if (!val) return [];
-  if (Array.isArray(val)) return val.filter(Boolean);
-  if (typeof val === 'string') {
-    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed.filter(Boolean) : []; }
-    catch { return []; }
+// ── makeTiptap：建立 Tiptap 編輯器 ──
+// richMode=true → 完整工具列（含表格）；false → 簡易工具列
+async function makeTiptap(id, placeholder, richMode) {
+  // 若已存在，先銷毀
+  if (tiptapInstances[id]) {
+    try { tiptapInstances[id].destroy(); } catch(e) {}
+    delete tiptapInstances[id];
   }
-  return [];
-}
-
-// ── Image processing: crop to 16:9 + compress ──
-async function processImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      img.onload = () => {
-        // Target dimensions
-        const TARGET_W = 1280;
-        const TARGET_H = 720;
-        const TARGET_RATIO = 16 / 9;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = TARGET_W;
-        canvas.height = TARGET_H;
-        const ctx = canvas.getContext('2d');
-
-        // Fill white background (for PNG transparency)
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, TARGET_W, TARGET_H);
-
-        // Calculate source crop area (center crop to 16:9)
-        const srcRatio = img.width / img.height;
-        let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
-
-        if (srcRatio > TARGET_RATIO) {
-          // Image is wider than 16:9 → crop sides
-          srcW = Math.round(img.height * TARGET_RATIO);
-          srcX = Math.round((img.width - srcW) / 2);
-        } else if (srcRatio < TARGET_RATIO) {
-          // Image is taller than 16:9 → crop top/bottom, center vertically
-          srcH = Math.round(img.width / TARGET_RATIO);
-          srcY = Math.round((img.height - srcH) / 2);
-        }
-
-        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, TARGET_W, TARGET_H);
-
-        // Compress: try quality from 0.9, reduce until under 500KB
-        const MAX_BYTES = 500 * 1024;
-        let quality = 0.9;
-        const tryCompress = () => {
-          canvas.toBlob((blob) => {
-            if (!blob) { resolve(file); return; }
-            if (blob.size <= MAX_BYTES || quality <= 0.5) {
-              // Done
-              const processed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
-              resolve(processed);
-            } else {
-              quality -= 0.1;
-              tryCompress();
-            }
-          }, 'image/jpeg', quality);
-        };
-        tryCompress();
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadImage(file, bucket = 'portfolio-images') {
-  // Process image before upload (crop 16:9 + compress)
-  const processed = await processImage(file);
-  const ext = 'jpg';
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType: 'image/jpeg' });
-  if (error) throw error;
-  const { data } = supabase_client.storage.from(bucket).getPublicUrl(path);
-  return data.publicUrl;
-}
-
-function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  let urls = parseImgArr(existingUrls);
-
-  function render() {
-    container.innerHTML = '';
-
-    // ── Upload area ──
-    const uploadArea = document.createElement('div');
-    uploadArea.className = 'img-upload-area';
-    uploadArea.id = containerId + '-drop';
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.multiple = true;
-    fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
-
-    const bar = document.createElement('div');
-    bar.className = 'uploading-bar';
-    bar.id = containerId + '-bar';
-    bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
-
-    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB</div>';
-    uploadArea.appendChild(fileInput);
-    container.appendChild(uploadArea);
-    container.appendChild(bar);
-
-    fileInput.addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files);
-      const barEl = document.getElementById(containerId + '-bar');
-      const fillEl = document.getElementById(containerId + '-fill');
-      if (barEl) barEl.style.display = 'block';
-      for (let i = 0; i < files.length; i++) {
-        if (fillEl) fillEl.style.width = ((i / files.length) * 100) + '%';
-        const file = files[i];
-        if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超過 5MB，已略過'); continue; }
-        try {
-          const url = await uploadImage(file);
-          urls.push(url);
-          if (onChangeCallback) onChangeCallback(urls);
-        } catch (err) { toast('上傳失敗：' + err.message); }
-      }
-      if (fillEl) fillEl.style.width = '100%';
-      setTimeout(() => { if (barEl) barEl.style.display = 'none'; if (fillEl) fillEl.style.width = '0%'; }, 600);
-      renderPreviews();
-    });
-
-    renderPreviews();
-  }
-
-  function renderPreviews() {
-    // Remove existing preview grid
-    const old = document.getElementById(containerId + '-preview');
-    if (old) old.remove();
-
-    const grid = document.createElement('div');
-    grid.className = 'img-preview-grid';
-    grid.id = containerId + '-preview';
-
-    if (urls.length === 0) {
-      // Empty state
-      const empty = document.createElement('div');
-      empty.className = 'img-empty-state';
-      empty.textContent = '尚未上傳圖片';
-      grid.appendChild(empty);
-    } else {
-      urls.forEach((url, i) => {
-        const item = document.createElement('div');
-        item.className = 'img-preview-item';
-
-        const img = document.createElement('img');
-        img.src = url;
-        img.alt = '圖片 ' + (i + 1);
-        img.onerror = () => { img.style.display = 'none'; item.style.background = 'var(--bg-tertiary)'; };
-
-        const badge = document.createElement('span');
-        badge.className = 'img-preview-badge';
-        badge.textContent = i === 0 ? '封面' : (i + 1);
-
-        const btn = document.createElement('button');
-        btn.className = 'img-remove';
-        btn.title = '移除';
-        btn.textContent = '✕';
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          urls.splice(i, 1);
-          if (onChangeCallback) onChangeCallback(urls);
-          renderPreviews();
-        };
-
-        item.appendChild(img);
-        item.appendChild(badge);
-        item.appendChild(btn);
-        grid.appendChild(item);
-      });
-    }
-
-    const bar = document.getElementById(containerId + '-bar');
-    if (bar) bar.after(grid);
-    else container.appendChild(grid);
-  }
-
-  window['getImgs_' + containerId] = () => [...urls];
-  render();
-}
-
-// ── Group editor ──
-const DEFAULT_SECTIONS = [
-  { title: '我做了什麼', items: [] },
-  { title: '接觸的產品', items: [] },
-  { title: '專案目標',   items: [] },
-  { title: '專案挑戰',   items: [] },
-  { title: '分析方法',   items: [] },
-  { title: '我的角色',   items: [] },
-];
-
-let _groupSections = [];
-
-function makeGroupEditor(containerId, sections) {
-  _groupSections = sections && sections.length ? JSON.parse(JSON.stringify(sections)) : JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-  renderGroupEditor(containerId);
-}
-
-function renderGroupEditor(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  const container = document.getElementById(id);
+  if (!container) return null;
   container.innerHTML = '';
 
-  const listEl = document.createElement('div');
-  listEl.className = 'group-list';
-  listEl.id = containerId + '-list';
+  // 動態載入 Tiptap（ESM CDN）
+  const { Editor }       = await import('https://esm.sh/@tiptap/core@2.11.5');
+  const { default: StarterKit } = await import('https://esm.sh/@tiptap/starter-kit@2.11.5');
+  const { default: TTable }     = await import('https://esm.sh/@tiptap/extension-table@3.0.7');
+  const { default: TTableRow }  = await import('https://esm.sh/@tiptap/extension-table-row@3.0.7');
+  const { default: TTableCell } = await import('https://esm.sh/@tiptap/extension-table-cell@3.0.7');
+  const { default: TTableHeader } = await import('https://esm.sh/@tiptap/extension-table-header@3.0.7');
+  const { default: TImage }     = await import('https://esm.sh/@tiptap/extension-image@2.11.5');
+  const { default: TLink }      = await import('https://esm.sh/@tiptap/extension-link@2.11.5');
+  const { default: TColor }     = await import('https://esm.sh/@tiptap/extension-color@2.11.5');
+  const { default: TTextStyle } = await import('https://esm.sh/@tiptap/extension-text-style@2.11.5');
 
-  _groupSections.forEach((sec, gi) => {
-    const card = document.createElement('div');
-    card.className = 'group-card';
-    card.draggable = false;
-    card.dataset.gi = gi;
+  // 建立 DOM 結構
+  const wrap = document.createElement('div');
+  wrap.className = 'tt-wrap';
+  const tbEl = document.createElement('div');
+  tbEl.className = 'tt-toolbar';
+  tbEl.id = 'tt-toolbar-' + id;
+  const edEl = document.createElement('div');
+  edEl.className = 'tt-editor';
+  edEl.id = 'tt-editor-' + id;
+  wrap.appendChild(tbEl);
+  wrap.appendChild(edEl);
+  container.appendChild(wrap);
 
-    // Header
-    const header = document.createElement('div');
-    header.className = 'group-header';
-    header.innerHTML = `
-      <span class="group-drag" title="拖拉排序群組" draggable="false">⠿</span>
-      <input class="group-title-input" value="${sec.title.replace(/"/g,'&quot;')}" placeholder="群組標題"
-        oninput="_groupSections[${gi}].title=this.value" />
-      <button class="group-del" onclick="removeGroup(${gi})" title="刪除群組">×</button>
-    `;
+  const extensions = richMode ? [
+    StarterKit,
+    TImage.configure({ inline: false }),
+    TLink.configure({ openOnClick: false }),
+    TColor,
+    TTextStyle,
+    TTable.configure({ resizable: false }),
+    TTableRow,
+    TTableCell,
+    TTableHeader,
+  ] : [
+    StarterKit.configure({ heading: false, blockquote: false, code: false, codeBlock: false, horizontalRule: false }),
+    TLink.configure({ openOnClick: false }),
+  ];
 
-    // Body — single content textarea
-    const body = document.createElement('div');
-    body.className = 'group-body';
-    const ta = document.createElement('textarea');
-    ta.className = 'group-content-input';
-    ta.placeholder = '輸入內容';
-    ta.value = (sec.items || []).join('\n');
-    ta.oninput = function() { _groupSections[gi].items = this.value.split('\n'); };
-    body.appendChild(ta);
-
-    card.appendChild(header);
-    card.appendChild(body);
-
-    // Only the drag handle triggers dragging
-    const handle = header.querySelector('.group-drag');
-    handle.addEventListener('mouseenter', () => card.draggable = true);
-    handle.addEventListener('mouseleave', () => { if (!window._isDragging) card.draggable = false; });
-
-    card.addEventListener('dragstart', e => {
-      window._isDragging = true;
-      e.dataTransfer.effectAllowed = 'move';
-      window._dragGroupIdx = gi;
-      card.style.opacity = '.4';
-    });
-    card.addEventListener('dragend', () => {
-      window._isDragging = false;
-      card.draggable = false;
-      card.style.opacity = '1';
-    });
-    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-    card.addEventListener('drop', e => { e.preventDefault(); card.classList.remove('drag-over');
-      if (window._dragGroupIdx !== undefined && window._dragGroupIdx !== gi) {
-        const moved = _groupSections.splice(window._dragGroupIdx, 1)[0];
-        _groupSections.splice(gi, 0, moved);
-        renderGroupEditor(containerId);
+  const editor = new Editor({
+    element: edEl,
+    extensions,
+    content: '',
+    editorProps: {
+      attributes: {
+        'data-placeholder': placeholder || '在這裡輸入內容...',
       }
-    });
-
-    listEl.appendChild(card);
+    },
+    onUpdate: () => {},
   });
 
-  const addGroupBtn = document.createElement('button');
-  addGroupBtn.className = 'groups-add';
-  addGroupBtn.innerHTML = '＋ 新增群組';
-  addGroupBtn.onclick = () => {
-    _groupSections.push({ title:'', items:[] });
-    renderGroupEditor(containerId);
-    setTimeout(() => {
-      const inputs = document.querySelectorAll(`#${containerId}-list .group-title-input`);
-      if(inputs.length) inputs[inputs.length-1].focus();
-    }, 40);
-  };
+  tiptapInstances[id] = editor;
 
-  container.appendChild(listEl);
-  container.appendChild(addGroupBtn);
-}
-
-function removeGroup(gi) {
-  if (!confirm('確定刪除此群組？')) return;
-  _groupSections.splice(gi,1);
-  renderGroupEditor('pj-sections');
-}
-
-function getGroupSections() {
-  return _groupSections.map(s => ({
-    title: s.title.trim(),
-    items: (s.items||[]).join('\n').split('\n').map(i=>i.trim()).filter(Boolean)
-  })).filter(s=>s.title);
-}
-
-// ── Quill helper ──
-function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = false) {
-  if (quillInstances[id]) {
-    try { quillInstances[id].root.parentElement.parentElement.remove(); } catch(e) {}
-    delete quillInstances[id];
-  }
-  const wrapper = document.createElement('div');
-  wrapper.style.position = 'relative';
-  const toolbarId = 'ql-toolbar-' + id;
-
+  // 建立工具列
   if (richMode) {
-    // Quill 管轄的 toolbar（只放 Quill 認識的 format）
-    // 自訂按鈕（video / table）放在 toolbar 外，Quill 不碰
-    wrapper.innerHTML =
-      '<div id="' + toolbarId + '">' +
-        '<span class="ql-formats">' +
-          '<select class="ql-header">' +
-            '<option value="1">H1</option>' +
-            '<option value="2">H2</option>' +
-            '<option value="3">H3</option>' +
-            '<option selected></option>' +
-          '</select>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<button class="ql-bold"></button>' +
-          '<button class="ql-italic"></button>' +
-          '<button class="ql-underline"></button>' +
-          '<button class="ql-strike"></button>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<select class="ql-color"></select>' +
-          '<select class="ql-background"></select>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<select class="ql-align"></select>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<button class="ql-list" value="ordered"></button>' +
-          '<button class="ql-list" value="bullet"></button>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<button class="ql-blockquote"></button>' +
-          '<button class="ql-code-block"></button>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<button class="ql-link"></button>' +
-          '<button class="ql-image"></button>' +
-        '</span>' +
-        '<span class="ql-formats">' +
-          '<button class="ql-clean"></button>' +
-        '</span>' +
-      '</div>' +
-      '<div id="quill-' + id + '"></div>';
+    buildRichToolbar(tbEl, id, editor);
   } else {
-    wrapper.innerHTML = '<div id="quill-' + id + '"></div>';
+    buildSimpleToolbar(tbEl, id, editor);
   }
-  document.getElementById(id).appendChild(wrapper);
 
-  const q = new Quill('#quill-' + id, {
-    theme: 'snow', placeholder,
-    modules: {
-      toolbar: richMode
-        ? { container: '#' + toolbarId }
-        : {
-            container: [
-              ['bold', 'italic', 'underline'],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              ['link'], ['clean']
-            ]
-          }
-    }
+  // 點擊圖片 → 顯示比例/縮放浮層
+  edEl.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
+    openImgRatioPopover(e.target, editor);
   });
 
-  if (richMode) {
-    // image handler
-    q.getModule('toolbar').addHandler('image', () => {
-      const input = document.createElement('input');
-      input.type = 'file'; input.accept = 'image/*';
-      input.onchange = async () => {
-        const file = input.files[0]; if (!file) return;
-        try {
-          if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
-          toast('圖片上傳中...');
-          const url = await uploadImage(file);
-          const range = q.getSelection(true) || { index: q.getLength() - 1 };
-          q.insertEmbed(range.index, 'image', url);
-          q.setSelection(range.index + 1);
-          toast('✓ 圖片已插入，可點擊圖片調整比例與縮放');
-        } catch(e) { toast('圖片上傳失敗：' + e.message); }
-      };
-      input.click();
-    });
-
-    // ── 自訂按鈕：Quill 初始化完成後，把按鈕直接附加到 toolbar DOM ──
-    // 必須在 Quill new 之後才操作，避免 Quill 重繪時清掉
-    setTimeout(() => {
-      const tbEl = document.getElementById(toolbarId);
-      if (!tbEl) return;
-
-      const extraSpan = document.createElement('span');
-      extraSpan.className = 'ql-formats';
-
-      const videoBtn = document.createElement('button');
-      videoBtn.type = 'button';
-      videoBtn.className = 'ql-extra-btn';
-      videoBtn.textContent = '影片';
-      videoBtn.title = '嵌入影片';
-      videoBtn.addEventListener('click', (e) => { e.preventDefault(); openVideoModal(id); });
-
-      extraSpan.appendChild(videoBtn);
-      tbEl.appendChild(extraSpan);
-    }, 0);
-
-    // 點擊圖片 → 顯示比例+縮放浮層
-    q.root.addEventListener('click', (e) => {
-      if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
-      openImgRatioPopover(e.target, q);
-    });
-  }
-
-  quillInstances[id] = q;
-  setTimeout(() => attachQuillTooltips(id), 150);
-  return q;
+  return editor;
 }
 
-// ── Quill toolbar tooltip labels ──
-const QUILL_TIPS = {
-  'ql-bold':        '粗體',
-  'ql-italic':      '斜體',
-  'ql-underline':   '底線',
-  'ql-strike':      '刪除線',
-  'ql-blockquote':  '引用',
-  'ql-code-block':  '程式碼區塊',
-  'ql-link':        '插入連結',
-  'ql-image':       '上傳圖片',
-  'ql-video':       '嵌入影片',
-  'ql-clean':       '清除格式',
-  'ql-list-ordered':'有序清單',
-  'ql-list-bullet': '無序清單',
-  'ql-align':       '對齊方式',
-  'ql-color':       '文字顏色',
-  'ql-background':  '背景顏色',
-  'ql-header':      '標題層級',
+// ── SVG icons ──
+const ICONS = {
+  bold:        '<svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6z"/><path d="M6 12h9a4 4 0 0 1 0 8H6z"/></svg>',
+  italic:      '<svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>',
+  underline:   '<svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>',
+  strike:      '<svg viewBox="0 0 24 24"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>',
+  ul:          '<svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  ol:          '<svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>',
+  blockquote:  '<svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>',
+  code:        '<svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  link:        '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  image:       '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  video:       '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  table:       '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>',
+  colbefore:   '<svg viewBox="0 0 24 24"><rect x="13" y="3" width="8" height="18" rx="1"/><path d="M7 3v18M3 12h8"/></svg>',
+  colafter:    '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><path d="M17 3v18M13 12h8"/></svg>',
+  delcol:      '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><line x1="17" y1="8" x2="21" y2="12"/><line x1="21" y1="8" x2="17" y2="12"/></svg>',
+  rowbefore:   '<svg viewBox="0 0 24 24"><rect x="3" y="13" width="18" height="8" rx="1"/><path d="M3 7h18M12 3v8"/></svg>',
+  rowafter:    '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="1"/><path d="M3 17h18M12 13v8"/></svg>',
+  delrow:      '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="1"/><line x1="16" y1="17" x2="20" y2="21"/><line x1="20" y1="17" x2="16" y2="21"/></svg>',
+  deltable:    '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  clean:       '<svg viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M5 20h6"/><path d="M13 4l-6 16"/></svg>',
 };
 
-function attachQuillTooltips(id) {
-  const editorEl = document.getElementById(`quill-${id}`);
-  if (!editorEl) return;
-  const toolbar = editorEl.previousElementSibling;
-  if (!toolbar || !toolbar.classList.contains('ql-toolbar')) return;
-
-  // Buttons
-  toolbar.querySelectorAll('button').forEach(btn => {
-    const cls = Array.from(btn.classList).find(c => c.startsWith('ql-'));
-    if (!cls) return;
-    let label = QUILL_TIPS[cls] || '';
-    // Handle list variants
-    if (cls === 'ql-list') {
-      label = btn.value === 'ordered' ? '有序清單' : '無序清單';
-    }
-    // Handle align variants
-    if (cls === 'ql-align') {
-      const map = { '': '靠左對齊', center: '置中對齊', right: '靠右對齊', justify: '兩端對齊' };
-      label = map[btn.value] || '對齊方式';
-    }
-    if (!label) return;
-    btn.style.position = 'relative';
-    btn.title = ''; // remove default browser tooltip
-    const tip = document.createElement('span');
-    tip.className = 'ql-tooltip-tip';
-    tip.textContent = label;
-    btn.appendChild(tip);
-  });
-
-  // Picker labels (header, color, background, align)
-  toolbar.querySelectorAll('.ql-picker').forEach(picker => {
-    const cls = Array.from(picker.classList).find(c => c.startsWith('ql-'));
-    const label = QUILL_TIPS[cls] || '';
-    if (!label) return;
-    picker.style.position = 'relative';
-    const tip = document.createElement('span');
-    tip.className = 'ql-tooltip-tip';
-    tip.textContent = label;
-    picker.appendChild(tip);
-  });
+function mkBtn(icon, tip, onClick, editorId) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'tt-btn';
+  b.innerHTML = ICONS[icon] || icon;
+  if (tip) b.setAttribute('data-tip', tip);
+  b.addEventListener('click', (e) => { e.preventDefault(); onClick(); updateToolbar(editorId); });
+  return b;
+}
+function mkSep() {
+  const s = document.createElement('div');
+  s.className = 'tt-sep';
+  return s;
 }
 
-// ─────────────────────────────────────────────
-// IMAGE RATIO POPOVER
-// ─────────────────────────────────────────────
-const IMG_RATIOS = [
-  { label: '1:1',   w: 1,  h: 1 },
-  { label: '16:9',  w: 16, h: 9 },
-  { label: '4:3',   w: 4,  h: 3 },
-  { label: '3:4',   w: 3,  h: 4 },
-  { label: '原圖',  w: 0,  h: 0 },
-];
-const IMG_SCALES = ['100%', '75%', '50%', '25%'];
-
-let _ratioPopover = null;
-let _ratioTargetImg = null;
-
-function openImgRatioPopover(imgEl, quillInstance) {
-  closeImgRatioPopover();
-  _ratioTargetImg = imgEl;
-
-  const popover = document.createElement('div');
-  popover.className = 'img-ratio-popover';
-  popover.id = 'img-ratio-popover';
-
-  const currentStyle = imgEl.getAttribute('style') || '';
-  const currentRatioLabel = detectCurrentRatio(currentStyle);
-  const currentScale      = detectCurrentScale(currentStyle);
-
-  // ── 比例區塊 ──
-  const ratioLabel = document.createElement('div');
-  ratioLabel.className = 'img-popover-section-label';
-  ratioLabel.textContent = '比例';
-  popover.appendChild(ratioLabel);
-
-  const ratioRow = document.createElement('div');
-  ratioRow.className = 'img-popover-row';
-  IMG_RATIOS.forEach(ratio => {
-    const btn = document.createElement('button');
-    btn.className = 'img-ratio-btn' + (ratio.label === currentRatioLabel ? ' active' : '');
-    btn.textContent = ratio.label;
-    btn.type = 'button';
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      applyImgRatio(imgEl, ratio, quillInstance);
-      ratioRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-    ratioRow.appendChild(btn);
-  });
-  popover.appendChild(ratioRow);
-
-  // ── 縮放區塊 ──
-  const scaleLabel = document.createElement('div');
-  scaleLabel.className = 'img-popover-section-label';
-  scaleLabel.style.marginTop = '6px';
-  scaleLabel.textContent = '縮放';
-  popover.appendChild(scaleLabel);
-
-  const scaleRow = document.createElement('div');
-  scaleRow.className = 'img-popover-row';
-  IMG_SCALES.forEach(scale => {
-    const btn = document.createElement('button');
-    btn.className = 'img-ratio-btn' + (scale === currentScale ? ' active' : '');
-    btn.textContent = scale;
-    btn.type = 'button';
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      applyImgScale(imgEl, scale, quillInstance);
-      scaleRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-    scaleRow.appendChild(btn);
-  });
-  popover.appendChild(scaleRow);
-
-  document.body.appendChild(popover);
-  _ratioPopover = popover;
-  positionImgRatioPopover(imgEl);
-
-  // 點擊其他地方關閉
-  setTimeout(() => {
-    document.addEventListener('click', _closeRatioOnOutside, { once: false });
-  }, 0);
+function buildSimpleToolbar(tbEl, id, editor) {
+  tbEl.appendChild(mkBtn('bold',       '粗體',    () => editor.chain().focus().toggleBold().run(), id));
+  tbEl.appendChild(mkBtn('italic',     '斜體',    () => editor.chain().focus().toggleItalic().run(), id));
+  tbEl.appendChild(mkBtn('underline',  '底線',    () => editor.chain().focus().toggleUnderline?.().run(), id));
+  tbEl.appendChild(mkSep());
+  tbEl.appendChild(mkBtn('ul',         '無序清單', () => editor.chain().focus().toggleBulletList().run(), id));
+  tbEl.appendChild(mkBtn('ol',         '有序清單', () => editor.chain().focus().toggleOrderedList().run(), id));
+  tbEl.appendChild(mkSep());
+  tbEl.appendChild(mkBtn('link',       '插入連結', () => insertLinkPrompt(editor), id));
+  tbEl.appendChild(mkBtn('clean',      '清除格式', () => editor.chain().focus().clearNodes().unsetAllMarks().run(), id));
+  editor.on('transaction', () => updateToolbar(id));
 }
 
-function _closeRatioOnOutside(e) {
-  if (_ratioPopover && !_ratioPopover.contains(e.target) && e.target !== _ratioTargetImg) {
-    closeImgRatioPopover();
-    document.removeEventListener('click', _closeRatioOnOutside);
+function buildRichToolbar(tbEl, id, editor) {
+  // 標題下拉
+  const sel = document.createElement('select');
+  sel.className = 'tt-select';
+  sel.id = 'tt-heading-' + id;
+  [['', 'Normal'], ['1','H1'], ['2','H2'], ['3','H3']].forEach(([v, l]) => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = l;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => {
+    if (sel.value === '') editor.chain().focus().setParagraph().run();
+    else editor.chain().focus().setHeading({ level: parseInt(sel.value) }).run();
+    setTimeout(() => updateToolbar(id), 0);
+  });
+  tbEl.appendChild(sel);
+  tbEl.appendChild(mkSep());
+
+  // 文字格式
+  tbEl.appendChild(mkBtn('bold',       '粗體',     () => editor.chain().focus().toggleBold().run(), id));
+  tbEl.appendChild(mkBtn('italic',     '斜體',     () => editor.chain().focus().toggleItalic().run(), id));
+  tbEl.appendChild(mkBtn('underline',  '底線',     () => editor.chain().focus().toggleUnderline().run(), id));
+  tbEl.appendChild(mkBtn('strike',     '刪除線',   () => editor.chain().focus().toggleStrike().run(), id));
+  tbEl.appendChild(mkSep());
+
+  // 清單
+  tbEl.appendChild(mkBtn('ul',         '無序清單', () => editor.chain().focus().toggleBulletList().run(), id));
+  tbEl.appendChild(mkBtn('ol',         '有序清單', () => editor.chain().focus().toggleOrderedList().run(), id));
+  tbEl.appendChild(mkBtn('blockquote', '引用',     () => editor.chain().focus().toggleBlockquote().run(), id));
+  tbEl.appendChild(mkBtn('code',       '程式碼',   () => editor.chain().focus().toggleCodeBlock().run(), id));
+  tbEl.appendChild(mkSep());
+
+  // 媒體
+  tbEl.appendChild(mkBtn('link',       '插入連結', () => insertLinkPrompt(editor), id));
+  tbEl.appendChild(mkBtn('image',      '上傳圖片', () => triggerImageUpload(id, editor), id));
+  tbEl.appendChild(mkBtn('video',      '嵌入影片', () => openVideoModal(id), id));
+  tbEl.appendChild(mkSep());
+
+  // 表格
+  tbEl.appendChild(mkBtn('table',      '插入表格', () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), id));
+  tbEl.appendChild(mkBtn('colbefore',  '插入左欄', () => editor.chain().focus().addColumnBefore().run(), id));
+  tbEl.appendChild(mkBtn('colafter',   '插入右欄', () => editor.chain().focus().addColumnAfter().run(), id));
+  tbEl.appendChild(mkBtn('delcol',     '刪除欄',   () => editor.chain().focus().deleteColumn().run(), id));
+  tbEl.appendChild(mkBtn('rowbefore',  '插入上列', () => editor.chain().focus().addRowBefore().run(), id));
+  tbEl.appendChild(mkBtn('rowafter',   '插入下列', () => editor.chain().focus().addRowAfter().run(), id));
+  tbEl.appendChild(mkBtn('delrow',     '刪除列',   () => editor.chain().focus().deleteRow().run(), id));
+  tbEl.appendChild(mkBtn('deltable',   '刪除表格', () => editor.chain().focus().deleteTable().run(), id));
+  tbEl.appendChild(mkSep());
+
+  // 清除格式
+  tbEl.appendChild(mkBtn('clean',      '清除格式', () => editor.chain().focus().clearNodes().unsetAllMarks().run(), id));
+
+  editor.on('transaction', () => updateToolbar(id));
+}
+
+function updateToolbar(id) {
+  const editor = tiptapInstances[id];
+  const tbEl   = document.getElementById('tt-toolbar-' + id);
+  if (!editor || !tbEl) return;
+
+  const map = {
+    bold: editor.isActive('bold'), italic: editor.isActive('italic'),
+    underline: editor.isActive('underline'), strike: editor.isActive('strike'),
+    ul: editor.isActive('bulletList'), ol: editor.isActive('orderedList'),
+    blockquote: editor.isActive('blockquote'), code: editor.isActive('codeBlock'),
+    link: editor.isActive('link'),
+  };
+  tbEl.querySelectorAll('.tt-btn[data-tip]').forEach(btn => {
+    const tip = btn.getAttribute('data-tip');
+    const tipMap = { '粗體':'bold','斜體':'italic','底線':'underline','刪除線':'strike',
+      '無序清單':'ul','有序清單':'ol','引用':'blockquote','程式碼':'code','插入連結':'link' };
+    const key = tipMap[tip];
+    if (key !== undefined) btn.classList.toggle('is-active', !!map[key]);
+  });
+  // heading select
+  const sel = document.getElementById('tt-heading-' + id);
+  if (sel) {
+    if (editor.isActive('heading', { level: 1 })) sel.value = '1';
+    else if (editor.isActive('heading', { level: 2 })) sel.value = '2';
+    else if (editor.isActive('heading', { level: 3 })) sel.value = '3';
+    else sel.value = '';
   }
 }
 
-function closeImgRatioPopover() {
-  if (_ratioPopover) { _ratioPopover.remove(); _ratioPopover = null; }
-  _ratioTargetImg = null;
+function insertLinkPrompt(editor) {
+  const prev = editor.getAttributes('link').href || '';
+  const url  = prompt('輸入連結網址：', prev);
+  if (url === null) return;
+  if (url === '') { editor.chain().focus().unsetLink().run(); return; }
+  editor.chain().focus().setLink({ href: url }).run();
 }
 
-function positionImgRatioPopover(imgEl) {
-  const popover = document.getElementById('img-ratio-popover');
-  if (!popover) return;
-  const rect = imgEl.getBoundingClientRect();
-  const pw = popover.offsetWidth || 200;
-  let left = rect.left + window.scrollX;
-  let top  = rect.bottom + window.scrollY + 6;
-  // 超出右邊界時靠右對齊
-  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
-  popover.style.left = left + 'px';
-  popover.style.top  = top  + 'px';
-}
-
-function detectCurrentRatio(style) {
-  if (!style || style.indexOf('aspect-ratio') === -1) return '原圖';
-  if (style.indexOf('1/1') !== -1)   return '1:1';
-  if (style.indexOf('16/9') !== -1)  return '16:9';
-  if (style.indexOf('4/3') !== -1)   return '4:3';
-  if (style.indexOf('3/4') !== -1)   return '3:4';
-  return '原圖';
-}
-
-function detectCurrentScale(style) {
-  const m = style.match(/max-width\s*:\s*(\d+)%/);
-  if (!m) return '100%';
-  const v = parseInt(m[1]);
-  if (v === 75) return '75%';
-  if (v === 50) return '50%';
-  if (v === 25) return '25%';
-  return '100%';
-}
-
-function applyImgScale(imgEl, scale, quillInstance) {
-  if (scale === '100%') {
-    imgEl.style.maxWidth = '';
-    imgEl.style.width    = imgEl.style.aspectRatio ? '100%' : '';
-  } else {
-    imgEl.style.maxWidth = scale;
-    imgEl.style.width    = scale;
-  }
-  if (quillInstance) quillInstance.update();
-  toast('✓ 已套用 ' + scale + ' 縮放');
-}
-
-function applyImgRatio(imgEl, ratio, quillInstance) {
-  if (ratio.w === 0) {
-    // 原圖：移除 aspect-ratio 與 object-fit
-    imgEl.style.aspectRatio = '';
-    imgEl.style.objectFit   = '';
-    imgEl.style.width       = '';
-    imgEl.style.display     = '';
-  } else {
-    imgEl.style.aspectRatio = ratio.w + '/' + ratio.h;
-    imgEl.style.objectFit   = 'cover';
-    imgEl.style.width       = '100%';
-    imgEl.style.display     = 'block';
-  }
-  // 強制 Quill 同步 delta（讓儲存時 HTML 包含 style）
-  if (quillInstance) {
-    quillInstance.update();
-  }
-  toast('✓ 已套用 ' + ratio.label + ' 比例');
+function triggerImageUpload(editorId, editor) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async () => {
+    const file = input.files[0]; if (!file) return;
+    try {
+      if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
+      toast('圖片上傳中...');
+      const url = await uploadImage(file);
+      editor.chain().focus().setImage({ src: url }).run();
+      toast('✓ 圖片已插入，可點擊圖片調整比例與縮放');
+    } catch(e) { toast('圖片上傳失敗：' + e.message); }
+  };
+  input.click();
 }
 
 // ── Video embed modal ──
-let _videoQuillId = null;
-function openVideoModal(quillId) {
-  _videoQuillId = quillId;
+let _videoTiptapId = null;
+function openVideoModal(editorId) {
+  _videoTiptapId = editorId;
   const existing = document.getElementById('video-modal');
   if (existing) existing.remove();
   const modal = document.createElement('div');
@@ -1876,33 +1093,24 @@ function openVideoModal(quillId) {
       <div class="form-row">
         <label class="form-label">影片網址</label>
         <input class="form-input" id="video-url-input" placeholder="https://www.youtube.com/watch?v=..." />
-        <p class="video-modal-hint">
-          支援 YouTube、Vimeo 等影片網址<br>
-          YouTube 請貼分享網址，例如：https://youtu.be/xxxxx
-        </p>
+        <p class="video-modal-hint">支援 YouTube、Vimeo 等影片網址</p>
       </div>
       <div class="video-modal-actions">
         <button class="btn btn-primary" onclick="insertVideo()">插入影片</button>
         <button class="btn btn-secondary" onclick="closeVideoModal()">取消</button>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(modal);
   setTimeout(() => document.getElementById('video-url-input')?.focus(), 100);
 }
 
 function convertToEmbedUrl(url) {
-  // YouTube
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  // YouTube shorts
+  const ytMatch  = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
   const ytShorts = url.match(/youtube\.com\/shorts\/([\w-]{11})/);
-  if (ytShorts) return `https://www.youtube.com/embed/${ytShorts[1]}`;
-  // Vimeo
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-  // Already embed URL
-  if (url.includes('/embed/') || url.includes('player.vimeo')) return url;
+  if (ytShorts) return 'https://www.youtube.com/embed/' + ytShorts[1];
+  const vimeo    = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return 'https://player.vimeo.com/video/' + vimeo[1];
   return url;
 }
 
@@ -1910,11 +1118,12 @@ function insertVideo() {
   const rawUrl = document.getElementById('video-url-input')?.value.trim();
   if (!rawUrl) { toast('請輸入影片網址'); return; }
   const embedUrl = convertToEmbedUrl(rawUrl);
-  const q = quillInstances[_videoQuillId];
-  if (q) {
-    const range = q.getSelection(true) || { index: q.getLength() };
-    q.insertEmbed(range.index, 'video', embedUrl);
-    q.setSelection(range.index + 1);
+  const editor   = tiptapInstances[_videoTiptapId];
+  if (editor) {
+    // Tiptap 插入 iframe 用 setImage 不合適，改用 insertContent HTML
+    editor.chain().focus().insertContent(
+      '<iframe src="' + embedUrl + '" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;"></iframe>'
+    ).run();
     toast('✓ 影片已嵌入');
   }
   closeVideoModal();
@@ -1924,7 +1133,6 @@ function closeVideoModal() {
   const m = document.getElementById('video-modal');
   if (m) m.remove();
 }
-
 
 // ─────────────────────────────────────────────
 // NAVIGATION PAGE
@@ -2051,7 +1259,7 @@ async function renderProfilePage() {
       <div class="form-row"><label class="form-label">聯絡備註</label><input class="form-input" id="p-note" /></div>
     </div>
   `;
-  const descQuill = makeQuill('p-desc-editor', '自我介紹...', true);
+  const descEditor = await makeTiptap('p-desc-editor', '自我介紹...', true);
   const { data } = await supabase_client.from('profile').select('*').single();
   if (data) {
     document.getElementById('p-name').value = data.name || '';
@@ -2059,15 +1267,15 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    descQuill.root.innerHTML = data.description || '';
+    if (data.description) descEditor.commands.setContent(data.description);
   }
 }
 async function saveProfile() {
-  const q = quillInstances['p-desc-editor'];
+  const q = tiptapInstances['p-desc-editor'];
   const payload = {
     name: document.getElementById('p-name').value,
     nav_name: document.getElementById('p-navname').value,
-    description: q ? q.root.innerHTML : '',
+    description: q ? q.getHTML() : '',
     email: document.getElementById('p-email').value,
     phone: document.getElementById('p-phone').value,
     note: document.getElementById('p-note').value,
@@ -2290,7 +1498,7 @@ async function editProject(id) {
   renderProjectForm(data);
 }
 
-function renderProjectForm(proj) {
+async function renderProjectForm(proj) {
   const el = document.getElementById('page-projects');
   const isEdit = !!proj;
   const projId = proj?.id || null;
@@ -2394,13 +1602,13 @@ function renderProjectForm(proj) {
   `;
 
   // ── Init after DOM is ready ──
-  requestAnimationFrame(() => {
+  requestAnimationFrame(async () => {
     // Image uploader
     initProjectImageArea(projId, parseImgArr(proj?.images));
 
-    // Content Quill (彈窗完整內容)
-    const contentQuill = makeQuill('pj-content-editor', '在這裡輸入專案完整內容...', true);
-    if (proj?.content) contentQuill.root.innerHTML = proj.content;
+    // Content editor (Tiptap)
+    const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
+    if (proj?.content && contentEditor) contentEditor.commands.setContent(proj.content);
 
     // Auto-resize description textarea
     const descTa = document.getElementById('pj-desc');
@@ -2531,7 +1739,7 @@ function renderProjectImageArea() {
 }
 
 async function saveProject(id) {
-  const q = quillInstances['pj-content-editor'];
+  const q = tiptapInstances['pj-content-editor'];
   const payload = {
     title: document.getElementById('pj-title')?.value?.trim() || '',
     time_range: document.getElementById('pj-time')?.value || '',
@@ -2541,7 +1749,7 @@ async function saveProject(id) {
     published: document.getElementById('pj-published')?.checked ?? true,
     sort_order: parseInt(document.getElementById('pj-order')?.value) || 0,
     description: document.getElementById('pj-desc')?.value?.trim() || '',
-    content: q ? q.root.innerHTML : '',
+    content: q ? q.getHTML() : '',
     sections: getGroupSections(),
     images: _projCoverUrl ? [_projCoverUrl] : [],
     updated_at: new Date().toISOString()
@@ -2615,7 +1823,7 @@ async function editNote(id) {
   const { data } = await supabase_client.from('notes').select('*').eq('id', id).single();
   renderNoteForm(data);
 }
-function renderNoteForm(note) {
+async function renderNoteForm(note) {
   const el = document.getElementById('page-notes');
   el.innerHTML = `
     <div class="page-header">
@@ -2659,18 +1867,18 @@ function renderNoteForm(note) {
       </div>
     </div>
   `;
-  const q = makeQuill('nt-content-editor', '在這裡撰寫文章內容...\n\n支援：標題、粗體、斜體、清單、引用、圖片上傳、影片嵌入', true);
-  if (note?.content) q.root.innerHTML = note.content;
+  const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
+  if (note?.content && q) q.commands.setContent(note.content);
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
 async function saveNote(id) {
-  const q = quillInstances['nt-content-editor'];
+  const q = tiptapInstances['nt-content-editor'];
   const payload = {
     title: document.getElementById('nt-title').value,
     note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
     note_type: getTagInputValue('nt-type-ti').join(' · ') || '',
-    content: q ? q.root.innerHTML : '',
+    content: q ? q.getHTML() : '',
     published: document.getElementById('nt-published').checked,
   };
   try {
@@ -2700,6 +1908,187 @@ async function deleteNote(id) {
 
 // ── Boot ──
 boot();
+
+// ─────────────────────────────────────────────
+// IMAGE RATIO / SCALE POPOVER
+// ─────────────────────────────────────────────
+const IMG_RATIOS = [
+  { label: '1:1',  w: 1,  h: 1 },
+  { label: '16:9', w: 16, h: 9 },
+  { label: '4:3',  w: 4,  h: 3 },
+  { label: '3:4',  w: 3,  h: 4 },
+  { label: '原圖', w: 0,  h: 0 },
+];
+const IMG_SCALES = ['100%', '75%', '50%', '25%'];
+
+let _ratioPopover = null;
+let _ratioTargetImg = null;
+
+function openImgRatioPopover(imgEl, editor) {
+  closeImgRatioPopover();
+  _ratioTargetImg = imgEl;
+
+  const popover = document.createElement('div');
+  popover.className = 'img-ratio-popover';
+  popover.id = 'img-ratio-popover';
+
+  const currentStyle      = imgEl.getAttribute('style') || '';
+  const currentRatioLabel = detectCurrentRatio(currentStyle);
+  const currentScale      = detectCurrentScale(currentStyle);
+
+  // 比例區塊
+  const ratioLabel = document.createElement('div');
+  ratioLabel.className = 'img-popover-section-label';
+  ratioLabel.textContent = '比例';
+  popover.appendChild(ratioLabel);
+
+  const ratioRow = document.createElement('div');
+  ratioRow.className = 'img-popover-row';
+  IMG_RATIOS.forEach(ratio => {
+    const btn = document.createElement('button');
+    btn.className = 'img-ratio-btn' + (ratio.label === currentRatioLabel ? ' active' : '');
+    btn.textContent = ratio.label;
+    btn.type = 'button';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyImgRatio(imgEl, ratio);
+      ratioRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    ratioRow.appendChild(btn);
+  });
+  popover.appendChild(ratioRow);
+
+  // 縮放區塊
+  const scaleLabel = document.createElement('div');
+  scaleLabel.className = 'img-popover-section-label';
+  scaleLabel.style.marginTop = '6px';
+  scaleLabel.textContent = '縮放';
+  popover.appendChild(scaleLabel);
+
+  const scaleRow = document.createElement('div');
+  scaleRow.className = 'img-popover-row';
+  IMG_SCALES.forEach(scale => {
+    const btn = document.createElement('button');
+    btn.className = 'img-ratio-btn' + (scale === currentScale ? ' active' : '');
+    btn.textContent = scale;
+    btn.type = 'button';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyImgScale(imgEl, scale);
+      scaleRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    scaleRow.appendChild(btn);
+  });
+  popover.appendChild(scaleRow);
+
+  document.body.appendChild(popover);
+  _ratioPopover = popover;
+  positionImgRatioPopover(imgEl);
+
+  setTimeout(() => {
+    document.addEventListener('click', _closeRatioOnOutside);
+  }, 0);
+}
+
+function _closeRatioOnOutside(e) {
+  if (_ratioPopover && !_ratioPopover.contains(e.target) && e.target !== _ratioTargetImg) {
+    closeImgRatioPopover();
+    document.removeEventListener('click', _closeRatioOnOutside);
+  }
+}
+
+function closeImgRatioPopover() {
+  if (_ratioPopover) { _ratioPopover.remove(); _ratioPopover = null; }
+  _ratioTargetImg = null;
+}
+
+function positionImgRatioPopover(imgEl) {
+  const popover = document.getElementById('img-ratio-popover');
+  if (!popover) return;
+  const rect = imgEl.getBoundingClientRect();
+  const pw   = popover.offsetWidth || 200;
+  let left   = rect.left + window.scrollX;
+  let top    = rect.bottom + window.scrollY + 6;
+  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  popover.style.left = left + 'px';
+  popover.style.top  = top  + 'px';
+}
+
+function detectCurrentRatio(style) {
+  if (!style || !style.includes('aspect-ratio')) return '原圖';
+  if (style.includes('1/1'))  return '1:1';
+  if (style.includes('16/9')) return '16:9';
+  if (style.includes('4/3'))  return '4:3';
+  if (style.includes('3/4'))  return '3:4';
+  return '原圖';
+}
+
+function detectCurrentScale(style) {
+  const m = style.match(/max-width\s*:\s*(\d+)%/);
+  if (!m) return '100%';
+  const v = parseInt(m[1]);
+  if (v === 75) return '75%';
+  if (v === 50) return '50%';
+  if (v === 25) return '25%';
+  return '100%';
+}
+
+function applyImgRatio(imgEl, ratio) {
+  if (ratio.w === 0) {
+    imgEl.style.aspectRatio = '';
+    imgEl.style.objectFit   = '';
+    imgEl.style.width       = '';
+    imgEl.style.display     = '';
+  } else {
+    imgEl.style.aspectRatio = ratio.w + '/' + ratio.h;
+    imgEl.style.objectFit   = 'cover';
+    imgEl.style.width       = imgEl.style.maxWidth || '100%';
+    imgEl.style.display     = 'block';
+  }
+  toast('✓ 已套用 ' + ratio.label + ' 比例');
+}
+
+function applyImgScale(imgEl, scale) {
+  if (scale === '100%') {
+    imgEl.style.maxWidth = '';
+    imgEl.style.width    = imgEl.style.aspectRatio ? '100%' : '';
+  } else {
+    imgEl.style.maxWidth = scale;
+    imgEl.style.width    = scale;
+  }
+  toast('✓ 已套用 ' + scale + ' 縮放');
+}
+
+
+// ── Expose functions to window for onclick handlers ──
+window.addSkill = addSkill;
+window.closeVideoModal = closeVideoModal;
+window.deleteNote = deleteNote;
+window.deleteSkill = deleteSkill;
+window.deleteTool = deleteTool;
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+window.editNote = editNote;
+window.editSkill = editSkill;
+window.editTool = editTool;
+window.insertVideo = insertVideo;
+window.renderNoteForm = renderNoteForm;
+window.renderNotesPage = renderNotesPage;
+window.renderProjectForm = renderProjectForm;
+window.renderProjectsPage = renderProjectsPage;
+window.renderSkillsPage = renderSkillsPage;
+window.renderToolForm = renderToolForm;
+window.renderToolsPage = renderToolsPage;
+window.resetConfig = resetConfig;
+window.saveConfig = saveConfig;
+window.saveNavigation = saveNavigation;
+window.saveNote = saveNote;
+window.saveProfile = saveProfile;
+window.saveSkill = saveSkill;
+window.saveTool = saveTool;
+window.showPage = showPage;
 </script>
 </body>
 </html>
