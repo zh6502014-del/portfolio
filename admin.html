@@ -290,6 +290,31 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .single-date-row .date-picker-input { width:180px; }
 .single-date-row .date-range-hint { white-space:nowrap; }
 
+/* ── 自訂工具列按鈕（table / video） ── */
+.ql-toolbar .ql-table,
+.ql-toolbar .ql-custom-video {
+  width: auto !important;
+  padding: 3px 7px !important;
+  font-size: 13px !important;
+  font-family: 'Noto Sans TC', sans-serif !important;
+  color: var(--text-secondary) !important;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 3px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+.ql-toolbar .ql-table:hover,
+.ql-toolbar .ql-custom-video:hover {
+  color: var(--text) !important;
+  background: var(--bg-tertiary) !important;
+}
+.ql-toolbar .ql-table::after { content: '表格'; }
+.ql-toolbar .ql-custom-video::after { content: '影片'; }
+
 /* ── Toolbar tooltips ── */
 .ql-toolbar button[title],
 .ql-toolbar .ql-picker[title] { position:relative; }
@@ -346,12 +371,25 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
   background: var(--bg);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  padding: 6px;
+  padding: 10px 10px 8px;
   display: flex;
+  flex-direction: column;
   gap: 4px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  min-width: 220px;
+}
+.img-popover-section-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+.img-popover-row {
+  display: flex;
   flex-wrap: wrap;
-  max-width: 280px;
+  gap: 4px;
 }
 .img-ratio-btn {
   font-size: 12px;
@@ -1505,37 +1543,76 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
     delete quillInstances[id];
   }
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = `<div id="quill-${id}"></div>`;
-  document.getElementById(id).appendChild(wrapper);
+  const toolbarId = 'ql-toolbar-' + id;
 
-  const toolbar = richMode ? [
-    [{ header: [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ color: [] }, { background: [] }],
-    [{ align: [] }],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['blockquote', 'code-block'],
-    ['link', 'image', 'video', 'table'],
-    ['clean']
-  ] : [
-    ['bold', 'italic', 'underline'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['link'], ['clean']
-  ];
+  if (richMode) {
+    // ── Rich mode：使用 HTML toolbar，加入自訂 table/video 按鈕 ──
+    wrapper.innerHTML = `
+      <div id="${toolbarId}">
+        <span class="ql-formats">
+          <select class="ql-header">
+            <option value="1">H1</option>
+            <option value="2">H2</option>
+            <option value="3">H3</option>
+            <option selected></option>
+          </select>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-bold"></button>
+          <button class="ql-italic"></button>
+          <button class="ql-underline"></button>
+          <button class="ql-strike"></button>
+        </span>
+        <span class="ql-formats">
+          <select class="ql-color"></select>
+          <select class="ql-background"></select>
+        </span>
+        <span class="ql-formats">
+          <select class="ql-align"></select>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-list" value="ordered"></button>
+          <button class="ql-list" value="bullet"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-blockquote"></button>
+          <button class="ql-code-block"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-link"></button>
+          <button class="ql-image"></button>
+          <button class="ql-custom-video" title="影片"></button>
+          <button class="ql-table" title="表格"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-clean"></button>
+        </span>
+      </div>
+      <div id="quill-${id}"></div>`;
+  } else {
+    wrapper.innerHTML = `<div id="quill-${id}"></div>`;
+  }
+  document.getElementById(id).appendChild(wrapper);
 
   const q = new Quill(`#quill-${id}`, {
     theme: 'snow', placeholder,
     modules: {
-      toolbar: {
-        container: toolbar,
-        handlers: richMode ? { video: () => openVideoModal(id), table: () => openTableModal(id) } : {}
-      }
+      toolbar: richMode
+        ? { container: '#' + toolbarId, handlers: {} }
+        : {
+            container: [
+              ['bold', 'italic', 'underline'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link'], ['clean']
+            ]
+          }
     }
   });
 
-  // Override image handler for rich mode — upload to Supabase
   if (richMode) {
-    q.getModule('toolbar').addHandler('image', () => {
+    // 綁定自訂按鈕 handler
+    const tb = q.getModule('toolbar');
+    tb.addHandler('image', () => {
       const input = document.createElement('input');
       input.type = 'file'; input.accept = 'image/*';
       input.onchange = async () => {
@@ -1547,13 +1624,21 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
           const range = q.getSelection(true) || { index: q.getLength() - 1 };
           q.insertEmbed(range.index, 'image', url);
           q.setSelection(range.index + 1);
-          toast('✓ 圖片已插入，可點擊圖片調整比例');
+          toast('✓ 圖片已插入，可點擊圖片調整比例與縮放');
         } catch(e) { toast('圖片上傳失敗：' + e.message); }
       };
       input.click();
     });
 
-    // ── 點擊圖片 → 顯示比例浮層 ──
+    // 自訂 video 按鈕
+    const videoBtn = document.querySelector('#' + toolbarId + ' .ql-custom-video');
+    if (videoBtn) videoBtn.addEventListener('click', () => openVideoModal(id));
+
+    // 自訂 table 按鈕
+    const tableBtn = document.querySelector('#' + toolbarId + ' .ql-table');
+    if (tableBtn) tableBtn.addEventListener('click', () => openTableModal(id));
+
+    // ── 點擊圖片 → 顯示比例+縮放浮層 ──
     q.root.addEventListener('click', (e) => {
       if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
       openImgRatioPopover(e.target, q);
@@ -1633,12 +1718,13 @@ function attachQuillTooltips(id) {
 // IMAGE RATIO POPOVER
 // ─────────────────────────────────────────────
 const IMG_RATIOS = [
-  { label: '1:1',   w: 1, h: 1 },
+  { label: '1:1',   w: 1,  h: 1 },
   { label: '16:9',  w: 16, h: 9 },
-  { label: '4:3',   w: 4, h: 3 },
-  { label: '3:4',   w: 3, h: 4 },
-  { label: '原圖',  w: 0, h: 0 },
+  { label: '4:3',   w: 4,  h: 3 },
+  { label: '3:4',   w: 3,  h: 4 },
+  { label: '原圖',  w: 0,  h: 0 },
 ];
+const IMG_SCALES = ['100%', '75%', '50%', '25%'];
 
 let _ratioPopover = null;
 let _ratioTargetImg = null;
@@ -1651,10 +1737,18 @@ function openImgRatioPopover(imgEl, quillInstance) {
   popover.className = 'img-ratio-popover';
   popover.id = 'img-ratio-popover';
 
-  // 偵測目前套用的比例
   const currentStyle = imgEl.getAttribute('style') || '';
   const currentRatioLabel = detectCurrentRatio(currentStyle);
+  const currentScale      = detectCurrentScale(currentStyle);
 
+  // ── 比例區塊 ──
+  const ratioLabel = document.createElement('div');
+  ratioLabel.className = 'img-popover-section-label';
+  ratioLabel.textContent = '比例';
+  popover.appendChild(ratioLabel);
+
+  const ratioRow = document.createElement('div');
+  ratioRow.className = 'img-popover-row';
   IMG_RATIOS.forEach(ratio => {
     const btn = document.createElement('button');
     btn.className = 'img-ratio-btn' + (ratio.label === currentRatioLabel ? ' active' : '');
@@ -1663,12 +1757,36 @@ function openImgRatioPopover(imgEl, quillInstance) {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       applyImgRatio(imgEl, ratio, quillInstance);
-      // 更新 active 狀態
-      popover.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      ratioRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     });
-    popover.appendChild(btn);
+    ratioRow.appendChild(btn);
   });
+  popover.appendChild(ratioRow);
+
+  // ── 縮放區塊 ──
+  const scaleLabel = document.createElement('div');
+  scaleLabel.className = 'img-popover-section-label';
+  scaleLabel.style.marginTop = '6px';
+  scaleLabel.textContent = '縮放';
+  popover.appendChild(scaleLabel);
+
+  const scaleRow = document.createElement('div');
+  scaleRow.className = 'img-popover-row';
+  IMG_SCALES.forEach(scale => {
+    const btn = document.createElement('button');
+    btn.className = 'img-ratio-btn' + (scale === currentScale ? ' active' : '');
+    btn.textContent = scale;
+    btn.type = 'button';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyImgScale(imgEl, scale, quillInstance);
+      scaleRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    scaleRow.appendChild(btn);
+  });
+  popover.appendChild(scaleRow);
 
   document.body.appendChild(popover);
   _ratioPopover = popover;
@@ -1712,6 +1830,28 @@ function detectCurrentRatio(style) {
   if (style.indexOf('4/3') !== -1)   return '4:3';
   if (style.indexOf('3/4') !== -1)   return '3:4';
   return '原圖';
+}
+
+function detectCurrentScale(style) {
+  const m = style.match(/max-width\s*:\s*(\d+)%/);
+  if (!m) return '100%';
+  const v = parseInt(m[1]);
+  if (v === 75) return '75%';
+  if (v === 50) return '50%';
+  if (v === 25) return '25%';
+  return '100%';
+}
+
+function applyImgScale(imgEl, scale, quillInstance) {
+  if (scale === '100%') {
+    imgEl.style.maxWidth = '';
+    imgEl.style.width    = imgEl.style.aspectRatio ? '100%' : '';
+  } else {
+    imgEl.style.maxWidth = scale;
+    imgEl.style.width    = scale;
+  }
+  if (quillInstance) quillInstance.update();
+  toast('✓ 已套用 ' + scale + ' 縮放');
 }
 
 function applyImgRatio(imgEl, ratio, quillInstance) {
