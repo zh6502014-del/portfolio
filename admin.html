@@ -2140,59 +2140,50 @@ function insertTable(editorId) {
   const q = quillInstances[editorId];
   if (!q) { toast('找不到編輯器'); return; }
 
-  const cols     = Math.max(1, Math.min(10, parseInt(document.getElementById('tm-cols')?.value) || 3));
-  const rows     = Math.max(2, Math.min(30, parseInt(document.getElementById('tm-rows')?.value) || 4));
-  const border   = document.getElementById('tm-border')?.value || '#e2e8f0';
-  const headerBg = getTmColor('header-bg');
+  const cols        = Math.max(1, Math.min(10, parseInt(document.getElementById('tm-cols')?.value) || 3));
+  const rows        = Math.max(2, Math.min(30, parseInt(document.getElementById('tm-rows')?.value) || 4));
+  const border      = document.getElementById('tm-border')?.value || '#e2e8f0';
+  const headerBg    = getTmColor('header-bg');
   const headerColor = document.getElementById('tm-header-color')?.value || '#1a1917';
-  const cellBg   = getTmColor('bg');
+  const cellBg      = getTmColor('bg');
 
-  // 建立真實 DOM table，再取得 outerHTML
+  // ── 建立 table HTML ──
   const table = document.createElement('table');
-  table.style.cssText = 'border-collapse:collapse;width:100%;margin:12px 0;';
-
+  table.setAttribute('style', 'border-collapse:collapse;width:100%;margin:12px 0;');
   for (let r = 0; r < rows; r++) {
     const tr = document.createElement('tr');
     for (let c = 0; c < cols; c++) {
       const td = document.createElement('td');
-      td.style.cssText = 'border:1px solid ' + border + ';padding:7px 12px;min-width:60px;vertical-align:top;'
-        + 'background:' + (r === 0 ? headerBg : cellBg) + ';'
-        + 'color:' + (r === 0 ? headerColor : 'inherit') + ';'
-        + (r === 0 ? 'font-weight:600;' : '');
-      td.textContent = r === 0 ? ('欄 ' + (c + 1)) : '';
+      const isH = r === 0;
+      td.setAttribute('style',
+        'border:1px solid ' + border + ';' +
+        'padding:7px 12px;min-width:60px;vertical-align:top;' +
+        'background:' + (isH ? headerBg : cellBg) + ';' +
+        'color:' + (isH ? headerColor : 'inherit') + ';' +
+        (isH ? 'font-weight:600;' : '')
+      );
+      td.textContent = isH ? ('欄 ' + (c + 1)) : '';
       tr.appendChild(td);
     }
     table.appendChild(tr);
   }
 
-  const tableHTML = table.outerHTML + '<p><br></p>';
+  // ── 最可靠方式：直接操作 editor innerHTML，完全繞過 Quill delta ──
+  // 取得目前完整 HTML，在末尾附加 table
+  const currentHTML = q.root.innerHTML;
+  // 移除結尾空白 <p>
+  const cleaned = currentHTML.replace(/<p><br><\/p>$/, '');
+  q.root.innerHTML = cleaned + table.outerHTML + '<p><br></p>';
 
-  // Quill 1.x 用 root 直接插入後再 sync（dangerouslyPasteHTML 會濾掉 table）
-  const range = q.getSelection(true) || { index: Math.max(0, q.getLength() - 1) };
+  // 讓 Quill 把目前 DOM 重新解析為 delta
+  const newDelta = q.clipboard.convert(q.root.innerHTML);
+  q.setContents(newDelta, 'silent');
 
-  // 在游標位置拆出一個 <p> 插入點
-  const editorRoot = q.root;
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = tableHTML;
-
-  // 找到對應的葉節點並在其後插入
-  const [leaf] = q.getLeaf(range.index);
-  let insertNode = leaf && leaf.domNode;
-  // 往上找到直接子節點
-  while (insertNode && insertNode.parentNode !== editorRoot) {
-    insertNode = insertNode.parentNode;
-  }
-  if (insertNode && insertNode.parentNode === editorRoot) {
-    Array.from(tempDiv.childNodes).reverse().forEach(node => {
-      editorRoot.insertBefore(node.cloneNode(true), insertNode.nextSibling);
-    });
-  } else {
-    editorRoot.appendChild(tempDiv.firstChild.cloneNode(true));
-  }
-
-  // 強制 Quill 重新同步
-  q.update();
-  q.setSelection(q.getLength() - 1, 0);
+  // 捲到底並關閉 modal
+  setTimeout(() => {
+    q.setSelection(q.getLength() - 1, 0);
+    q.scrollIntoView();
+  }, 0);
 
   document.getElementById('table-modal').remove();
   toast('✓ 表格已插入');
