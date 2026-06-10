@@ -290,30 +290,26 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .single-date-row .date-picker-input { width:180px; }
 .single-date-row .date-range-hint { white-space:nowrap; }
 
-/* ── 自訂工具列按鈕（table / video） ── */
-.ql-toolbar .ql-table,
-.ql-toolbar .ql-custom-video {
-  width: auto !important;
-  padding: 3px 7px !important;
-  font-size: 13px !important;
-  font-family: 'Noto Sans TC', sans-serif !important;
-  color: var(--text-secondary) !important;
+/* ── 自訂工具列按鈕（影片 / 表格）── 附加在 Quill toolbar 末尾，不被 Quill 管理 ── */
+.ql-extra-btn {
+  height: 24px;
+  padding: 0 7px;
+  font-size: 13px;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text-secondary);
   background: none;
   border: none;
   cursor: pointer;
   border-radius: 3px;
-  height: 24px;
   display: inline-flex;
   align-items: center;
   line-height: 1;
+  transition: color 0.1s, background 0.1s;
 }
-.ql-toolbar .ql-table:hover,
-.ql-toolbar .ql-custom-video:hover {
-  color: var(--text) !important;
-  background: var(--bg-tertiary) !important;
+.ql-extra-btn:hover {
+  color: var(--text);
+  background: var(--bg-tertiary);
 }
-.ql-toolbar .ql-table::after { content: '表格'; }
-.ql-toolbar .ql-custom-video::after { content: '影片'; }
 
 /* ── Toolbar tooltips ── */
 .ql-toolbar button[title],
@@ -1626,62 +1622,62 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
     delete quillInstances[id];
   }
   const wrapper = document.createElement('div');
+  wrapper.style.position = 'relative';
   const toolbarId = 'ql-toolbar-' + id;
 
   if (richMode) {
-    // ── Rich mode：使用 HTML toolbar，加入自訂 table/video 按鈕 ──
-    wrapper.innerHTML = `
-      <div id="${toolbarId}">
-        <span class="ql-formats">
-          <select class="ql-header">
-            <option value="1">H1</option>
-            <option value="2">H2</option>
-            <option value="3">H3</option>
-            <option selected></option>
-          </select>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-bold"></button>
-          <button class="ql-italic"></button>
-          <button class="ql-underline"></button>
-          <button class="ql-strike"></button>
-        </span>
-        <span class="ql-formats">
-          <select class="ql-color"></select>
-          <select class="ql-background"></select>
-        </span>
-        <span class="ql-formats">
-          <select class="ql-align"></select>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-list" value="ordered"></button>
-          <button class="ql-list" value="bullet"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-blockquote"></button>
-          <button class="ql-code-block"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-link"></button>
-          <button class="ql-image"></button>
-          <button class="ql-custom-video" title="影片"></button>
-          <button class="ql-table" title="表格"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-clean"></button>
-        </span>
-      </div>
-      <div id="quill-${id}"></div>`;
+    // Quill 管轄的 toolbar（只放 Quill 認識的 format）
+    // 自訂按鈕（video / table）放在 toolbar 外，Quill 不碰
+    wrapper.innerHTML =
+      '<div id="' + toolbarId + '">' +
+        '<span class="ql-formats">' +
+          '<select class="ql-header">' +
+            '<option value="1">H1</option>' +
+            '<option value="2">H2</option>' +
+            '<option value="3">H3</option>' +
+            '<option selected></option>' +
+          '</select>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<button class="ql-bold"></button>' +
+          '<button class="ql-italic"></button>' +
+          '<button class="ql-underline"></button>' +
+          '<button class="ql-strike"></button>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<select class="ql-color"></select>' +
+          '<select class="ql-background"></select>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<select class="ql-align"></select>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<button class="ql-list" value="ordered"></button>' +
+          '<button class="ql-list" value="bullet"></button>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<button class="ql-blockquote"></button>' +
+          '<button class="ql-code-block"></button>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<button class="ql-link"></button>' +
+          '<button class="ql-image"></button>' +
+        '</span>' +
+        '<span class="ql-formats">' +
+          '<button class="ql-clean"></button>' +
+        '</span>' +
+      '</div>' +
+      '<div id="quill-' + id + '"></div>';
   } else {
-    wrapper.innerHTML = `<div id="quill-${id}"></div>`;
+    wrapper.innerHTML = '<div id="quill-' + id + '"></div>';
   }
   document.getElementById(id).appendChild(wrapper);
 
-  const q = new Quill(`#quill-${id}`, {
+  const q = new Quill('#quill-' + id, {
     theme: 'snow', placeholder,
     modules: {
       toolbar: richMode
-        ? { container: '#' + toolbarId, handlers: {} }
+        ? { container: '#' + toolbarId }
         : {
             container: [
               ['bold', 'italic', 'underline'],
@@ -1693,9 +1689,8 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
   });
 
   if (richMode) {
-    // 綁定自訂按鈕 handler
-    const tb = q.getModule('toolbar');
-    tb.addHandler('image', () => {
+    // image handler
+    q.getModule('toolbar').addHandler('image', () => {
       const input = document.createElement('input');
       input.type = 'file'; input.accept = 'image/*';
       input.onchange = async () => {
@@ -1713,15 +1708,35 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
       input.click();
     });
 
-    // 自訂 video 按鈕
-    const videoBtn = document.querySelector('#' + toolbarId + ' .ql-custom-video');
-    if (videoBtn) videoBtn.addEventListener('click', () => openVideoModal(id));
+    // ── 自訂按鈕：Quill 初始化完成後，把按鈕直接附加到 toolbar DOM ──
+    // 必須在 Quill new 之後才操作，避免 Quill 重繪時清掉
+    setTimeout(() => {
+      const tbEl = document.getElementById(toolbarId);
+      if (!tbEl) return;
 
-    // 自訂 table 按鈕
-    const tableBtn = document.querySelector('#' + toolbarId + ' .ql-table');
-    if (tableBtn) tableBtn.addEventListener('click', () => openTableModal(id));
+      const extraSpan = document.createElement('span');
+      extraSpan.className = 'ql-formats';
 
-    // ── 點擊圖片 → 顯示比例+縮放浮層 ──
+      const videoBtn = document.createElement('button');
+      videoBtn.type = 'button';
+      videoBtn.className = 'ql-extra-btn';
+      videoBtn.textContent = '影片';
+      videoBtn.title = '嵌入影片';
+      videoBtn.addEventListener('click', (e) => { e.preventDefault(); openVideoModal(id); });
+
+      const tableBtn = document.createElement('button');
+      tableBtn.type = 'button';
+      tableBtn.className = 'ql-extra-btn';
+      tableBtn.textContent = '表格';
+      tableBtn.title = '插入表格';
+      tableBtn.addEventListener('click', (e) => { e.preventDefault(); openTableModal(id); });
+
+      extraSpan.appendChild(videoBtn);
+      extraSpan.appendChild(tableBtn);
+      tbEl.appendChild(extraSpan);
+    }, 0);
+
+    // 點擊圖片 → 顯示比例+縮放浮層
     q.root.addEventListener('click', (e) => {
       if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
       openImgRatioPopover(e.target, q);
@@ -1729,8 +1744,7 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
   }
 
   quillInstances[id] = q;
-  // Attach tooltips after DOM renders
-  setTimeout(() => attachQuillTooltips(id), 100);
+  setTimeout(() => attachQuillTooltips(id), 150);
   return q;
 }
 
