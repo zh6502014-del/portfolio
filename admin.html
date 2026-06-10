@@ -792,54 +792,6 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
 <div id="toast"></div>
 
 <script>
-// ── 註冊 Table Blots，讓 Quill 1.x 認識 <table><tr><td> ──
-(function() {
-  const Parchment = Quill.import('parchment');
-  const Block     = Quill.import('blots/block');
-  const Container = Quill.import('blots/block/embed');
-
-  // TD
-  class TableCell extends Block {
-    static formats(domNode) {
-      const style = domNode.getAttribute('style') || '';
-      return style || undefined;
-    }
-    format(name, value) {
-      if (name === 'table-cell') {
-        if (value) this.domNode.setAttribute('style', value);
-        else this.domNode.removeAttribute('style');
-      } else {
-        super.format(name, value);
-      }
-    }
-  }
-  TableCell.blotName = 'table-cell';
-  TableCell.tagName  = 'TD';
-
-  // TR
-  class TableRow extends Block {}
-  TableRow.blotName = 'table-row';
-  TableRow.tagName  = 'TR';
-  TableRow.allowedChildren = [TableCell];
-
-  // TBODY
-  class TableBody extends Block {}
-  TableBody.blotName = 'table-body';
-  TableBody.tagName  = 'TBODY';
-  TableBody.allowedChildren = [TableRow];
-
-  // TABLE
-  class TableContainer extends Block {}
-  TableContainer.blotName = 'table';
-  TableContainer.tagName  = 'TABLE';
-  TableContainer.allowedChildren = [TableBody];
-
-  Quill.register(TableCell,      true);
-  Quill.register(TableRow,       true);
-  Quill.register(TableBody,      true);
-  Quill.register(TableContainer, true);
-})();
-
 // ── Globals ──
 let supabase_client = null;
 let quillInstances = {};
@@ -2209,14 +2161,20 @@ function insertTable(editorId) {
   const headerColor = document.getElementById('tm-header-color')?.value || '#1a1917';
   const cellBg      = getTmColor('bg');
 
-  // ── 建立 table HTML ──
+  // ── 建立 table DOM ──
   const table = document.createElement('table');
-  table.setAttribute('style', 'border-collapse:collapse;width:100%;margin:12px 0;');
+  table.setAttribute('contenteditable', 'true');
+  table.setAttribute('style',
+    'border-collapse:collapse;width:100%;margin:12px 0;' +
+    'table-layout:fixed;word-break:break-word;'
+  );
+  const tbody = document.createElement('tbody');
   for (let r = 0; r < rows; r++) {
     const tr = document.createElement('tr');
     for (let c = 0; c < cols; c++) {
       const td = document.createElement('td');
       const isH = r === 0;
+      td.setAttribute('contenteditable', 'true');
       td.setAttribute('style',
         'border:1px solid ' + border + ';' +
         'padding:7px 12px;min-width:60px;vertical-align:top;' +
@@ -2224,19 +2182,47 @@ function insertTable(editorId) {
         'color:' + (isH ? headerColor : 'inherit') + ';' +
         (isH ? 'font-weight:600;' : '')
       );
-      td.textContent = isH ? ('欄 ' + (c + 1)) : '';
+      td.innerHTML = isH ? ('<strong>欄 ' + (c + 1) + '</strong>') : '<br>';
       tr.appendChild(td);
     }
-    table.appendChild(tr);
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  // ── 直接插入 q.root（完全繞過 Quill delta / clipboard）──
+  const editorRoot = q.root;
+
+  // 找游標所在的頂層節點（q.root 的直接子節點）
+  const sel = window.getSelection();
+  let anchorNode = sel && sel.anchorNode;
+  let insertAfter = null;
+  if (anchorNode) {
+    let node = anchorNode;
+    while (node && node.parentNode !== editorRoot) node = node.parentNode;
+    if (node && node.parentNode === editorRoot) insertAfter = node;
   }
 
-  // Blot 已註冊 TABLE/TR/TD，直接用 dangerouslyPasteHTML 插入
-  const range = q.getSelection(true) || { index: Math.max(0, q.getLength() - 1) };
-  q.clipboard.dangerouslyPasteHTML(range.index, table.outerHTML + '<p><br></p>', 'user');
+  // 插入 table
+  if (insertAfter && insertAfter.nextSibling) {
+    editorRoot.insertBefore(table, insertAfter.nextSibling);
+  } else {
+    editorRoot.appendChild(table);
+  }
 
-  setTimeout(() => {
-    q.setSelection(q.getLength() - 1, 0);
-  }, 0);
+  // 插入 table 後補一個空 <p> 讓游標可以繼續打字
+  const gap = document.createElement('p');
+  gap.innerHTML = '<br>';
+  table.insertAdjacentElement('afterend', gap);
+
+  // 把游標移到空 <p>
+  try {
+    const range = document.createRange();
+    range.setStart(gap, 0);
+    range.collapse(true);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(range);
+  } catch(e) {}
 
   document.getElementById('table-modal').remove();
   toast('✓ 表格已插入');
