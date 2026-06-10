@@ -792,6 +792,54 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
 <div id="toast"></div>
 
 <script>
+// ── 註冊 Table Blots，讓 Quill 1.x 認識 <table><tr><td> ──
+(function() {
+  const Parchment = Quill.import('parchment');
+  const Block     = Quill.import('blots/block');
+  const Container = Quill.import('blots/block/embed');
+
+  // TD
+  class TableCell extends Block {
+    static formats(domNode) {
+      const style = domNode.getAttribute('style') || '';
+      return style || undefined;
+    }
+    format(name, value) {
+      if (name === 'table-cell') {
+        if (value) this.domNode.setAttribute('style', value);
+        else this.domNode.removeAttribute('style');
+      } else {
+        super.format(name, value);
+      }
+    }
+  }
+  TableCell.blotName = 'table-cell';
+  TableCell.tagName  = 'TD';
+
+  // TR
+  class TableRow extends Block {}
+  TableRow.blotName = 'table-row';
+  TableRow.tagName  = 'TR';
+  TableRow.allowedChildren = [TableCell];
+
+  // TBODY
+  class TableBody extends Block {}
+  TableBody.blotName = 'table-body';
+  TableBody.tagName  = 'TBODY';
+  TableBody.allowedChildren = [TableRow];
+
+  // TABLE
+  class TableContainer extends Block {}
+  TableContainer.blotName = 'table';
+  TableContainer.tagName  = 'TABLE';
+  TableContainer.allowedChildren = [TableBody];
+
+  Quill.register(TableCell,      true);
+  Quill.register(TableRow,       true);
+  Quill.register(TableBody,      true);
+  Quill.register(TableContainer, true);
+})();
+
 // ── Globals ──
 let supabase_client = null;
 let quillInstances = {};
@@ -2182,21 +2230,12 @@ function insertTable(editorId) {
     table.appendChild(tr);
   }
 
-  // ── 最可靠方式：直接操作 editor innerHTML，完全繞過 Quill delta ──
-  // 取得目前完整 HTML，在末尾附加 table
-  const currentHTML = q.root.innerHTML;
-  // 移除結尾空白 <p>
-  const cleaned = currentHTML.replace(/<p><br><\/p>$/, '');
-  q.root.innerHTML = cleaned + table.outerHTML + '<p><br></p>';
+  // Blot 已註冊 TABLE/TR/TD，直接用 dangerouslyPasteHTML 插入
+  const range = q.getSelection(true) || { index: Math.max(0, q.getLength() - 1) };
+  q.clipboard.dangerouslyPasteHTML(range.index, table.outerHTML + '<p><br></p>', 'user');
 
-  // 讓 Quill 把目前 DOM 重新解析為 delta
-  const newDelta = q.clipboard.convert(q.root.innerHTML);
-  q.setContents(newDelta, 'silent');
-
-  // 捲到底並關閉 modal
   setTimeout(() => {
     q.setSelection(q.getLength() - 1, 0);
-    q.scrollIntoView();
   }, 0);
 
   document.getElementById('table-modal').remove();
