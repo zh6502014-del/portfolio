@@ -339,6 +339,35 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .video-modal-hint { font-size:13px; color:var(--text-tertiary); margin-top:8px; line-height:1.6; }
 .video-modal-actions { display:flex; gap:8px; margin-top:18px; }
 
+/* ── Image ratio popover (in Quill editor) ── */
+.img-ratio-popover {
+  position: absolute;
+  z-index: 9999;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  flex-wrap: wrap;
+  max-width: 280px;
+}
+.img-ratio-btn {
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.img-ratio-btn:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-strong); }
+.img-ratio-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
 /* ── Image upload ── */
 .img-upload-area {
   border: 2px dashed var(--border-strong);
@@ -1518,10 +1547,16 @@ function makeQuill(id, placeholder = '在這裡輸入內容...', richMode = fals
           const range = q.getSelection(true) || { index: q.getLength() - 1 };
           q.insertEmbed(range.index, 'image', url);
           q.setSelection(range.index + 1);
-          toast('✓ 圖片已插入');
+          toast('✓ 圖片已插入，可點擊圖片調整比例');
         } catch(e) { toast('圖片上傳失敗：' + e.message); }
       };
       input.click();
+    });
+
+    // ── 點擊圖片 → 顯示比例浮層 ──
+    q.root.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
+      openImgRatioPopover(e.target, q);
     });
   }
 
@@ -1592,6 +1627,111 @@ function attachQuillTooltips(id) {
     tip.textContent = label;
     picker.appendChild(tip);
   });
+}
+
+// ─────────────────────────────────────────────
+// IMAGE RATIO POPOVER
+// ─────────────────────────────────────────────
+const IMG_RATIOS = [
+  { label: '1:1',   w: 1, h: 1 },
+  { label: '16:9',  w: 16, h: 9 },
+  { label: '4:3',   w: 4, h: 3 },
+  { label: '3:4',   w: 3, h: 4 },
+  { label: '原圖',  w: 0, h: 0 },
+];
+
+let _ratioPopover = null;
+let _ratioTargetImg = null;
+
+function openImgRatioPopover(imgEl, quillInstance) {
+  closeImgRatioPopover();
+  _ratioTargetImg = imgEl;
+
+  const popover = document.createElement('div');
+  popover.className = 'img-ratio-popover';
+  popover.id = 'img-ratio-popover';
+
+  // 偵測目前套用的比例
+  const currentStyle = imgEl.getAttribute('style') || '';
+  const currentRatioLabel = detectCurrentRatio(currentStyle);
+
+  IMG_RATIOS.forEach(ratio => {
+    const btn = document.createElement('button');
+    btn.className = 'img-ratio-btn' + (ratio.label === currentRatioLabel ? ' active' : '');
+    btn.textContent = ratio.label;
+    btn.type = 'button';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyImgRatio(imgEl, ratio, quillInstance);
+      // 更新 active 狀態
+      popover.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    popover.appendChild(btn);
+  });
+
+  document.body.appendChild(popover);
+  _ratioPopover = popover;
+  positionImgRatioPopover(imgEl);
+
+  // 點擊其他地方關閉
+  setTimeout(() => {
+    document.addEventListener('click', _closeRatioOnOutside, { once: false });
+  }, 0);
+}
+
+function _closeRatioOnOutside(e) {
+  if (_ratioPopover && !_ratioPopover.contains(e.target) && e.target !== _ratioTargetImg) {
+    closeImgRatioPopover();
+    document.removeEventListener('click', _closeRatioOnOutside);
+  }
+}
+
+function closeImgRatioPopover() {
+  if (_ratioPopover) { _ratioPopover.remove(); _ratioPopover = null; }
+  _ratioTargetImg = null;
+}
+
+function positionImgRatioPopover(imgEl) {
+  const popover = document.getElementById('img-ratio-popover');
+  if (!popover) return;
+  const rect = imgEl.getBoundingClientRect();
+  const pw = popover.offsetWidth || 200;
+  let left = rect.left + window.scrollX;
+  let top  = rect.bottom + window.scrollY + 6;
+  // 超出右邊界時靠右對齊
+  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  popover.style.left = left + 'px';
+  popover.style.top  = top  + 'px';
+}
+
+function detectCurrentRatio(style) {
+  if (!style || style.indexOf('aspect-ratio') === -1) return '原圖';
+  if (style.indexOf('1/1') !== -1)   return '1:1';
+  if (style.indexOf('16/9') !== -1)  return '16:9';
+  if (style.indexOf('4/3') !== -1)   return '4:3';
+  if (style.indexOf('3/4') !== -1)   return '3:4';
+  return '原圖';
+}
+
+function applyImgRatio(imgEl, ratio, quillInstance) {
+  if (ratio.w === 0) {
+    // 原圖：移除 aspect-ratio 與 object-fit
+    imgEl.style.aspectRatio = '';
+    imgEl.style.objectFit   = '';
+    imgEl.style.width       = '';
+    imgEl.style.display     = '';
+  } else {
+    imgEl.style.aspectRatio = ratio.w + '/' + ratio.h;
+    imgEl.style.objectFit   = 'cover';
+    imgEl.style.width       = '100%';
+    imgEl.style.display     = 'block';
+  }
+  // 強制 Quill 同步 delta（讓儲存時 HTML 包含 style）
+  if (quillInstance) {
+    quillInstance.update();
+  }
+  toast('✓ 已套用 ' + ratio.label + ' 比例');
 }
 
 // ─────────────────────────────────────────────
