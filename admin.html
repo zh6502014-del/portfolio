@@ -266,6 +266,46 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
   display: inline-flex; align-items: center; transition: color 0.1s, background 0.1s;
 }
 .ql-extra-btn:hover { color: var(--text); background: var(--bg-tertiary); }
+/* ── 插入表格 Modal ── */
+.ins-table-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.ins-table-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px;
+  width: 320px; max-width: 92vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.ins-table-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.ins-table-title { font-size: 15px; font-weight: 600; }
+.ins-table-close {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  border: none; background: none; cursor: pointer;
+  color: var(--text-tertiary); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ins-table-close:hover { background: var(--bg-secondary); color: var(--text); }
+.ins-table-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.ins-table-field { display: flex; flex-direction: column; gap: 5px; }
+.ins-table-field label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
+.ins-table-field input[type="number"] {
+  padding: 7px 10px; font-size: 14px; font-family: inherit;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text); outline: none; width: 100%;
+}
+.ins-table-field input:focus { border-color: var(--border-strong); }
+.ins-table-header-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;
+}
+.ins-table-footer { display: flex; gap: 8px; justify-content: flex-end; }
+
 /* ── Group editor ── */
 .group-list { display:flex; flex-direction:column; gap:12px; }
 .group-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .15s; }
