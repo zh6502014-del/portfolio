@@ -1651,13 +1651,12 @@ async function makeTiptap(id, placeholder, richMode) {
   container.innerHTML = '';
 
   // 動態載入 Tiptap（ESM CDN）
-  const { Editor } = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
+  const { Editor, Node } = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
   const { default: StarterKit } = await import('https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.11.5/+esm');
   const { default: TTable }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table@2.11.5/+esm');
   const { default: TTableRow }  = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@2.11.5/+esm');
   const { default: TTableCell } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-cell@2.11.5/+esm');
   const { default: TTableHeader } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-header@2.11.5/+esm');
-  const { default: TImage }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-image@2.11.5/+esm');
   const { default: TLink }      = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-link@2.11.5/+esm');
   const { default: TColor }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-color@2.11.5/+esm');
   const { default: TTextStyle } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-text-style@2.11.5/+esm');
@@ -1676,9 +1675,94 @@ async function makeTiptap(id, placeholder, richMode) {
   wrap.appendChild(edEl);
   container.appendChild(wrap);
 
+  const TIframe = Node.create({
+    name: 'iframe',
+    group: 'block',
+    atom: true,
+    addAttributes() {
+      return {
+        src: {
+          default: null,
+          parseHTML: el => el.getAttribute('src'),
+        },
+        style: {
+          default: null,
+          parseHTML: el => el.getAttribute('style'),
+        },
+        allowfullscreen: {
+          default: true,
+          parseHTML: el => el.hasAttribute('allowfullscreen'),
+        },
+        frameborder: {
+          default: '0',
+          parseHTML: el => el.getAttribute('frameborder') || '0',
+        },
+        allow: {
+          default: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+          parseHTML: el => el.getAttribute('allow'),
+        },
+      };
+    },
+    parseHTML() {
+      return [{ tag: 'iframe[src]' }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      const attrs = {
+        ...HTMLAttributes,
+        frameborder: HTMLAttributes.frameborder || '0',
+        allowfullscreen: HTMLAttributes.allowfullscreen !== false ? 'true' : null,
+        style: HTMLAttributes.style || 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
+      };
+      return ['iframe', attrs];
+    },
+  });
+
   const extensions = richMode ? [
     StarterKit.configure({ dropcursor: false }),
-    TImage.configure({ inline: false, allowBase64: true }),
+    Node.create({
+      name: 'image',
+      group: 'block',
+      atom: true,
+      draggable: true,
+      addAttributes() {
+        return {
+          src:   { default: null, parseHTML: el => el.getAttribute('src') },
+          alt:   { default: null, parseHTML: el => el.getAttribute('alt') },
+          title: { default: null, parseHTML: el => el.getAttribute('title') },
+          style: { default: null, parseHTML: el => el.getAttribute('style') },
+          width: { default: null, parseHTML: el => el.getAttribute('width') },
+        };
+      },
+      parseHTML() {
+        return [{
+          tag: 'img',
+          getAttrs: el => ({
+            src: el.getAttribute('src') || '',
+            alt: el.getAttribute('alt') || null,
+            title: el.getAttribute('title') || null,
+            style: el.getAttribute('style') || null,
+            width: el.getAttribute('width') || null,
+          }),
+        }];
+      },
+      renderHTML({ HTMLAttributes }) {
+        return ['img', {
+          src: HTMLAttributes.src || '',
+          alt: HTMLAttributes.alt || null,
+          title: HTMLAttributes.title || null,
+          width: HTMLAttributes.width || null,
+          style: HTMLAttributes.style || 'max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:pointer;',
+        }];
+      },
+      addCommands() {
+        return {
+          setImage: (options) => ({ commands }) => {
+            return commands.insertContent({ type: 'image', attrs: options });
+          },
+        };
+      },
+    }),
+    TIframe,
     TLink.configure({ openOnClick: false }),
     TColor,
     TTextStyle,
@@ -1721,6 +1805,26 @@ async function makeTiptap(id, placeholder, richMode) {
   });
 
   return editor;
+}
+
+function normalizeTiptapHtml(html) {
+  if (!html || typeof html !== 'string') return html || '';
+  const doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  root.querySelectorAll('p').forEach(p => {
+    const nodes = Array.from(p.childNodes).filter(node => {
+      if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim() !== '';
+      if (node.nodeType === Node.ELEMENT_NODE) return node.tagName !== 'BR';
+      return true;
+    });
+    if (nodes.length && nodes.every(node => node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG')) {
+      p.replaceWith(...nodes.map(node => node.cloneNode(true)));
+    }
+  });
+
+  return root.innerHTML;
 }
 
 // ── SVG icons ──
@@ -1925,9 +2029,16 @@ function insertVideo() {
   const embedUrl = convertToEmbedUrl(rawUrl);
   const editor   = tiptapInstances[_videoTiptapId];
   if (editor) {
-    editor.chain().focus().insertContent(
-      '<iframe src="' + embedUrl + '" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;"></iframe><p></p>'
-    ).run();
+    editor.chain().focus().insertContent({
+      type: 'iframe',
+      attrs: {
+        src: embedUrl,
+        frameborder: '0',
+        allowfullscreen: true,
+        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+        style: 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
+      },
+    }).run();
     toast('✓ 影片已嵌入');
   }
   closeVideoModal();
@@ -2074,7 +2185,7 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    if (data.description && descEditor) { const _el = descEditor.view.dom; _el.innerHTML = data.description; }
+    if (data.description && descEditor) { descEditor.commands.setContent(normalizeTiptapHtml(data.description), false, { preserveWhitespace: 'full' }); }
   }
 }
 async function saveProfile() {
@@ -2419,7 +2530,15 @@ async function renderProjectForm(proj) {
 
     // Content editor (Tiptap)
     const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
-    if (proj?.content && contentEditor) { contentEditor.view.dom.innerHTML = proj.content; }
+    if (proj?.content && contentEditor) {
+      contentEditor.commands.setContent(normalizeTiptapHtml(proj.content), false, { preserveWhitespace: 'full' });
+      contentEditor.commands.setTextSelection(0);
+      // debug: 確認 image node 是否被解析
+      const doc = contentEditor.state.doc;
+      let imgCount = 0;
+      doc.descendants(node => { if (node.type.name === 'image') imgCount++; });
+      console.log('[Tiptap] image nodes found:', imgCount, '/ total content size:', doc.content.size);
+    }
 
     // Auto-resize description textarea
     const descTa = document.getElementById('pj-desc');
@@ -2680,7 +2799,7 @@ async function renderNoteForm(note) {
     </div>
   `;
   const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
-  if (note?.content && q) { q.view.dom.innerHTML = note.content; }
+  if (note?.content && q) { q.commands.setContent(normalizeTiptapHtml(note.content), false, { preserveWhitespace: 'full' }); q.commands.setTextSelection(0); }
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
