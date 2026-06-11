@@ -1203,7 +1203,7 @@ function bindContentLightbox(container) {
     img.onclick = (event) => {
       event.preventDefault();
       event.stopPropagation();
-      lbOpen(urls, index, img.offsetWidth);
+      lbOpen(urls, index);
     };
   });
 }
@@ -1560,12 +1560,9 @@ loadData();
   let _imgs = [];
   let _idx  = 0;
 
-  let _initWidth = null; // 點擊時圖片的實際顯示寬度
-
-  window.lbOpen = function(imgs, idx, srcWidth) {
+  window.lbOpen = function(imgs, idx) {
     _imgs = imgs;
     _idx  = idx;
-    _initWidth = srcWidth || null;
     const overlay = document.getElementById('lb-overlay');
     overlay.style.display = 'flex';
     requestAnimationFrame(() => overlay.classList.add('visible'));
@@ -1593,13 +1590,8 @@ loadData();
     const img = document.getElementById('lb-img');
     img.src = _imgs[_idx];
     // 切換圖片時沿用同一 initWidth，保持一致預設大小
-    if (_initWidth) {
-      img.style.maxWidth  = _initWidth + 'px';
-      img.style.maxHeight = '';
-    } else {
-      img.style.maxWidth  = '100%';
-      img.style.maxHeight = '100%';
-    }
+    img.style.maxWidth  = '100%';
+    img.style.maxHeight = '100%';
     document.getElementById('lb-counter').textContent = `${_idx + 1} / ${_imgs.length}`;
     document.getElementById('lb-prev').disabled = _imgs.length <= 1;
     document.getElementById('lb-next').disabled = _imgs.length <= 1;
@@ -1639,7 +1631,7 @@ loadData();
   const _origMove = window.lbMove;
   window.lbMove = function(dir) { lbResetTransform(); _origMove(dir); };
   const _origOpen = window.lbOpen;
-  window.lbOpen = function(imgs, idx, srcWidth) { lbResetTransform(); _origOpen(imgs, idx, srcWidth); };
+  window.lbOpen = function(imgs, idx) { lbResetTransform(); _origOpen(imgs, idx); };
 
   document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('lb-overlay');
