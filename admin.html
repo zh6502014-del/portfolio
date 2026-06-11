@@ -729,7 +729,7 @@ function saveConfig() {
   if (!email || pw.length < 8) { document.getElementById('cfg-error').textContent = '請填入 Email 及 8 字元以上密碼'; return; }
   localStorage.setItem('sb_config', JSON.stringify({ url, key }));
   localStorage.setItem('admin_email', email);
-  localStorage.setItem('admin_pw', pw);
+  // 不儲存密碼到 localStorage
   initSupabase(url, key);
   registerAndLogin(email, pw);
 }
@@ -1305,6 +1305,16 @@ function toast(msg, duration = 2200) {
 }
 
 // ── Image Upload ──
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function parseImgArr(val) {
   if (!val) return [];
   if (Array.isArray(val)) return val.filter(Boolean);
@@ -1633,6 +1643,7 @@ async function makeTiptap(id, placeholder, richMode) {
   const { default: TLink }      = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-link@2.11.5/+esm');
   const { default: TColor }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-color@2.11.5/+esm');
   const { default: TTextStyle } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-text-style@2.11.5/+esm');
+  const { default: TUnderline } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-underline@2.11.5/+esm');
 
   // 建立 DOM 結構
   const wrap = document.createElement('div');
@@ -1653,6 +1664,7 @@ async function makeTiptap(id, placeholder, richMode) {
     TLink.configure({ openOnClick: false }),
     TColor,
     TTextStyle,
+    TUnderline,
     TTable.configure({ resizable: false }),
     TTableRow,
     TTableCell,
@@ -1998,13 +2010,16 @@ async function saveNavigation() {
   if (!ids.length) return;
   const updates = ids.map(id => ({
     id,
-    label: document.getElementById(`nav-label-${id}`)?.value.trim() || '',
-    href:  document.getElementById(`nav-href-${id}`)?.value.trim() || '',
+    label: document.getElementById('nav-label-' + id)?.value.trim() || '',
+    href:  document.getElementById('nav-href-' + id)?.value.trim() || '',
   }));
-  for (const u of updates) {
-    await supabase_client.from('nav_items').update({ label: u.label, href: u.href }).eq('id', u.id);
-  }
-  toast('✓ 導覽列已儲存');
+  try {
+    for (const u of updates) {
+      const { error } = await supabase_client.from('nav_items').update({ label: u.label, href: u.href }).eq('id', u.id);
+      if (error) { toast('儲存失敗：' + error.message, 5000); return; }
+    }
+    toast('✓ 導覽列已儲存');
+  } catch(e) { toast('儲存失敗：' + e.message, 5000); }
 }
 
 // ─────────────────────────────────────────────
@@ -2055,13 +2070,17 @@ async function saveProfile() {
     note: document.getElementById('p-note').value,
     updated_at: new Date().toISOString()
   };
-  const { data: existing } = await supabase_client.from('profile').select('id').single();
-  if (existing) {
-    await supabase_client.from('profile').update(payload).eq('id', existing.id);
-  } else {
-    await supabase_client.from('profile').insert([payload]);
-  }
-  toast('✓ 個人資料已儲存');
+  try {
+    const { data: existing } = await supabase_client.from('profile').select('id').single();
+    let error;
+    if (existing) {
+      ({ error } = await supabase_client.from('profile').update(payload).eq('id', existing.id));
+    } else {
+      ({ error } = await supabase_client.from('profile').insert([payload]));
+    }
+    if (error) { toast('儲存失敗：' + error.message, 5000); console.error(error); return; }
+    toast('✓ 個人資料已儲存');
+  } catch(e) { toast('儲存失敗：' + e.message, 5000); }
 }
 
 // ─────────────────────────────────────────────
@@ -2250,7 +2269,7 @@ async function loadProjects() {
       <div class="item-card-left" style="display:flex;gap:14px;align-items:flex-start">
         ${coverHtml}
         <div>
-          <div class="item-card-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${p.title}</div>
+          <div class="item-card-title">${p.published ? '' : '<span style="color:var(--text-tertiary)">[未發佈] </span>'}${esc(p.title)}</div>
           <div class="item-card-meta" style="margin-bottom:6px">${p.time_range || ''}</div>
           <div>${(p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
         </div>
@@ -2557,7 +2576,8 @@ async function saveProject(id) {
 
 async function deleteProject(id) {
   if (!confirm('確定要刪除此專案？')) return;
-  await supabase_client.from('projects').delete().eq('id', id);
+  const { error } = await supabase_client.from('projects').delete().eq('id', id);
+  if (error) { toast('刪除失敗：' + error.message, 5000); return; }
   toast('已刪除');
   loadProjects();
 }
@@ -2676,12 +2696,10 @@ async function saveNote(id) {
 }
 async function deleteNote(id) {
   if (!confirm('確定刪除？')) return;
-  await supabase_client.from('notes').delete().eq('id', id);
+  const { error } = await supabase_client.from('notes').delete().eq('id', id);
+  if (error) { toast('刪除失敗：' + error.message, 5000); return; }
   toast('已刪除'); loadNotes();
 }
-
-// ── Boot ──
-boot();
 
 // ─────────────────────────────────────────────
 // IMAGE RATIO / SCALE POPOVER
@@ -2863,6 +2881,8 @@ window.saveSkill = saveSkill;
 window.saveTool = saveTool;
 window.showPage = showPage;
 
+// ── Boot：在所有 window.xxx 掛載後才執行 ──
+document.addEventListener('DOMContentLoaded', () => boot());
 </script>
 </body>
 </html>
