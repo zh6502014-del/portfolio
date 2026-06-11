@@ -1651,7 +1651,7 @@ async function makeTiptap(id, placeholder, richMode) {
   container.innerHTML = '';
 
   // 動態載入 Tiptap（ESM CDN）
-  const { Editor, Node } = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
+  const { Editor } = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
   const { default: StarterKit } = await import('https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.11.5/+esm');
   const { default: TTable }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table@2.11.5/+esm');
   const { default: TTableRow }  = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@2.11.5/+esm');
@@ -1676,84 +1676,9 @@ async function makeTiptap(id, placeholder, richMode) {
   wrap.appendChild(edEl);
   container.appendChild(wrap);
 
-  const TIframe = Node.create({
-    name: 'iframe',
-    group: 'block',
-    atom: true,
-    addAttributes() {
-      return {
-        src: {
-          default: null,
-          parseHTML: el => el.getAttribute('src'),
-        },
-        style: {
-          default: null,
-          parseHTML: el => el.getAttribute('style'),
-        },
-        allowfullscreen: {
-          default: true,
-          parseHTML: el => el.hasAttribute('allowfullscreen'),
-        },
-        frameborder: {
-          default: '0',
-          parseHTML: el => el.getAttribute('frameborder') || '0',
-        },
-        allow: {
-          default: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
-          parseHTML: el => el.getAttribute('allow'),
-        },
-      };
-    },
-    parseHTML() {
-      return [{ tag: 'iframe[src]' }];
-    },
-    renderHTML({ HTMLAttributes }) {
-      const attrs = {
-        ...HTMLAttributes,
-        frameborder: HTMLAttributes.frameborder || '0',
-        allowfullscreen: HTMLAttributes.allowfullscreen !== false ? 'true' : null,
-        style: HTMLAttributes.style || 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
-      };
-      return ['iframe', attrs];
-    },
-  });
-
   const extensions = richMode ? [
     StarterKit.configure({ dropcursor: false }),
-    Node.create({
-      name: 'image',
-      group: 'block',
-      atom: true,
-      draggable: true,
-      addAttributes() {
-        return {
-          src:   { default: null, parseHTML: el => el.getAttribute('src') },
-          alt:   { default: null, parseHTML: el => el.getAttribute('alt') },
-          title: { default: null, parseHTML: el => el.getAttribute('title') },
-          style: { default: null, parseHTML: el => el.getAttribute('style') },
-          width: { default: null, parseHTML: el => el.getAttribute('width') },
-        };
-      },
-      parseHTML() { return [{ tag: 'img[src]' }]; },
-      renderHTML({ HTMLAttributes }) {
-        const attrs = {};
-        if (HTMLAttributes.src)   attrs.src   = HTMLAttributes.src;
-        if (HTMLAttributes.alt)   attrs.alt   = HTMLAttributes.alt;
-        if (HTMLAttributes.title) attrs.title = HTMLAttributes.title;
-        if (HTMLAttributes.style) attrs.style = HTMLAttributes.style;
-        if (HTMLAttributes.width) attrs.width = HTMLAttributes.width;
-        attrs.style = attrs.style || 'max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:pointer;';
-        return ['img', attrs];
-      },
-      addCommands() {
-        return {
-          setImage: (options) => ({ commands }) => {
-            return commands.insertContent({ type: 'image', attrs: options });
-          },
-        };
-      },
-    }),
-    TIframe,
+    TImage.configure({ inline: false, allowBase64: true }),
     TLink.configure({ openOnClick: false }),
     TColor,
     TTextStyle,
@@ -2000,16 +1925,9 @@ function insertVideo() {
   const embedUrl = convertToEmbedUrl(rawUrl);
   const editor   = tiptapInstances[_videoTiptapId];
   if (editor) {
-    editor.chain().focus().insertContent({
-      type: 'iframe',
-      attrs: {
-        src: embedUrl,
-        frameborder: '0',
-        allowfullscreen: true,
-        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
-        style: 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
-      },
-    }).run();
+    editor.chain().focus().insertContent(
+      '<iframe src="' + embedUrl + '" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;"></iframe><p></p>'
+    ).run();
     toast('✓ 影片已嵌入');
   }
   closeVideoModal();
@@ -2156,7 +2074,7 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    if (data.description && descEditor) { descEditor.commands.setContent(data.description, false, { preserveWhitespace: 'full' }); }
+    if (data.description && descEditor) { const _el = descEditor.view.dom; _el.innerHTML = data.description; }
   }
 }
 async function saveProfile() {
@@ -2501,15 +2419,7 @@ async function renderProjectForm(proj) {
 
     // Content editor (Tiptap)
     const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
-    if (proj?.content && contentEditor) {
-      contentEditor.commands.setContent(proj.content, false, { preserveWhitespace: 'full' });
-      contentEditor.commands.setTextSelection(0);
-      // debug: 確認 image node 是否被解析
-      const doc = contentEditor.state.doc;
-      let imgCount = 0;
-      doc.descendants(node => { if (node.type.name === 'image') imgCount++; });
-      console.log('[Tiptap] image nodes found:', imgCount, '/ total content size:', doc.content.size);
-    }
+    if (proj?.content && contentEditor) { contentEditor.view.dom.innerHTML = proj.content; }
 
     // Auto-resize description textarea
     const descTa = document.getElementById('pj-desc');
@@ -2770,7 +2680,7 @@ async function renderNoteForm(note) {
     </div>
   `;
   const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
-  if (note?.content && q) { q.commands.setContent(note.content, false, { preserveWhitespace: 'full' }); q.commands.setTextSelection(0); }
+  if (note?.content && q) { q.view.dom.innerHTML = note.content; }
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
