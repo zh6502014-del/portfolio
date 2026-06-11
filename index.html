@@ -587,6 +587,21 @@
   .note-content h3 { font-size:19px; font-weight:600; margin:14px 0 4px; color:var(--text); }
   .note-content p { margin:6px 0; }
   .note-content img { max-width:100%; border-radius:var(--radius-md); margin:12px 0; display:block; }
+  .hero-desc img,
+  .modal-desc img,
+  .note-content img { cursor:zoom-in; box-sizing:border-box; vertical-align:top; }
+  .hero-desc img[data-image-layout="half"],
+  .modal-desc img[data-image-layout="half"],
+  .note-content img[data-image-layout="half"],
+  .hero-desc img[data-image-layout="third"],
+  .modal-desc img[data-image-layout="third"],
+  .note-content img[data-image-layout="third"] { display:inline-block; margin:10px 6px 10px 0; }
+  .hero-desc img[data-image-layout="half"],
+  .modal-desc img[data-image-layout="half"],
+  .note-content img[data-image-layout="half"] { width:calc(50% - 8px); max-width:calc(50% - 8px); }
+  .hero-desc img[data-image-layout="third"],
+  .modal-desc img[data-image-layout="third"],
+  .note-content img[data-image-layout="third"] { width:calc(33.333% - 8px); max-width:calc(33.333% - 8px); }
   .note-content blockquote { border-left:3px solid var(--border-strong); padding-left:14px; color:var(--text-tertiary); margin:10px 0; }
   .note-content ul, .note-content ol { padding-left:22px; margin:6px 0; }
   .note-content li { margin:3px 0; }
@@ -968,6 +983,7 @@ function renderProfile(p) {
       descEl.textContent = text;
     } else {
       descEl.innerHTML = p.description || '';
+      bindContentLightbox(descEl);
     }
   }
   document.getElementById('hero-note').textContent = p.note || '';
@@ -1079,6 +1095,7 @@ function openNote(id) {
     '</div>' +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml;
+  bindContentLightbox(document.getElementById('modal-content'));
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1143,15 +1160,7 @@ function openModal(id) {
     desc.className = 'modal-desc';
     desc.style.marginTop = '20px';
     desc.innerHTML = p.content;
-    // 綁定 content 內的圖片開啟燈箱
-    const contentImgs = Array.from(desc.querySelectorAll('img'));
-    if (contentImgs.length) {
-      const contentImgUrls = contentImgs.map(i => i.src);
-      contentImgs.forEach((img, i) => {
-        img.style.cursor = 'zoom-in';
-        img.onclick = () => lbOpen(contentImgUrls, i, img.offsetWidth);
-      });
-    }
+    bindContentLightbox(desc);
     body.appendChild(desc);
   }
 
@@ -1183,6 +1192,21 @@ function openModal(id) {
     }
   }, { passive: true });
 })();
+
+function bindContentLightbox(container) {
+  if (!container || typeof lbOpen !== 'function') return;
+  const imgs = Array.from(container.querySelectorAll('img')).filter(img => img.src);
+  if (!imgs.length) return;
+  const urls = imgs.map(img => img.src);
+  imgs.forEach((img, index) => {
+    img.style.cursor = 'zoom-in';
+    img.onclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      lbOpen(urls, index, img.offsetWidth);
+    };
+  });
+}
 
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; }
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
@@ -1615,7 +1639,7 @@ loadData();
   const _origMove = window.lbMove;
   window.lbMove = function(dir) { lbResetTransform(); _origMove(dir); };
   const _origOpen = window.lbOpen;
-  window.lbOpen = function(imgs, idx) { lbResetTransform(); _origOpen(imgs, idx); };
+  window.lbOpen = function(imgs, idx, srcWidth) { lbResetTransform(); _origOpen(imgs, idx, srcWidth); };
 
   document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('lb-overlay');
