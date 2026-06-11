@@ -710,6 +710,7 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
 <div id="toast"></div>
 
 <script>
+
 // ── Globals ──
 let supabase_client = null;
 // ── Tiptap instances ──
@@ -836,6 +837,779 @@ function toast(msg, duration = 2200) {
   window._toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
+// ── Utility functions ──
+function formatMonthDisplay(ym) {
+  // ym = "2022-02" → "2022/02"
+  if (!ym) return '';
+  return ym.replace('-', '/');
+}
+
+function syncManualFromPickers() {
+  const start = document.getElementById('pj-date-start')?.value;
+  const end = document.getElementById('pj-date-end')?.value;
+  const ongoing = document.getElementById('pj-date-ongoing')?.checked;
+  const manual = document.getElementById('pj-time');
+  if (!manual) return;
+  if (!start && !end) return;
+  const startStr = start ? formatMonthDisplay(start) : '';
+  const endStr = ongoing ? '開發中' : (end ? formatMonthDisplay(end) : '');
+  if (startStr && endStr) manual.value = startStr + ' — ' + endStr;
+  else if (startStr) manual.value = startStr;
+  else manual.value = endStr;
+}
+
+function toggleOngoing() {
+  const ongoing = document.getElementById('pj-date-ongoing')?.checked;
+  const endInput = document.getElementById('pj-date-end');
+  if (endInput) endInput.disabled = ongoing;
+  syncManualFromPickers();
+}
+
+function syncDatePickersFromManual() {
+  // Parse manual input back to pickers if possible
+  const val = document.getElementById('pj-time')?.value || '';
+  const parts = val.split('—').map(s => s.trim());
+  const parseToMonth = (str) => {
+    // Accept "2022/02" or "2022-02"
+    const m = str.match(/(\d{4})[\/-](\d{2})/);
+    return m ? m[1] + '-' + m[2] : '';
+  };
+  if (parts.length >= 1) {
+    const s = document.getElementById('pj-date-start');
+    if (s) s.value = parseToMonth(parts[0]);
+  }
+  if (parts.length >= 2) {
+    const ongoing = parts[1].includes('開發中') || parts[1].includes('present') || parts[1] === '';
+    const cb = document.getElementById('pj-date-ongoing');
+    const e = document.getElementById('pj-date-end');
+    if (cb) cb.checked = ongoing;
+    if (e) { e.disabled = ongoing; e.value = ongoing ? '' : parseToMonth(parts[1]); }
+  }
+}
+
+function initDatePickers(timeRange) {
+  // Pre-fill pickers from existing time_range value
+  const manual = document.getElementById('pj-time');
+  if (manual) manual.value = timeRange || '';
+  syncDatePickersFromManual();
+}
+
+// ── Note single date helpers ──
+function formatNoteDate(dateStr) {
+  // "2026-04-25" → "2026/04/25"
+  if (!dateStr) return '';
+  return dateStr.replace(/-/g, '/');
+}
+
+function parseNoteDate(str) {
+  // Accept "2026/04/25" or "2026-04-25"
+  const m = str.match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
+}
+
+function syncNoteDateManualFromPicker() {
+  const picker = document.getElementById('nt-date-picker');
+  const manual = document.getElementById('nt-date');
+  if (picker && manual && picker.value) {
+    manual.value = formatNoteDate(picker.value);
+  }
+}
+
+function syncNoteDatePickerFromManual() {
+  const manual = document.getElementById('nt-date');
+  const picker = document.getElementById('nt-date-picker');
+  if (manual && picker) {
+    const parsed = parseNoteDate(manual.value);
+    if (parsed) picker.value = parsed;
+  }
+}
+
+function initNoteDatePicker(dateStr) {
+  const manual = document.getElementById('nt-date');
+  const picker = document.getElementById('nt-date-picker');
+  if (manual) manual.value = formatNoteDate(dateStr || '');
+  if (picker) picker.value = dateStr || '';
+}
+
+// ── Tag Input Component ──
+const AC_KEYS = { tags: 'ac_tags', role: 'ac_roles', members: 'ac_members', skill_tags: 'ac_skill_tags', note_type: 'ac_note_types' };
+
+function acLoad(key) {
+  try { return JSON.parse(localStorage.getItem(AC_KEYS[key] || key) || '[]'); } catch { return []; }
+}
+function acSave(key, values) {
+  const existing = acLoad(key);
+  const merged = [...new Set([...values, ...existing])].filter(Boolean).slice(0, 60);
+  localStorage.setItem(AC_KEYS[key] || key, JSON.stringify(merged));
+}
+
+// ── Single-value TagInput (role, note_type) ──
+// ── Multi-value TagInput (tags, members, skill_tags) ──
+function makeTagInput(containerId, acKey, { multi = true, placeholder = '輸入後按 Enter 新增' } = {}) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  let selected = [];
+
+  // Read initial values from data-init attribute
+  const containerEl = document.getElementById(containerId);
+  const dataInit = containerEl ? containerEl.getAttribute('data-init') : '';
+  if (dataInit) {
+    selected = dataInit.split('||').map(v=>v.trim()).filter(Boolean);
+  }
+
+  // Build DOM
+  container.innerHTML = `
+    <div class="tag-input-wrap" id="${containerId}-wrap">
+      <input class="tag-input-field" id="${containerId}-field"
+        placeholder="${placeholder}" autocomplete="off" />
+      <div class="tag-dropdown" id="${containerId}-dd"></div>
+    </div>
+  `;
+
+  const wrap = document.getElementById(containerId + '-wrap');
+  const field = document.getElementById(containerId + '-field');
+  const dd = document.getElementById(containerId + '-dd');
+
+  function renderChips() {
+    wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+    selected.forEach((val, idx) => {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      const label = document.createTextNode(val);
+      const btn = document.createElement('button');
+      btn.className = 'tag-chip-del';
+      btn.title = '移除';
+      btn.textContent = '×';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selected.splice(idx, 1);
+        syncHidden(containerId, acKey, selected);
+        renderChips();
+        renderDropdown(field ? field.value : '');
+      });
+      chip.appendChild(label);
+      chip.appendChild(btn);
+      wrap.insertBefore(chip, field);
+    });
+  }
+
+  function renderDropdown(filter = '') {
+    const all = acLoad(acKey);
+    const filtered = filter ? all.filter(v => v.toLowerCase().includes(filter.toLowerCase())) : all;
+    const isNew = filter && !all.map(v=>v.toLowerCase()).includes(filter.toLowerCase()) && !selected.includes(filter);
+
+    dd.innerHTML = '';
+    if (filtered.length) {
+      const hint = document.createElement('div');
+      hint.className = 'tag-dropdown-hint';
+      hint.textContent = '歷史紀錄';
+      dd.appendChild(hint);
+
+      filtered.forEach(v => {
+        const sel = selected.includes(v);
+        const row = document.createElement('div');
+        row.className = 'tag-option' + (sel ? ' selected' : '');
+
+        const check = document.createElement('span');
+        check.className = 'tag-option-check';
+        check.textContent = sel ? '✓' : '';
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'tag-option-label';
+        labelEl.textContent = v;
+
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'tag-option-edit';
+        editBtn.title = '編輯';
+        editBtn.textContent = '✎';
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          tagEditHistory(containerId, acKey, v, renderDropdown, selected, syncHidden, renderChips);
+        });
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = 'tag-option-del';
+        delBtn.title = '從紀錄中刪除';
+        delBtn.textContent = '×';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const all2 = acLoad(acKey).filter(x => x !== v);
+          localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all2));
+          // Also remove from selected if present
+          const si = selected.indexOf(v);
+          if (si > -1) { selected.splice(si, 1); syncHidden(containerId, acKey, selected); renderChips(); }
+          renderDropdown(field ? field.value : '');
+        });
+
+        row.appendChild(check);
+        row.appendChild(labelEl);
+        row.appendChild(editBtn);
+        row.appendChild(delBtn);
+        row.addEventListener('click', () => {
+          if (sel) {
+            state.selected = selected.filter(x => x !== v);
+          } else {
+            selected.push(v);
+          }
+          syncHidden(containerId, acKey, selected);
+          renderChips();
+          renderDropdown(field ? field.value : '');
+        });
+        dd.appendChild(row);
+      });
+    }
+
+    if (isNew) {
+      const newRow = document.createElement('div');
+      newRow.className = 'tag-option tag-option-new';
+      newRow.innerHTML = '<span class="tag-option-check">＋</span><span class="tag-option-label">新增「' + filter + '」</span>';
+      newRow.addEventListener('click', () => tagAddNew(containerId, acKey, filter, multi));
+      dd.appendChild(newRow);
+    }
+
+    if (!dd.children.length || (dd.children.length === 1 && dd.children[0].classList.contains('tag-dropdown-hint'))) {
+      const empty = document.createElement('div');
+      empty.className = 'tag-empty';
+      empty.textContent = '輸入文字新增選項';
+      dd.appendChild(empty);
+    }
+
+    dd.classList.add('open');
+  }
+  // expose state for renderDropdown closure
+  const state = window['_tagInput_' + containerId] || {};
+
+  function closeDropdown() { dd.classList.remove('open'); }
+
+  field.addEventListener('focus', () => renderDropdown(field.value));
+  field.addEventListener('input', () => renderDropdown(field.value));
+  field.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = field.value.trim();
+      if (val) tagAddNew(containerId, acKey, val, multi);
+    }
+    if (e.key === 'Backspace' && !field.value && selected.length) {
+      selected.splice(selected.length - 1, 1);
+      syncHidden(containerId, acKey, selected);
+      renderChips();
+      renderDropdown('');
+    }
+    if (e.key === 'Escape') closeDropdown();
+  });
+
+  wrap.addEventListener('click', e => {
+    if (e.target === wrap) field.focus();
+  });
+
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) closeDropdown();
+  }, true);
+
+  // Store state
+  window['_tagInput_' + containerId] = { selected, renderChips, renderDropdown, multi };
+  syncHidden(containerId, acKey, selected);
+  renderChips();
+}
+
+function syncHidden(containerId, acKey, selected) {
+  window['_tagInput_' + containerId].selected = selected;
+}
+
+function tagToggleOption(containerId, acKey, val, multi) {
+  const state = window['_tagInput_' + containerId];
+  if (!state) return;
+  if (state.selected.includes(val)) {
+    state.selected = state.selected.filter(v => v !== val);
+  } else {
+    state.selected.push(val);
+  }
+  const field = document.getElementById(containerId + '-field');
+  syncHidden(containerId, acKey, state.selected);
+  state.renderChips();
+  state.renderDropdown(field ? field.value : '');
+}
+
+function tagAddNew(containerId, acKey, val, multi) {
+  val = val.trim(); if (!val) return;
+  const state = window['_tagInput_' + containerId];
+  if (!state) return;
+  if (!state.selected.includes(val)) {
+    if (!multi) state.selected = [val];
+    else state.selected.push(val);
+  }
+  acSave(acKey, [val]);
+  const field = document.getElementById(containerId + '-field');
+  if (field) field.value = '';
+  syncHidden(containerId, acKey, state.selected);
+  state.renderChips();
+  state.renderDropdown('');
+}
+
+function tagRemoveChip(containerId, idx) {
+  const state = window['_tagInput_' + containerId];
+  if (!state) return;
+  state.selected.splice(idx, 1);
+  syncHidden(containerId, acKey_for(containerId), state.selected);
+  state.renderChips();
+  state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
+}
+
+function tagDelHistory(e, acKey, val, containerId) {
+  e.stopPropagation();
+  const all = acLoad(acKey).filter(v => v !== val);
+  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
+  const state = window['_tagInput_' + containerId];
+  if (state) state.renderDropdown(document.getElementById(containerId + '-field')?.value || '');
+}
+
+function tagEditHistory(containerId, acKey, oldVal, renderDropdown, selected, syncHidden, renderChips) {
+  const newVal = prompt('編輯標籤', oldVal);
+  if (!newVal || newVal.trim() === oldVal) return;
+  const trimmed = newVal.trim();
+  // Update history
+  const all = acLoad(acKey).map(v => v === oldVal ? trimmed : v);
+  localStorage.setItem(AC_KEYS[acKey] || acKey, JSON.stringify(all));
+  // Update selected if needed
+  const si = selected.indexOf(oldVal);
+  if (si > -1) { selected[si] = trimmed; syncHidden(containerId, acKey, selected); renderChips(); }
+  renderDropdown(document.getElementById(containerId + '-field')?.value || '');
+}
+
+function acKey_for(containerId) {
+  const map = { 'pj-tags-ti':'tags','pj-role-ti':'role','pj-members-ti':'members','sk-tags-ti':'skill_tags','nt-type-ti':'note_type' };
+  return map[containerId] || 'tags';
+}
+
+function getTagInputValue(containerId) {
+  const state = window['_tagInput_' + containerId];
+  return state ? state.selected : [];
+}
+
+// ── Multi-line autocomplete (tags / members textarea) ──
+
+function acToggleLine(textareaId, acKey, val) {
+  const ta = document.getElementById(textareaId);
+  if (!ta) return;
+  const lines = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
+  if (lines.includes(val)) {
+    ta.value = lines.filter(v => v !== val).join('\n');
+  } else {
+    ta.value = [...lines, val].join('\n');
+  }
+  ta.dispatchEvent(new Event('input'));
+  // Refresh chips
+  const suggestWrap = document.getElementById(textareaId + '-suggestions');
+  if (suggestWrap) {
+    const existing = ta.value.split('\n').map(v=>v.trim()).filter(Boolean);
+    const all = acLoad(acKey);
+    suggestWrap.innerHTML = all.slice(0,30).map(v => {
+      const active = existing.includes(v);
+      return `<span class="ac-tag-chip ${active ? 'ac-tag-active' : ''}"
+        onclick="acToggleLine('${textareaId}','${acKey}','${v.replace(/'/g,"\'")}')">
+        ${active ? '✓ ' : '+ '}${v}</span>`;
+    }).join('');
+  }
+}
+
+// ── Storage usage ──
+async function checkStorageUsage() {
+  const bar = document.getElementById('storage-bar');
+  const pctEl = document.getElementById('storage-pct');
+  const usedEl = document.getElementById('storage-used');
+
+  const fmt = (b) => {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    if (b < 1024 * 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
+    return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  };
+
+  try {
+    // List all files in portfolio-images bucket and sum sizes
+    const { data: files, error } = await supabase_client.storage
+      .from('portfolio-images')
+      .list('', { limit: 1000, offset: 0 });
+
+    if (error) throw error;
+
+    const usedBytes = (files || []).reduce((sum, f) => {
+      return sum + (f.metadata?.size || 0);
+    }, 0);
+
+    const LIMIT = 1 * 1024 * 1024 * 1024; // 1 GB free plan limit
+    const pct = Math.min(100, (usedBytes / LIMIT) * 100);
+
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.className = 'storage-bar-fill' +
+        (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+    }
+    if (pctEl) pctEl.textContent = pct.toFixed(1) + '%';
+    if (usedEl) usedEl.textContent = fmt(usedBytes) + ' 已使用';
+
+  } catch (e) {
+    if (usedEl) usedEl.textContent = '無法讀取';
+    console.error('Storage usage error:', e);
+  }
+}
+
+// ── Boot ──
+async function boot() {
+  const cfg = getConfig();
+  if (!cfg) { document.getElementById('config-screen').style.display = 'flex'; return; }
+  initSupabase(cfg.url, cfg.key);
+  const { data: { session } } = await supabase_client.auth.getSession();
+  if (session) { showApp(); }
+  else {
+    const saved_email = localStorage.getItem('admin_email') || '';
+    if (document.getElementById('login-email')) document.getElementById('login-email').value = saved_email;
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+}
+
+// ── App ──
+function showApp() {
+  document.getElementById('config-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // Restore last page from URL hash
+  const hash = location.hash.replace('#','');
+  const validPages = ['profile','skills','tools','projects','notes','navigation'];
+  const page = validPages.includes(hash) ? hash : 'profile';
+  const btn = document.querySelector(`.nav-item[onclick*="'${page}'"]`);
+  if (btn) showPage(page, btn);
+  else renderProfilePage();
+  // Check storage usage
+  checkStorageUsage();
+}
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).style.display = 'block';
+  btn.classList.add('active');
+  location.hash = name;
+  const renderers = { profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage, projects: renderProjectsPage, notes: renderNotesPage, navigation: renderNavigationPage };
+  if (renderers[name]) renderers[name]();
+}
+
+// ── Toast ──
+function toast(msg, duration = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Image Upload ──
+function parseImgArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === 'string') {
+    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed.filter(Boolean) : []; }
+    catch { return []; }
+  }
+  return [];
+}
+
+// ── Image processing: crop to 16:9 + compress ──
+async function processImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.onload = () => {
+        // Target dimensions
+        const TARGET_W = 1280;
+        const TARGET_H = 720;
+        const TARGET_RATIO = 16 / 9;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = TARGET_W;
+        canvas.height = TARGET_H;
+        const ctx = canvas.getContext('2d');
+
+        // Fill white background (for PNG transparency)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, TARGET_W, TARGET_H);
+
+        // Calculate source crop area (center crop to 16:9)
+        const srcRatio = img.width / img.height;
+        let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+
+        if (srcRatio > TARGET_RATIO) {
+          // Image is wider than 16:9 → crop sides
+          srcW = Math.round(img.height * TARGET_RATIO);
+          srcX = Math.round((img.width - srcW) / 2);
+        } else if (srcRatio < TARGET_RATIO) {
+          // Image is taller than 16:9 → crop top/bottom, center vertically
+          srcH = Math.round(img.width / TARGET_RATIO);
+          srcY = Math.round((img.height - srcH) / 2);
+        }
+
+        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, TARGET_W, TARGET_H);
+
+        // Compress: try quality from 0.9, reduce until under 500KB
+        const MAX_BYTES = 500 * 1024;
+        let quality = 0.9;
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(file); return; }
+            if (blob.size <= MAX_BYTES || quality <= 0.5) {
+              // Done
+              const processed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+              resolve(processed);
+            } else {
+              quality -= 0.1;
+              tryCompress();
+            }
+          }, 'image/jpeg', quality);
+        };
+        tryCompress();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadImage(file, bucket = 'portfolio-images') {
+  // Process image before upload (crop 16:9 + compress)
+  const processed = await processImage(file);
+  const ext = 'jpg';
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType: 'image/jpeg' });
+  if (error) throw error;
+  const { data } = supabase_client.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let urls = parseImgArr(existingUrls);
+
+  function render() {
+    container.innerHTML = '';
+
+    // ── Upload area ──
+    const uploadArea = document.createElement('div');
+    uploadArea.className = 'img-upload-area';
+    uploadArea.id = containerId + '-drop';
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
+
+    const bar = document.createElement('div');
+    bar.className = 'uploading-bar';
+    bar.id = containerId + '-bar';
+    bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
+
+    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB</div>';
+    uploadArea.appendChild(fileInput);
+    container.appendChild(uploadArea);
+    container.appendChild(bar);
+
+    fileInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      const barEl = document.getElementById(containerId + '-bar');
+      const fillEl = document.getElementById(containerId + '-fill');
+      if (barEl) barEl.style.display = 'block';
+      for (let i = 0; i < files.length; i++) {
+        if (fillEl) fillEl.style.width = ((i / files.length) * 100) + '%';
+        const file = files[i];
+        if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超過 5MB，已略過'); continue; }
+        try {
+          const url = await uploadImage(file);
+          urls.push(url);
+          if (onChangeCallback) onChangeCallback(urls);
+        } catch (err) { toast('上傳失敗：' + err.message); }
+      }
+      if (fillEl) fillEl.style.width = '100%';
+      setTimeout(() => { if (barEl) barEl.style.display = 'none'; if (fillEl) fillEl.style.width = '0%'; }, 600);
+      renderPreviews();
+    });
+
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    // Remove existing preview grid
+    const old = document.getElementById(containerId + '-preview');
+    if (old) old.remove();
+
+    const grid = document.createElement('div');
+    grid.className = 'img-preview-grid';
+    grid.id = containerId + '-preview';
+
+    if (urls.length === 0) {
+      // Empty state
+      const empty = document.createElement('div');
+      empty.className = 'img-empty-state';
+      empty.textContent = '尚未上傳圖片';
+      grid.appendChild(empty);
+    } else {
+      urls.forEach((url, i) => {
+        const item = document.createElement('div');
+        item.className = 'img-preview-item';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '圖片 ' + (i + 1);
+        img.onerror = () => { img.style.display = 'none'; item.style.background = 'var(--bg-tertiary)'; };
+
+        const badge = document.createElement('span');
+        badge.className = 'img-preview-badge';
+        badge.textContent = i === 0 ? '封面' : (i + 1);
+
+        const btn = document.createElement('button');
+        btn.className = 'img-remove';
+        btn.title = '移除';
+        btn.textContent = '✕';
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          urls.splice(i, 1);
+          if (onChangeCallback) onChangeCallback(urls);
+          renderPreviews();
+        };
+
+        item.appendChild(img);
+        item.appendChild(badge);
+        item.appendChild(btn);
+        grid.appendChild(item);
+      });
+    }
+
+    const bar = document.getElementById(containerId + '-bar');
+    if (bar) bar.after(grid);
+    else container.appendChild(grid);
+  }
+
+  window['getImgs_' + containerId] = () => [...urls];
+  render();
+}
+
+// ── Group editor ──
+const DEFAULT_SECTIONS = [
+  { title: '我做了什麼', items: [] },
+  { title: '接觸的產品', items: [] },
+  { title: '專案目標',   items: [] },
+  { title: '專案挑戰',   items: [] },
+  { title: '分析方法',   items: [] },
+  { title: '我的角色',   items: [] },
+];
+
+let _groupSections = [];
+
+function makeGroupEditor(containerId, sections) {
+  _groupSections = sections && sections.length ? JSON.parse(JSON.stringify(sections)) : JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+  renderGroupEditor(containerId);
+}
+
+function renderGroupEditor(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  const listEl = document.createElement('div');
+  listEl.className = 'group-list';
+  listEl.id = containerId + '-list';
+
+  _groupSections.forEach((sec, gi) => {
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    card.draggable = false;
+    card.dataset.gi = gi;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    header.innerHTML = `
+      <span class="group-drag" title="拖拉排序群組" draggable="false">⠿</span>
+      <input class="group-title-input" value="${sec.title.replace(/"/g,'&quot;')}" placeholder="群組標題"
+        oninput="_groupSections[${gi}].title=this.value" />
+      <button class="group-del" onclick="removeGroup(${gi})" title="刪除群組">×</button>
+    `;
+
+    // Body — single content textarea
+    const body = document.createElement('div');
+    body.className = 'group-body';
+    const ta = document.createElement('textarea');
+    ta.className = 'group-content-input';
+    ta.placeholder = '輸入內容';
+    ta.value = (sec.items || []).join('\n');
+    ta.oninput = function() { _groupSections[gi].items = this.value.split('\n'); };
+    body.appendChild(ta);
+
+    card.appendChild(header);
+    card.appendChild(body);
+
+    // Only the drag handle triggers dragging
+    const handle = header.querySelector('.group-drag');
+    handle.addEventListener('mouseenter', () => card.draggable = true);
+    handle.addEventListener('mouseleave', () => { if (!window._isDragging) card.draggable = false; });
+
+    card.addEventListener('dragstart', e => {
+      window._isDragging = true;
+      e.dataTransfer.effectAllowed = 'move';
+      window._dragGroupIdx = gi;
+      card.style.opacity = '.4';
+    });
+    card.addEventListener('dragend', () => {
+      window._isDragging = false;
+      card.draggable = false;
+      card.style.opacity = '1';
+    });
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => { e.preventDefault(); card.classList.remove('drag-over');
+      if (window._dragGroupIdx !== undefined && window._dragGroupIdx !== gi) {
+        const moved = _groupSections.splice(window._dragGroupIdx, 1)[0];
+        _groupSections.splice(gi, 0, moved);
+        renderGroupEditor(containerId);
+      }
+    });
+
+    listEl.appendChild(card);
+  });
+
+  const addGroupBtn = document.createElement('button');
+  addGroupBtn.className = 'groups-add';
+  addGroupBtn.innerHTML = '＋ 新增群組';
+  addGroupBtn.onclick = () => {
+    _groupSections.push({ title:'', items:[] });
+    renderGroupEditor(containerId);
+    setTimeout(() => {
+      const inputs = document.querySelectorAll(`#${containerId}-list .group-title-input`);
+      if(inputs.length) inputs[inputs.length-1].focus();
+    }, 40);
+  };
+
+  container.appendChild(listEl);
+  container.appendChild(addGroupBtn);
+}
+
+function removeGroup(gi) {
+  if (!confirm('確定刪除此群組？')) return;
+  _groupSections.splice(gi,1);
+  renderGroupEditor('pj-sections');
+}
+
+function getGroupSections() {
+  return _groupSections.map(s => ({
+    title: s.title.trim(),
+    items: (s.items||[]).join('\n').split('\n').map(i=>i.trim()).filter(Boolean)
+  })).filter(s=>s.title);
+}
+</script>
+
+<script type="module">
 // ── makeTiptap：建立 Tiptap 編輯器 ──
 // richMode=true → 完整工具列（含表格）；false → 簡易工具列
 async function makeTiptap(id, placeholder, richMode) {
@@ -849,16 +1623,16 @@ async function makeTiptap(id, placeholder, richMode) {
   container.innerHTML = '';
 
   // 動態載入 Tiptap（ESM CDN）
-  const { Editor }       = await import('https://esm.sh/@tiptap/core@2.11.5');
-  const { default: StarterKit } = await import('https://esm.sh/@tiptap/starter-kit@2.11.5');
-  const { default: TTable }     = await import('https://esm.sh/@tiptap/extension-table@3.0.7');
-  const { default: TTableRow }  = await import('https://esm.sh/@tiptap/extension-table-row@3.0.7');
-  const { default: TTableCell } = await import('https://esm.sh/@tiptap/extension-table-cell@3.0.7');
-  const { default: TTableHeader } = await import('https://esm.sh/@tiptap/extension-table-header@3.0.7');
-  const { default: TImage }     = await import('https://esm.sh/@tiptap/extension-image@2.11.5');
-  const { default: TLink }      = await import('https://esm.sh/@tiptap/extension-link@2.11.5');
-  const { default: TColor }     = await import('https://esm.sh/@tiptap/extension-color@2.11.5');
-  const { default: TTextStyle } = await import('https://esm.sh/@tiptap/extension-text-style@2.11.5');
+  const { Editor }       = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
+  const { default: StarterKit } = await import('https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.11.5/+esm');
+  const { default: TTable }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table@2.11.5/+esm');
+  const { default: TTableRow }  = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@2.11.5/+esm');
+  const { default: TTableCell } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-cell@2.11.5/+esm');
+  const { default: TTableHeader } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-header@2.11.5/+esm');
+  const { default: TImage }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-image@2.11.5/+esm');
+  const { default: TLink }      = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-link@2.11.5/+esm');
+  const { default: TColor }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-color@2.11.5/+esm');
+  const { default: TTextStyle } = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-text-style@2.11.5/+esm');
 
   // 建立 DOM 結構
   const wrap = document.createElement('div');
@@ -2061,7 +2835,6 @@ function applyImgScale(imgEl, scale) {
   toast('✓ 已套用 ' + scale + ' 縮放');
 }
 
-
 // ── Expose functions to window for onclick handlers ──
 window.addSkill = addSkill;
 window.closeVideoModal = closeVideoModal;
@@ -2089,6 +2862,7 @@ window.saveProfile = saveProfile;
 window.saveSkill = saveSkill;
 window.saveTool = saveTool;
 window.showPage = showPage;
+
 </script>
 </body>
 </html>
