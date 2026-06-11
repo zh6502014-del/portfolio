@@ -1719,7 +1719,7 @@ async function makeTiptap(id, placeholder, richMode) {
   });
 
   const extensions = richMode ? [
-    StarterKit,
+    StarterKit.configure({ dropcursor: false }),
     Node.create({
       name: 'image',
       group: 'block',
@@ -2156,7 +2156,7 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    if (data.description && descEditor) { descEditor.commands.setContent(data.description, false); }
+    if (data.description && descEditor) { descEditor.commands.setContent(data.description, false, { preserveWhitespace: 'full' }); }
   }
 }
 async function saveProfile() {
@@ -2501,7 +2501,15 @@ async function renderProjectForm(proj) {
 
     // Content editor (Tiptap)
     const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
-    if (proj?.content && contentEditor) { contentEditor.commands.setContent(proj.content, false); contentEditor.commands.setTextSelection(0); }
+    if (proj?.content && contentEditor) {
+      contentEditor.commands.setContent(proj.content, false, { preserveWhitespace: 'full' });
+      contentEditor.commands.setTextSelection(0);
+      // debug: 確認 image node 是否被解析
+      const doc = contentEditor.state.doc;
+      let imgCount = 0;
+      doc.descendants(node => { if (node.type.name === 'image') imgCount++; });
+      console.log('[Tiptap] image nodes found:', imgCount, '/ total content size:', doc.content.size);
+    }
 
     // Auto-resize description textarea
     const descTa = document.getElementById('pj-desc');
@@ -2762,7 +2770,7 @@ async function renderNoteForm(note) {
     </div>
   `;
   const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
-  if (note?.content && q) { q.commands.setContent(note.content, false); q.commands.setTextSelection(0); }
+  if (note?.content && q) { q.commands.setContent(note.content, false, { preserveWhitespace: 'full' }); q.commands.setTextSelection(0); }
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
