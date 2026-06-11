@@ -1677,7 +1677,29 @@ async function makeTiptap(id, placeholder, richMode) {
 
   const extensions = richMode ? [
     StarterKit,
-    TImage.configure({ inline: false }),
+    TImage.configure({
+      inline: false,
+      allowBase64: false,
+      HTMLAttributes: {
+        // 保留 style、class 等自訂屬性
+      },
+    }).extend({
+      addAttributes() {
+        return {
+          ...this.parent?.(),
+          style: {
+            default: null,
+            parseHTML: el => el.getAttribute('style'),
+            renderHTML: attrs => attrs.style ? { style: attrs.style } : {},
+          },
+          width: {
+            default: null,
+            parseHTML: el => el.getAttribute('width'),
+            renderHTML: attrs => attrs.width ? { width: attrs.width } : {},
+          },
+        };
+      },
+    }),
     TLink.configure({ openOnClick: false }),
     TColor,
     TTextStyle,
