@@ -7,7 +7,9 @@
 
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Tiptap loaded via ESM in script type=module -->
+<!-- Quill 2.0 -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -237,96 +239,33 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
-/* ── Tiptap editor ── */
-.tt-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: visible; transition: border-color 0.15s; }
-.tt-wrap:focus-within { border-color: var(--border-strong); }
-.tt-toolbar {
-  display: flex; flex-wrap: wrap; gap: 2px;
-  padding: 6px 8px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-.tt-btn {
-  height: 28px; min-width: 28px; padding: 0 6px;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 13px; font-family: 'Noto Sans TC', sans-serif;
+/* ── Quill 2 override ── */
+.ql-container { font-family: 'Noto Sans TC', sans-serif; font-size: 14px; border-radius: 0 0 var(--radius-md) var(--radius-md) !important; border-color: var(--border) !important; }
+.ql-toolbar { border-radius: var(--radius-md) var(--radius-md) 0 0 !important; border-color: var(--border) !important; background: var(--bg-secondary); flex-wrap: wrap; }
+.ql-editor { min-height: 280px; color: var(--text); line-height: 1.8; }
+.ql-editor.ql-blank::before { color: var(--text-tertiary); font-style: normal; }
+.ql-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
+.ql-editor h2 { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
+.ql-editor h3 { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
+.ql-editor img { max-width: 100%; border-radius: var(--radius-md); margin: 8px 0; cursor: pointer; display: block; }
+.ql-editor iframe { width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-md); border: none; margin: 10px 0; display: block; }
+.ql-editor a { color: var(--text); }
+.ql-editor blockquote { border-left: 3px solid var(--border-strong); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
+.ql-editor table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+.ql-editor td, .ql-editor th { border: 1px solid var(--border-strong); padding: 7px 10px; min-width: 40px; vertical-align: top; }
+.ql-editor th { background: var(--bg-secondary); font-weight: 600; }
+.ql-snow .ql-picker-label { color: var(--text-secondary); }
+.ql-snow .ql-stroke { stroke: var(--text-secondary); }
+.ql-snow .ql-fill { fill: var(--text-secondary); }
+.ql-snow .ql-picker-options { background: var(--bg); border-color: var(--border); }
+.ql-extra-btn {
+  height: 24px; padding: 0 7px; font-size: 13px;
+  font-family: 'Noto Sans TC', sans-serif;
   color: var(--text-secondary); background: none;
-  border: 1px solid transparent; border-radius: var(--radius-sm);
-  cursor: pointer; transition: background 0.1s, color 0.1s, border-color 0.1s;
-  position: relative; white-space: nowrap;
+  border: none; cursor: pointer; border-radius: 3px;
+  display: inline-flex; align-items: center; transition: color 0.1s, background 0.1s;
 }
-.tt-btn:hover { background: var(--bg-tertiary); color: var(--text); }
-.tt-btn.is-active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-.tt-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.tt-sep { width: 1px; background: var(--border); margin: 2px 4px; align-self: stretch; }
-.tt-select {
-  height: 28px; padding: 0 6px; font-size: 13px; font-family: inherit;
-  background: var(--bg-secondary); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text-secondary);
-  cursor: pointer; outline: none;
-}
-.tt-select:hover { border-color: var(--border-strong); color: var(--text); }
-/* Tooltip */
-.tt-btn[data-tip] { position: relative; }
-.tt-btn[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute; bottom: calc(100% + 7px); left: 50%;
-  transform: translateX(-50%);
-  background: var(--text); color: var(--bg);
-  font-size: 11px; white-space: nowrap;
-  padding: 3px 8px; border-radius: var(--radius-sm);
-  pointer-events: none; opacity: 0;
-  transition: opacity 0.15s;
-  z-index: 9999;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.tt-btn[data-tip]:hover::after { opacity: 1; }
-/* 移除按鈕 hover 底線 */
-.tt-btn { text-decoration: none !important; }
-.tt-btn:hover { text-decoration: none !important; }
-/* Editor area */
-.tt-editor {
-  min-height: 300px; padding: 14px 16px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 14px;
-  color: var(--text); line-height: 1.8;
-  outline: none; background: var(--bg);
-}
-/* 編輯器本身不顯示 ProseMirror 預設藍框 */
-.tt-editor > .ProseMirror { outline: none !important; }
-.tt-editor p { margin: 4px 0; }
-.tt-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
-.tt-editor h2 { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
-.tt-editor h3 { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
-.tt-editor blockquote { border-left: 3px solid var(--border-strong); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
-.tt-editor code { background: var(--bg-tertiary); padding: 2px 5px; border-radius: 3px; font-size: 13px; }
-.tt-editor pre { background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md); overflow-x: auto; }
-.tt-editor pre code { background: none; padding: 0; }
-.tt-editor a { color: var(--text); text-decoration: underline; }
-.tt-editor ul, .tt-editor ol { padding-left: 22px; }
-.tt-editor img { max-width: 100%; border-radius: var(--radius-md); margin: 8px 0; cursor: pointer; display: block; }
-.tt-editor iframe { width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-md); border: none; margin: 10px 0; display: block; }
-.tt-editor p.is-editor-empty:first-child::before {
-  content: attr(data-placeholder);
-  color: var(--text-tertiary); pointer-events: none;
-  float: left; height: 0;
-}
-/* Table */
-.tt-editor table { border-collapse: collapse; width: 100%; margin: 12px 0; table-layout: fixed; }
-.tt-editor td, .tt-editor th {
-  border: 1px solid var(--border-strong);
-  padding: 7px 10px; min-width: 40px; vertical-align: top;
-  position: relative;
-}
-.tt-editor th { background: var(--bg-secondary); font-weight: 600; }
-.tt-editor .selectedCell::after {
-  content: ''; position: absolute; inset: 0;
-  background: rgba(100,150,255,0.15); pointer-events: none;
-}
-.tt-editor .column-resize-handle {
-  position: absolute; right: -2px; top: 0; bottom: 0;
-  width: 4px; background: #adf; cursor: col-resize;
-}
+.ql-extra-btn:hover { color: var(--text); background: var(--bg-tertiary); }
 /* ── Group editor ── */
 .group-list { display:flex; flex-direction:column; gap:12px; }
 .group-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .15s; }
@@ -724,7 +663,7 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
 // ── Globals ──
 let supabase_client = null;
 // ── Tiptap instances ──
-let tiptapInstances = {};
+// tiptapInstances removed - using quillInstances
 
 // ── Config ──
 function getConfig() {
@@ -1638,393 +1577,153 @@ function showPage(name, btn) {
   if (renderers[name]) renderers[name]();
 }
 
-// ── makeTiptap：建立 Tiptap 編輯器 ──
-// richMode=true → 完整工具列（含表格）；false → 簡易工具列
-async function makeTiptap(id, placeholder, richMode) {
-  // 若已存在，先銷毀
-  if (tiptapInstances[id]) {
-    try { tiptapInstances[id].destroy(); } catch(e) {}
-    delete tiptapInstances[id];
+// ── Quill 2 編輯器 ──
+let quillInstances = {};
+
+function makeQuill(id, placeholder, richMode) {
+  if (quillInstances[id]) {
+    try {
+      const old = document.getElementById('quill-wrap-' + id);
+      if (old) old.remove();
+    } catch(e) {}
+    delete quillInstances[id];
   }
   const container = document.getElementById(id);
   if (!container) return null;
   container.innerHTML = '';
 
-  // 動態載入 Tiptap（ESM CDN）
-  // 用 esm.sh ?bundle 強制所有套件共用同一份 prosemirror-model，避免版本衝突
-  const BASE = 'https://esm.sh/';
-  const DEPS = 'deps=prosemirror-model@1.19.3,prosemirror-state@1.4.3,prosemirror-view@1.31.6';
-  const {
-    Editor, Node
-  } = await import(BASE + '@tiptap/core@2.11.5?' + DEPS + '&bundle');
-  const { default: StarterKit   } = await import(BASE + '@tiptap/starter-kit@2.11.5?' + DEPS + '&bundle');
-  const { default: TTable       } = await import(BASE + '@tiptap/extension-table@2.11.5?' + DEPS + '&bundle');
-  const { default: TTableRow    } = await import(BASE + '@tiptap/extension-table-row@2.11.5?' + DEPS + '&bundle');
-  const { default: TTableCell   } = await import(BASE + '@tiptap/extension-table-cell@2.11.5?' + DEPS + '&bundle');
-  const { default: TTableHeader } = await import(BASE + '@tiptap/extension-table-header@2.11.5?' + DEPS + '&bundle');
-  const { default: TLink        } = await import(BASE + '@tiptap/extension-link@2.11.5?' + DEPS + '&bundle');
-  const { default: TColor       } = await import(BASE + '@tiptap/extension-color@2.11.5?' + DEPS + '&bundle');
-  const { default: TTextStyle   } = await import(BASE + '@tiptap/extension-text-style@2.11.5?' + DEPS + '&bundle');
-  const { default: TUnderline   } = await import(BASE + '@tiptap/extension-underline@2.11.5?' + DEPS + '&bundle');
-
-  // 建立 DOM 結構
+  // 建立 wrapper
   const wrap = document.createElement('div');
-  wrap.className = 'tt-wrap';
-  const tbEl = document.createElement('div');
-  tbEl.className = 'tt-toolbar';
-  tbEl.id = 'tt-toolbar-' + id;
-  const edEl = document.createElement('div');
-  edEl.className = 'tt-editor';
-  edEl.id = 'tt-editor-' + id;
-  wrap.appendChild(tbEl);
-  wrap.appendChild(edEl);
+  wrap.id = 'quill-wrap-' + id;
+  const editorDiv = document.createElement('div');
+  editorDiv.id = 'quill-editor-' + id;
+  wrap.appendChild(editorDiv);
   container.appendChild(wrap);
 
-  const TIframe = Node.create({
-    name: 'iframe',
-    group: 'block',
-    atom: true,
-    addAttributes() {
-      return {
-        src: {
-          default: null,
-          parseHTML: el => el.getAttribute('src'),
-        },
-        style: {
-          default: null,
-          parseHTML: el => el.getAttribute('style'),
-        },
-        allowfullscreen: {
-          default: true,
-          parseHTML: el => el.hasAttribute('allowfullscreen'),
-        },
-        frameborder: {
-          default: '0',
-          parseHTML: el => el.getAttribute('frameborder') || '0',
-        },
-        allow: {
-          default: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
-          parseHTML: el => el.getAttribute('allow'),
-        },
-      };
-    },
-    parseHTML() {
-      return [{ tag: 'iframe[src]' }];
-    },
-    renderHTML({ HTMLAttributes }) {
-      const attrs = {
-        ...HTMLAttributes,
-        frameborder: HTMLAttributes.frameborder || '0',
-        allowfullscreen: HTMLAttributes.allowfullscreen !== false ? 'true' : null,
-        style: HTMLAttributes.style || 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
-      };
-      return ['iframe', attrs];
-    },
-  });
-
-  const extensions = richMode ? [
-    StarterKit.configure({ dropcursor: false }),
-    Node.create({
-      name: 'image',
-      group: 'block',
-      atom: true,
-      draggable: true,
-      addAttributes() {
-        return {
-          src:   { default: null, parseHTML: el => el.getAttribute('src') },
-          alt:   { default: null, parseHTML: el => el.getAttribute('alt') },
-          title: { default: null, parseHTML: el => el.getAttribute('title') },
-          style: { default: null, parseHTML: el => el.getAttribute('style') },
-          width: { default: null, parseHTML: el => el.getAttribute('width') },
-        };
-      },
-      parseHTML() {
-        return [{
-          tag: 'img',
-          getAttrs: el => ({
-            src: el.getAttribute('src') || '',
-            alt: el.getAttribute('alt') || null,
-            title: el.getAttribute('title') || null,
-            style: el.getAttribute('style') || null,
-            width: el.getAttribute('width') || null,
-          }),
-        }];
-      },
-      renderHTML({ HTMLAttributes }) {
-        return ['img', {
-          src: HTMLAttributes.src || '',
-          alt: HTMLAttributes.alt || null,
-          title: HTMLAttributes.title || null,
-          width: HTMLAttributes.width || null,
-          style: HTMLAttributes.style || 'max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:pointer;',
-        }];
-      },
-      addCommands() {
-        return {
-          setImage: (options) => ({ commands }) => {
-            return commands.insertContent({ type: 'image', attrs: options });
-          },
-        };
-      },
-    }),
-    TIframe,
-    TLink.configure({ openOnClick: false }),
-    TColor,
-    TTextStyle,
-    TUnderline,
-    TTable.configure({ resizable: false }),
-    TTableRow,
-    TTableCell,
-    TTableHeader,
+  const toolbarOptions = richMode ? [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: [] }, { background: [] }],
+    [{ align: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    ['clean']
   ] : [
-    StarterKit.configure({ heading: false, blockquote: false, code: false, codeBlock: false, horizontalRule: false }),
-    TLink.configure({ openOnClick: false }),
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link'], ['clean']
   ];
 
-  const editor = new Editor({
-    element: edEl,
-    extensions,
-    content: '',
-    enableContentCheck: false,
-    editorProps: {
-      attributes: {
-        'data-placeholder': placeholder || '在這裡輸入內容...',
-      }
-    },
-    onUpdate: () => {},
+  const q = new Quill('#quill-editor-' + id, {
+    theme: 'snow',
+    placeholder: placeholder || '在這裡輸入內容...',
+    modules: { toolbar: { container: toolbarOptions } }
   });
 
-  tiptapInstances[id] = editor;
-
-  // 建立工具列
+  // 圖片上傳 handler
   if (richMode) {
-    buildRichToolbar(tbEl, id, editor);
-  } else {
-    buildSimpleToolbar(tbEl, id, editor);
-  }
-
-  // 點擊圖片 → 顯示比例/縮放浮層
-  edEl.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
-    openImgRatioPopover(e.target, editor);
-  });
-
-  return editor;
-}
-
-function normalizeTiptapHtml(html) {
-  if (!html || typeof html !== 'string') return html || '';
-  const doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
-  const root = doc.body.firstElementChild;
-  if (!root) return html;
-
-  root.querySelectorAll('p').forEach(p => {
-    const nodes = Array.from(p.childNodes).filter(node => {
-      if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim() !== '';
-      if (node.nodeType === Node.ELEMENT_NODE) return node.tagName !== 'BR';
-      return true;
+    q.getModule('toolbar').addHandler('image', () => {
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files[0]; if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
+        toast('圖片上傳中...');
+        try {
+          const url = await uploadImage(file);
+          const range = q.getSelection(true) || { index: q.getLength() - 1 };
+          q.insertEmbed(range.index, 'image', url, 'user');
+          q.setSelection(range.index + 1);
+          toast('✓ 圖片已插入');
+        } catch(e) { toast('圖片上傳失敗：' + e.message); }
+      };
+      input.click();
     });
-    if (nodes.length && nodes.every(node => node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG')) {
-      p.replaceWith(...nodes.map(node => node.cloneNode(true)));
-    }
-  });
 
-  return root.innerHTML;
-}
+    // 影片 & 表格自訂按鈕（在 toolbar DOM ready 後附加）
+    setTimeout(() => {
+      const tb = document.querySelector('#quill-wrap-' + id + ' .ql-toolbar');
+      if (!tb) return;
+      const span = document.createElement('span');
+      span.className = 'ql-formats';
 
-// ── SVG icons ──
-const ICONS = {
-  bold:        '<svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6z"/><path d="M6 12h9a4 4 0 0 1 0 8H6z"/></svg>',
-  italic:      '<svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>',
-  underline:   '<svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>',
-  strike:      '<svg viewBox="0 0 24 24"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>',
-  ul:          '<svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
-  ol:          '<svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>',
-  blockquote:  '<svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>',
-  code:        '<svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-  link:        '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
-  image:       '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
-  video:       '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
-  table:       '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>',
-  colbefore:   '<svg viewBox="0 0 24 24"><rect x="13" y="3" width="8" height="18" rx="1"/><path d="M7 3v18M3 12h8"/></svg>',
-  colafter:    '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><path d="M17 3v18M13 12h8"/></svg>',
-  delcol:      '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><line x1="17" y1="8" x2="21" y2="12"/><line x1="21" y1="8" x2="17" y2="12"/></svg>',
-  rowbefore:   '<svg viewBox="0 0 24 24"><rect x="3" y="13" width="18" height="8" rx="1"/><path d="M3 7h18M12 3v8"/></svg>',
-  rowafter:    '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="1"/><path d="M3 17h18M12 13v8"/></svg>',
-  delrow:      '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="1"/><line x1="16" y1="17" x2="20" y2="21"/><line x1="20" y1="17" x2="16" y2="21"/></svg>',
-  deltable:    '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
-  clean:       '<svg viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M5 20h6"/><path d="M13 4l-6 16"/></svg>',
-};
+      const videoBtn = document.createElement('button');
+      videoBtn.type = 'button';
+      videoBtn.className = 'ql-extra-btn';
+      videoBtn.textContent = '影片';
+      videoBtn.title = '嵌入影片';
+      videoBtn.onclick = () => openVideoModal(id);
 
-function mkBtn(icon, tip, onClick, editorId) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'tt-btn';
-  b.innerHTML = ICONS[icon] || icon;
-  if (tip) b.setAttribute('data-tip', tip);
-  b.addEventListener('click', (e) => { e.preventDefault(); onClick(); updateToolbar(editorId); });
-  return b;
-}
-function mkSep() {
-  const s = document.createElement('div');
-  s.className = 'tt-sep';
-  return s;
-}
+      const tableBtn = document.createElement('button');
+      tableBtn.type = 'button';
+      tableBtn.className = 'ql-extra-btn';
+      tableBtn.textContent = '表格';
+      tableBtn.title = '插入表格';
+      tableBtn.onclick = () => openInsertTableModal(id);
 
-function buildSimpleToolbar(tbEl, id, editor) {
-  tbEl.appendChild(mkBtn('bold',       '粗體',    () => editor.chain().focus().toggleBold().run(), id));
-  tbEl.appendChild(mkBtn('italic',     '斜體',    () => editor.chain().focus().toggleItalic().run(), id));
-  tbEl.appendChild(mkBtn('underline',  '底線',    () => editor.chain().focus().toggleUnderline?.().run(), id));
-  tbEl.appendChild(mkSep());
-  tbEl.appendChild(mkBtn('ul',         '無序清單', () => editor.chain().focus().toggleBulletList().run(), id));
-  tbEl.appendChild(mkBtn('ol',         '有序清單', () => editor.chain().focus().toggleOrderedList().run(), id));
-  tbEl.appendChild(mkSep());
-  tbEl.appendChild(mkBtn('link',       '插入連結', () => insertLinkPrompt(editor), id));
-  tbEl.appendChild(mkBtn('clean',      '清除格式', () => editor.chain().focus().clearNodes().unsetAllMarks().run(), id));
-  editor.on('transaction', () => updateToolbar(id));
-}
+      span.appendChild(videoBtn);
+      span.appendChild(tableBtn);
+      tb.appendChild(span);
+    }, 0);
 
-function buildRichToolbar(tbEl, id, editor) {
-  // 標題下拉
-  const sel = document.createElement('select');
-  sel.className = 'tt-select';
-  sel.id = 'tt-heading-' + id;
-  [['', 'Normal'], ['1','H1'], ['2','H2'], ['3','H3']].forEach(([v, l]) => {
-    const o = document.createElement('option');
-    o.value = v; o.textContent = l;
-    sel.appendChild(o);
-  });
-  sel.addEventListener('change', () => {
-    if (sel.value === '') editor.chain().focus().setParagraph().run();
-    else editor.chain().focus().setHeading({ level: parseInt(sel.value) }).run();
-    setTimeout(() => updateToolbar(id), 0);
-  });
-  tbEl.appendChild(sel);
-  tbEl.appendChild(mkSep());
-
-  // 文字格式
-  tbEl.appendChild(mkBtn('bold',       '粗體',     () => editor.chain().focus().toggleBold().run(), id));
-  tbEl.appendChild(mkBtn('italic',     '斜體',     () => editor.chain().focus().toggleItalic().run(), id));
-  tbEl.appendChild(mkBtn('underline',  '底線',     () => editor.chain().focus().toggleUnderline().run(), id));
-  tbEl.appendChild(mkBtn('strike',     '刪除線',   () => editor.chain().focus().toggleStrike().run(), id));
-  tbEl.appendChild(mkSep());
-
-  // 清單
-  tbEl.appendChild(mkBtn('ul',         '無序清單', () => editor.chain().focus().toggleBulletList().run(), id));
-  tbEl.appendChild(mkBtn('ol',         '有序清單', () => editor.chain().focus().toggleOrderedList().run(), id));
-  tbEl.appendChild(mkBtn('blockquote', '引用',     () => editor.chain().focus().toggleBlockquote().run(), id));
-  tbEl.appendChild(mkBtn('code',       '程式碼',   () => editor.chain().focus().toggleCodeBlock().run(), id));
-  tbEl.appendChild(mkSep());
-
-  // 媒體
-  tbEl.appendChild(mkBtn('link',       '插入連結', () => insertLinkPrompt(editor), id));
-  tbEl.appendChild(mkBtn('image',      '上傳圖片', () => triggerImageUpload(id, editor), id));
-  tbEl.appendChild(mkBtn('video',      '嵌入影片', () => openVideoModal(id), id));
-  tbEl.appendChild(mkSep());
-
-  // 表格
-  tbEl.appendChild(mkBtn('table',      '插入表格', () => openInsertTableModal(editor), id));
-  tbEl.appendChild(mkBtn('colbefore',  '插入左欄', () => editor.chain().focus().addColumnBefore().run(), id));
-  tbEl.appendChild(mkBtn('colafter',   '插入右欄', () => editor.chain().focus().addColumnAfter().run(), id));
-  tbEl.appendChild(mkBtn('delcol',     '刪除欄',   () => editor.chain().focus().deleteColumn().run(), id));
-  tbEl.appendChild(mkBtn('rowbefore',  '插入上列', () => editor.chain().focus().addRowBefore().run(), id));
-  tbEl.appendChild(mkBtn('rowafter',   '插入下列', () => editor.chain().focus().addRowAfter().run(), id));
-  tbEl.appendChild(mkBtn('delrow',     '刪除列',   () => editor.chain().focus().deleteRow().run(), id));
-  tbEl.appendChild(mkBtn('deltable',   '刪除表格', () => editor.chain().focus().deleteTable().run(), id));
-  tbEl.appendChild(mkSep());
-
-  // 清除格式
-  tbEl.appendChild(mkBtn('clean',      '清除格式', () => editor.chain().focus().clearNodes().unsetAllMarks().run(), id));
-
-  editor.on('transaction', () => updateToolbar(id));
-}
-
-function updateToolbar(id) {
-  const editor = tiptapInstances[id];
-  const tbEl   = document.getElementById('tt-toolbar-' + id);
-  if (!editor || !tbEl) return;
-
-  const map = {
-    bold: editor.isActive('bold'), italic: editor.isActive('italic'),
-    underline: editor.isActive('underline'), strike: editor.isActive('strike'),
-    ul: editor.isActive('bulletList'), ol: editor.isActive('orderedList'),
-    blockquote: editor.isActive('blockquote'), code: editor.isActive('codeBlock'),
-    link: editor.isActive('link'),
-  };
-  tbEl.querySelectorAll('.tt-btn[data-tip]').forEach(btn => {
-    const tip = btn.getAttribute('data-tip');
-    const tipMap = { '粗體':'bold','斜體':'italic','底線':'underline','刪除線':'strike',
-      '無序清單':'ul','有序清單':'ol','引用':'blockquote','程式碼':'code','插入連結':'link' };
-    const key = tipMap[tip];
-    if (key !== undefined) btn.classList.toggle('is-active', !!map[key]);
-  });
-  // heading select
-  const sel = document.getElementById('tt-heading-' + id);
-  if (sel) {
-    if (editor.isActive('heading', { level: 1 })) sel.value = '1';
-    else if (editor.isActive('heading', { level: 2 })) sel.value = '2';
-    else if (editor.isActive('heading', { level: 3 })) sel.value = '3';
-    else sel.value = '';
+    // 點擊圖片 → 比例/縮放浮層
+    q.root.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
+      openImgRatioPopover(e.target, null);
+    });
   }
+
+  quillInstances[id] = q;
+  return q;
 }
 
-function insertLinkPrompt(editor) {
-  const prev = editor.getAttributes('link').href || '';
-  const url  = prompt('輸入連結網址：', prev);
-  if (url === null) return;
-  if (url === '') { editor.chain().focus().unsetLink().run(); return; }
-  editor.chain().focus().setLink({ href: url }).run();
+// 取得編輯器 HTML 內容
+function getEditorHTML(id) {
+  const q = quillInstances[id];
+  return q ? q.root.innerHTML : '';
 }
 
-function triggerImageUpload(editorId, editor) {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*';
-  input.onchange = async () => {
-    const file = input.files[0]; if (!file) return;
-    try {
-      if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
-      toast('圖片上傳中...');
-      const url = await uploadImage(file);
-      editor.chain().focus().setImage({ src: url }).run();
-      toast('✓ 圖片已插入，可點擊圖片調整比例與縮放');
-    } catch(e) { toast('圖片上傳失敗：' + e.message); }
-  };
-  input.click();
+// 設定編輯器 HTML 內容
+function setEditorHTML(id, html) {
+  const q = quillInstances[id];
+  if (!q || !html) return;
+  q.root.innerHTML = html;
 }
 
 // ── Video embed modal ──
-let _videoTiptapId = null;
+let _videoQuillId = null;
 function openVideoModal(editorId) {
-  _videoTiptapId = editorId;
+  _videoQuillId = editorId;
   const existing = document.getElementById('video-modal');
   if (existing) existing.remove();
   const modal = document.createElement('div');
   modal.id = 'video-modal';
   modal.className = 'video-modal';
-  modal.innerHTML = `
-    <div class="video-modal-card">
-      <div class="video-modal-title">📹 嵌入影片</div>
-      <div class="form-row">
-        <label class="form-label">影片網址</label>
-        <input class="form-input" id="video-url-input" placeholder="https://www.youtube.com/watch?v=..." />
-        <p class="video-modal-hint">支援 YouTube、Vimeo 等影片網址</p>
-      </div>
-      <div class="video-modal-actions">
-        <button class="btn btn-primary" onclick="insertVideo()">插入影片</button>
-        <button class="btn btn-secondary" onclick="closeVideoModal()">取消</button>
-      </div>
-    </div>`;
+  modal.innerHTML =
+    '<div class="video-modal-card">' +
+      '<div class="video-modal-title">📹 嵌入影片</div>' +
+      '<div class="form-row">' +
+        '<label class="form-label">影片網址</label>' +
+        '<input class="form-input" id="video-url-input" placeholder="https://www.youtube.com/watch?v=..." />' +
+        '<p class="video-modal-hint">支援 YouTube、Vimeo 等影片網址</p>' +
+      '</div>' +
+      '<div class="video-modal-actions">' +
+        '<button class="btn btn-primary" onclick="insertVideo()">插入影片</button>' +
+        '<button class="btn btn-secondary" onclick="closeVideoModal()">取消</button>' +
+      '</div>' +
+    '</div>';
   document.body.appendChild(modal);
   setTimeout(() => document.getElementById('video-url-input')?.focus(), 100);
 }
 
 function convertToEmbedUrl(url) {
-  const ytMatch  = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
-  const ytShorts = url.match(/youtube\.com\/shorts\/([\w-]{11})/);
-  if (ytShorts) return 'https://www.youtube.com/embed/' + ytShorts[1];
-  const vimeo    = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeo) return 'https://player.vimeo.com/video/' + vimeo[1];
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (yt) return 'https://www.youtube.com/embed/' + yt[1];
+  const yts = url.match(/youtube\.com\/shorts\/([\w-]{11})/);
+  if (yts) return 'https://www.youtube.com/embed/' + yts[1];
+  const vim = url.match(/vimeo\.com\/(\d+)/);
+  if (vim) return 'https://player.vimeo.com/video/' + vim[1];
   return url;
 }
 
@@ -2032,18 +1731,11 @@ function insertVideo() {
   const rawUrl = document.getElementById('video-url-input')?.value.trim();
   if (!rawUrl) { toast('請輸入影片網址'); return; }
   const embedUrl = convertToEmbedUrl(rawUrl);
-  const editor   = tiptapInstances[_videoTiptapId];
-  if (editor) {
-    editor.chain().focus().insertContent({
-      type: 'iframe',
-      attrs: {
-        src: embedUrl,
-        frameborder: '0',
-        allowfullscreen: true,
-        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
-        style: 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
-      },
-    }).run();
+  const q = quillInstances[_videoQuillId];
+  if (q) {
+    const range = q.getSelection(true) || { index: q.getLength() - 1 };
+    q.insertEmbed(range.index, 'video', embedUrl, 'user');
+    q.setSelection(range.index + 1);
     toast('✓ 影片已嵌入');
   }
   closeVideoModal();
@@ -2054,9 +1746,226 @@ function closeVideoModal() {
   if (m) m.remove();
 }
 
+// ── Insert Table Modal ──
+let _tableQuillId = null;
+function openInsertTableModal(editorId) {
+  _tableQuillId = editorId;
+  const existing = document.getElementById('ins-table-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'ins-table-modal';
+  modal.id = 'ins-table-modal';
+  modal.innerHTML =
+    '<div class="ins-table-card">' +
+      '<div class="ins-table-header">' +
+        '<span class="ins-table-title">插入表格</span>' +
+        '<button class="ins-table-close" id="ins-table-close-btn">✕</button>' +
+      '</div>' +
+      '<div class="ins-table-fields">' +
+        '<div class="ins-table-field"><label>欄數</label><input type="number" id="ins-cols" value="3" min="1" max="10"></div>' +
+        '<div class="ins-table-field"><label>列數</label><input type="number" id="ins-rows" value="3" min="1" max="20"></div>' +
+      '</div>' +
+      '<div class="ins-table-header-row">' +
+        '<input type="checkbox" id="ins-header-row" checked>' +
+        '<label for="ins-header-row">第一列設為表頭</label>' +
+      '</div>' +
+      '<div class="ins-table-footer">' +
+        '<button class="btn btn-secondary btn-sm" id="ins-table-cancel">取消</button>' +
+        '<button class="btn btn-primary btn-sm" id="ins-table-confirm">插入</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+  document.getElementById('ins-table-close-btn').onclick = () => modal.remove();
+  document.getElementById('ins-table-cancel').onclick    = () => modal.remove();
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  document.getElementById('ins-table-confirm').onclick = () => {
+    const rows   = Math.max(1, Math.min(20, parseInt(document.getElementById('ins-rows').value) || 3));
+    const cols   = Math.max(1, Math.min(10, parseInt(document.getElementById('ins-cols').value) || 3));
+    const header = document.getElementById('ins-header-row').checked;
+    const q = quillInstances[_tableQuillId];
+    if (q) {
+      // 建立 table HTML 直接插入 root
+      let html = '<table style="border-collapse:collapse;width:100%;margin:12px 0;">';
+      for (let r = 0; r < rows; r++) {
+        html += '<tr>';
+        for (let c = 0; c < cols; c++) {
+          const isH = header && r === 0;
+          const tag = isH ? 'th' : 'td';
+          html += '<' + tag + ' style="border:1px solid #ccc;padding:7px 10px;min-width:40px;">' +
+            (isH ? '欄 ' + (c + 1) : '') + '</' + tag + '>';
+        }
+        html += '</tr>';
+      }
+      html += '</table><p><br></p>';
+      const range = q.getSelection(true) || { index: Math.max(0, q.getLength() - 1) };
+      q.clipboard.dangerouslyPasteHTML(range.index, html, 'user');
+    }
+    modal.remove();
+    toast('✓ 表格已插入');
+  };
+  setTimeout(() => document.getElementById('ins-cols')?.focus(), 50);
+}
+
 // ─────────────────────────────────────────────
-// NAVIGATION PAGE
+// IMAGE RATIO / SCALE POPOVER
 // ─────────────────────────────────────────────
+const IMG_RATIOS = [
+  { label: '1:1',  w: 1,  h: 1 },
+  { label: '16:9', w: 16, h: 9 },
+  { label: '4:3',  w: 4,  h: 3 },
+  { label: '3:4',  w: 3,  h: 4 },
+  { label: '原圖', w: 0,  h: 0 },
+];
+const IMG_SCALES = ['100%', '75%', '50%', '25%'];
+
+let _ratioPopover = null;
+let _ratioTargetImg = null;
+
+function openImgRatioPopover(imgEl, editor) {
+  closeImgRatioPopover();
+  _ratioTargetImg = imgEl;
+
+  const popover = document.createElement('div');
+  popover.className = 'img-ratio-popover';
+  popover.id = 'img-ratio-popover';
+
+  const currentStyle      = imgEl.getAttribute('style') || '';
+  const currentRatioLabel = detectCurrentRatio(currentStyle);
+  const currentScale      = detectCurrentScale(currentStyle);
+
+  // 比例區塊
+  const ratioLabel = document.createElement('div');
+  ratioLabel.className = 'img-popover-section-label';
+  ratioLabel.textContent = '比例';
+  popover.appendChild(ratioLabel);
+
+  const ratioRow = document.createElement('div');
+  ratioRow.className = 'img-popover-row';
+  IMG_RATIOS.forEach(ratio => {
+    const btn = document.createElement('button');
+    btn.className = 'img-ratio-btn' + (ratio.label === currentRatioLabel ? ' active' : '');
+    btn.textContent = ratio.label;
+    btn.type = 'button';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyImgRatio(imgEl, ratio);
+      ratioRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    ratioRow.appendChild(btn);
+  });
+  popover.appendChild(ratioRow);
+
+  // 縮放區塊
+  const scaleLabel = document.createElement('div');
+  scaleLabel.className = 'img-popover-section-label';
+  scaleLabel.style.marginTop = '6px';
+  scaleLabel.textContent = '縮放';
+  popover.appendChild(scaleLabel);
+
+  const scaleRow = document.createElement('div');
+  scaleRow.className = 'img-popover-row';
+  IMG_SCALES.forEach(scale => {
+    const btn = document.createElement('button');
+    btn.className = 'img-ratio-btn' + (scale === currentScale ? ' active' : '');
+    btn.textContent = scale;
+    btn.type = 'button';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyImgScale(imgEl, scale);
+      scaleRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    scaleRow.appendChild(btn);
+  });
+  popover.appendChild(scaleRow);
+
+  document.body.appendChild(popover);
+  _ratioPopover = popover;
+  positionImgRatioPopover(imgEl);
+
+  setTimeout(() => {
+    document.addEventListener('click', _closeRatioOnOutside);
+  }, 0);
+}
+
+function _closeRatioOnOutside(e) {
+  if (_ratioPopover && !_ratioPopover.contains(e.target) && e.target !== _ratioTargetImg) {
+    closeImgRatioPopover();
+    document.removeEventListener('click', _closeRatioOnOutside);
+  }
+}
+
+function closeImgRatioPopover() {
+  if (_ratioPopover) { _ratioPopover.remove(); _ratioPopover = null; }
+  _ratioTargetImg = null;
+}
+
+function positionImgRatioPopover(imgEl) {
+  const popover = document.getElementById('img-ratio-popover');
+  if (!popover) return;
+  const rect = imgEl.getBoundingClientRect();
+  const pw   = popover.offsetWidth || 200;
+  let left   = rect.left + window.scrollX;
+  let top    = rect.bottom + window.scrollY + 6;
+  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  popover.style.left = left + 'px';
+  popover.style.top  = top  + 'px';
+}
+
+function detectCurrentRatio(style) {
+  if (!style || !style.includes('aspect-ratio')) return '原圖';
+  if (style.includes('1/1'))  return '1:1';
+  if (style.includes('16/9')) return '16:9';
+  if (style.includes('4/3'))  return '4:3';
+  if (style.includes('3/4'))  return '3:4';
+  return '原圖';
+}
+
+function detectCurrentScale(style) {
+  const m = style.match(/max-width\s*:\s*(\d+)%/);
+  if (!m) return '100%';
+  const v = parseInt(m[1]);
+  if (v === 75) return '75%';
+  if (v === 50) return '50%';
+  if (v === 25) return '25%';
+  return '100%';
+}
+
+function applyImgRatio(imgEl, ratio) {
+  if (ratio.w === 0) {
+    imgEl.style.aspectRatio = '';
+    imgEl.style.objectFit   = '';
+    imgEl.style.width       = '';
+    imgEl.style.display     = '';
+  } else {
+    imgEl.style.aspectRatio = ratio.w + '/' + ratio.h;
+    imgEl.style.objectFit   = 'cover';
+    imgEl.style.width       = imgEl.style.maxWidth || '100%';
+    imgEl.style.display     = 'block';
+  }
+  toast('✓ 已套用 ' + ratio.label + ' 比例');
+}
+
+function applyImgScale(imgEl, scale) {
+  if (scale === '100%') {
+    imgEl.style.maxWidth = '';
+    imgEl.style.width    = imgEl.style.aspectRatio ? '100%' : '';
+  } else {
+    imgEl.style.maxWidth = scale;
+    imgEl.style.width    = scale;
+  }
+  toast('✓ 已套用 ' + scale + ' 縮放');
+}
+
+// ─────────────────────────────────────────────
+// INSERT TABLE MODAL
+// ─────────────────────────────────────────────
+
+
 async function renderNavigationPage() {
   const el = document.getElementById('page-navigation');
   el.innerHTML = `
@@ -2182,7 +2091,7 @@ async function renderProfilePage() {
       <div class="form-row"><label class="form-label">聯絡備註</label><input class="form-input" id="p-note" /></div>
     </div>
   `;
-  const descEditor = await makeTiptap('p-desc-editor', '自我介紹...', true);
+  const descEditor = makeQuill('p-desc-editor', '自我介紹...', true);
   const { data } = await supabase_client.from('profile').select('*').single();
   if (data) {
     document.getElementById('p-name').value = data.name || '';
@@ -2190,15 +2099,15 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    if (data.description && descEditor) { descEditor.commands.setContent(normalizeTiptapHtml(data.description), false, { preserveWhitespace: 'full' }); }
+    if (data.description && descEditor) { setEditorHTML('p-desc-editor', data.description); }
   }
 }
 async function saveProfile() {
-  const q = tiptapInstances['p-desc-editor'];
+  const q = quillInstances['p-desc-editor'];
   const payload = {
     name: document.getElementById('p-name').value,
     nav_name: document.getElementById('p-navname').value,
-    description: q ? q.getHTML() : '',
+    description: getEditorHTML('p-desc-editor'),
     email: document.getElementById('p-email').value,
     phone: document.getElementById('p-phone').value,
     note: document.getElementById('p-note').value,
@@ -2534,9 +2443,9 @@ async function renderProjectForm(proj) {
     initProjectImageArea(projId, parseImgArr(proj?.images));
 
     // Content editor (Tiptap)
-    const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
+    const contentEditor = makeQuill('pj-content-editor', '在這裡輸入專案完整內容...', true);
     if (proj?.content && contentEditor) {
-      contentEditor.commands.setContent(normalizeTiptapHtml(proj.content), false, { preserveWhitespace: 'full' });
+      setEditorHTML('pj-content-editor', proj.content);
       contentEditor.commands.setTextSelection(0);
       // debug: 確認 image node 是否被解析
       const doc = contentEditor.state.doc;
@@ -2674,7 +2583,7 @@ function renderProjectImageArea() {
 }
 
 async function saveProject(id) {
-  const q = tiptapInstances['pj-content-editor'];
+  const q = quillInstances['pj-content-editor'];
   const payload = {
     title: document.getElementById('pj-title')?.value?.trim() || '',
     time_range: document.getElementById('pj-time')?.value || '',
@@ -2684,7 +2593,7 @@ async function saveProject(id) {
     published: document.getElementById('pj-published')?.checked ?? true,
     sort_order: parseInt(document.getElementById('pj-order')?.value) || 0,
     description: document.getElementById('pj-desc')?.value?.trim() || '',
-    content: q ? q.getHTML() : '',
+    content: getEditorHTML('pj-content-editor'),
     sections: getGroupSections(),
     images: _projCoverUrl ? [_projCoverUrl] : [],
     updated_at: new Date().toISOString()
@@ -2803,18 +2712,18 @@ async function renderNoteForm(note) {
       </div>
     </div>
   `;
-  const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
-  if (note?.content && q) { q.commands.setContent(normalizeTiptapHtml(note.content), false, { preserveWhitespace: 'full' }); q.commands.setTextSelection(0); }
+  const q = makeQuill('nt-content-editor', '在這裡撰寫文章內容...', true);
+  if (note?.content && q) { setEditorHTML('nt-content-editor', note.content); }
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
 async function saveNote(id) {
-  const q = tiptapInstances['nt-content-editor'];
+  const q = quillInstances['nt-content-editor'];
   const payload = {
     title: document.getElementById('nt-title').value,
     note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
     note_type: getTagInputValue('nt-type-ti').join(' · ') || '',
-    content: q ? q.getHTML() : '',
+    content: getEditorHTML('pj-content-editor'),
     published: document.getElementById('nt-published').checked,
   };
   try {
@@ -2843,211 +2752,7 @@ async function deleteNote(id) {
   toast('已刪除'); loadNotes();
 }
 
-// ─────────────────────────────────────────────
-// IMAGE RATIO / SCALE POPOVER
-// ─────────────────────────────────────────────
-const IMG_RATIOS = [
-  { label: '1:1',  w: 1,  h: 1 },
-  { label: '16:9', w: 16, h: 9 },
-  { label: '4:3',  w: 4,  h: 3 },
-  { label: '3:4',  w: 3,  h: 4 },
-  { label: '原圖', w: 0,  h: 0 },
-];
-const IMG_SCALES = ['100%', '75%', '50%', '25%'];
 
-let _ratioPopover = null;
-let _ratioTargetImg = null;
-
-function openImgRatioPopover(imgEl, editor) {
-  closeImgRatioPopover();
-  _ratioTargetImg = imgEl;
-
-  const popover = document.createElement('div');
-  popover.className = 'img-ratio-popover';
-  popover.id = 'img-ratio-popover';
-
-  const currentStyle      = imgEl.getAttribute('style') || '';
-  const currentRatioLabel = detectCurrentRatio(currentStyle);
-  const currentScale      = detectCurrentScale(currentStyle);
-
-  // 比例區塊
-  const ratioLabel = document.createElement('div');
-  ratioLabel.className = 'img-popover-section-label';
-  ratioLabel.textContent = '比例';
-  popover.appendChild(ratioLabel);
-
-  const ratioRow = document.createElement('div');
-  ratioRow.className = 'img-popover-row';
-  IMG_RATIOS.forEach(ratio => {
-    const btn = document.createElement('button');
-    btn.className = 'img-ratio-btn' + (ratio.label === currentRatioLabel ? ' active' : '');
-    btn.textContent = ratio.label;
-    btn.type = 'button';
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      applyImgRatio(imgEl, ratio);
-      ratioRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-    ratioRow.appendChild(btn);
-  });
-  popover.appendChild(ratioRow);
-
-  // 縮放區塊
-  const scaleLabel = document.createElement('div');
-  scaleLabel.className = 'img-popover-section-label';
-  scaleLabel.style.marginTop = '6px';
-  scaleLabel.textContent = '縮放';
-  popover.appendChild(scaleLabel);
-
-  const scaleRow = document.createElement('div');
-  scaleRow.className = 'img-popover-row';
-  IMG_SCALES.forEach(scale => {
-    const btn = document.createElement('button');
-    btn.className = 'img-ratio-btn' + (scale === currentScale ? ' active' : '');
-    btn.textContent = scale;
-    btn.type = 'button';
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      applyImgScale(imgEl, scale);
-      scaleRow.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-    scaleRow.appendChild(btn);
-  });
-  popover.appendChild(scaleRow);
-
-  document.body.appendChild(popover);
-  _ratioPopover = popover;
-  positionImgRatioPopover(imgEl);
-
-  setTimeout(() => {
-    document.addEventListener('click', _closeRatioOnOutside);
-  }, 0);
-}
-
-function _closeRatioOnOutside(e) {
-  if (_ratioPopover && !_ratioPopover.contains(e.target) && e.target !== _ratioTargetImg) {
-    closeImgRatioPopover();
-    document.removeEventListener('click', _closeRatioOnOutside);
-  }
-}
-
-function closeImgRatioPopover() {
-  if (_ratioPopover) { _ratioPopover.remove(); _ratioPopover = null; }
-  _ratioTargetImg = null;
-}
-
-function positionImgRatioPopover(imgEl) {
-  const popover = document.getElementById('img-ratio-popover');
-  if (!popover) return;
-  const rect = imgEl.getBoundingClientRect();
-  const pw   = popover.offsetWidth || 200;
-  let left   = rect.left + window.scrollX;
-  let top    = rect.bottom + window.scrollY + 6;
-  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
-  popover.style.left = left + 'px';
-  popover.style.top  = top  + 'px';
-}
-
-function detectCurrentRatio(style) {
-  if (!style || !style.includes('aspect-ratio')) return '原圖';
-  if (style.includes('1/1'))  return '1:1';
-  if (style.includes('16/9')) return '16:9';
-  if (style.includes('4/3'))  return '4:3';
-  if (style.includes('3/4'))  return '3:4';
-  return '原圖';
-}
-
-function detectCurrentScale(style) {
-  const m = style.match(/max-width\s*:\s*(\d+)%/);
-  if (!m) return '100%';
-  const v = parseInt(m[1]);
-  if (v === 75) return '75%';
-  if (v === 50) return '50%';
-  if (v === 25) return '25%';
-  return '100%';
-}
-
-function applyImgRatio(imgEl, ratio) {
-  if (ratio.w === 0) {
-    imgEl.style.aspectRatio = '';
-    imgEl.style.objectFit   = '';
-    imgEl.style.width       = '';
-    imgEl.style.display     = '';
-  } else {
-    imgEl.style.aspectRatio = ratio.w + '/' + ratio.h;
-    imgEl.style.objectFit   = 'cover';
-    imgEl.style.width       = imgEl.style.maxWidth || '100%';
-    imgEl.style.display     = 'block';
-  }
-  toast('✓ 已套用 ' + ratio.label + ' 比例');
-}
-
-function applyImgScale(imgEl, scale) {
-  if (scale === '100%') {
-    imgEl.style.maxWidth = '';
-    imgEl.style.width    = imgEl.style.aspectRatio ? '100%' : '';
-  } else {
-    imgEl.style.maxWidth = scale;
-    imgEl.style.width    = scale;
-  }
-  toast('✓ 已套用 ' + scale + ' 縮放');
-}
-
-// ─────────────────────────────────────────────
-// INSERT TABLE MODAL
-// ─────────────────────────────────────────────
-function openInsertTableModal(editor) {
-  const existing = document.getElementById('ins-table-modal');
-  if (existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.className = 'ins-table-modal';
-  modal.id = 'ins-table-modal';
-  modal.innerHTML =
-    '<div class="ins-table-card">' +
-      '<div class="ins-table-header">' +
-        '<span class="ins-table-title">插入表格</span>' +
-        '<button class="ins-table-close" id="ins-table-close-btn">✕</button>' +
-      '</div>' +
-      '<div class="ins-table-fields">' +
-        '<div class="ins-table-field">' +
-          '<label>欄數</label>' +
-          '<input type="number" id="ins-cols" value="3" min="1" max="10">' +
-        '</div>' +
-        '<div class="ins-table-field">' +
-          '<label>列數</label>' +
-          '<input type="number" id="ins-rows" value="3" min="1" max="20">' +
-        '</div>' +
-      '</div>' +
-      '<div class="ins-table-header-row">' +
-        '<input type="checkbox" id="ins-header-row" checked>' +
-        '<label for="ins-header-row">第一列設為表頭</label>' +
-      '</div>' +
-      '<div class="ins-table-footer">' +
-        '<button class="btn btn-secondary btn-sm" id="ins-table-cancel">取消</button>' +
-        '<button class="btn btn-primary btn-sm" id="ins-table-confirm">插入</button>' +
-      '</div>' +
-    '</div>';
-
-  document.body.appendChild(modal);
-
-  document.getElementById('ins-table-close-btn').onclick  = () => modal.remove();
-  document.getElementById('ins-table-cancel').onclick     = () => modal.remove();
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-
-  document.getElementById('ins-table-confirm').onclick = () => {
-    const rows   = Math.max(1, Math.min(20, parseInt(document.getElementById('ins-rows').value) || 3));
-    const cols   = Math.max(1, Math.min(10, parseInt(document.getElementById('ins-cols').value) || 3));
-    const header = document.getElementById('ins-header-row').checked;
-    editor.chain().focus().insertTable({ rows, cols, withHeaderRow: header }).run();
-    modal.remove();
-  };
-
-  // focus cols input
-  setTimeout(() => document.getElementById('ins-cols')?.focus(), 50);
-}
 
 
 // ── Expose functions to window for onclick handlers ──
