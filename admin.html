@@ -1257,44 +1257,7 @@ async function checkStorageUsage() {
   }
 }
 
-// ── Boot ──
-async function boot() {
-  const cfg = getConfig();
-  if (!cfg) { document.getElementById('config-screen').style.display = 'flex'; return; }
-  initSupabase(cfg.url, cfg.key);
-  const { data: { session } } = await supabase_client.auth.getSession();
-  if (session) { showApp(); }
-  else {
-    const saved_email = localStorage.getItem('admin_email') || '';
-    if (document.getElementById('login-email')) document.getElementById('login-email').value = saved_email;
-    document.getElementById('login-screen').style.display = 'flex';
-  }
-}
-
-// ── App ──
-function showApp() {
-  document.getElementById('config-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  // Restore last page from URL hash
-  const hash = location.hash.replace('#','');
-  const validPages = ['profile','skills','tools','projects','notes','navigation'];
-  const page = validPages.includes(hash) ? hash : 'profile';
-  const btn = document.querySelector(`.nav-item[onclick*="'${page}'"]`);
-  if (btn) showPage(page, btn);
-  else renderProfilePage();
-  // Check storage usage
-  checkStorageUsage();
-}
-function showPage(name, btn) {
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).style.display = 'block';
-  btn.classList.add('active');
-  location.hash = name;
-  const renderers = { profile: renderProfilePage, skills: renderSkillsPage, tools: renderToolsPage, projects: renderProjectsPage, notes: renderNotesPage, navigation: renderNavigationPage };
-  if (renderers[name]) renderers[name]();
-}
+// boot/showApp/showPage → module script
 
 // ── Toast ──
 function toast(msg, duration = 2200) {
@@ -1620,6 +1583,51 @@ function getGroupSections() {
 </script>
 
 <script type="module">
+// ── Boot / App（需要 renderXxx，必須在 module script 內）──
+async function boot() {
+  const cfg = getConfig();
+  if (!cfg) { document.getElementById('config-screen').style.display = 'flex'; return; }
+  initSupabase(cfg.url, cfg.key);
+  const { data: { session } } = await supabase_client.auth.getSession();
+  if (session) { showApp(); }
+  else {
+    const saved_email = localStorage.getItem('admin_email') || '';
+    const el = document.getElementById('login-email');
+    if (el) el.value = saved_email;
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+}
+
+function showApp() {
+  document.getElementById('config-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const hash = location.hash.replace('#','');
+  const valid = ['profile','skills','tools','projects','notes','navigation'];
+  const page  = valid.includes(hash) ? hash : 'profile';
+  const btn   = document.querySelector('.nav-item[onclick*="' + page + '"]');
+  if (btn) showPage(page, btn);
+  else renderProfilePage();
+  checkStorageUsage();
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).style.display = 'block';
+  if (btn) btn.classList.add('active');
+  location.hash = name;
+  const renderers = {
+    profile:    renderProfilePage,
+    skills:     renderSkillsPage,
+    tools:      renderToolsPage,
+    projects:   renderProjectsPage,
+    notes:      renderNotesPage,
+    navigation: renderNavigationPage
+  };
+  if (renderers[name]) renderers[name]();
+}
+
 // ── makeTiptap：建立 Tiptap 編輯器 ──
 // richMode=true → 完整工具列（含表格）；false → 簡易工具列
 async function makeTiptap(id, placeholder, richMode) {
