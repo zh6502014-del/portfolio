@@ -1720,25 +1720,35 @@ async function makeTiptap(id, placeholder, richMode) {
 
   const extensions = richMode ? [
     StarterKit,
-    TImage.configure({
-      inline: false,
-      allowBase64: false,
-      HTMLAttributes: {
-        // 保留 style、class 等自訂屬性
-      },
-    }).extend({
+    Node.create({
+      name: 'image',
+      group: 'block',
+      atom: true,
+      draggable: true,
       addAttributes() {
         return {
-          ...this.parent?.(),
-          style: {
-            default: null,
-            parseHTML: el => el.getAttribute('style'),
-            renderHTML: attrs => attrs.style ? { style: attrs.style } : {},
-          },
-          width: {
-            default: null,
-            parseHTML: el => el.getAttribute('width'),
-            renderHTML: attrs => attrs.width ? { width: attrs.width } : {},
+          src:   { default: null, parseHTML: el => el.getAttribute('src') },
+          alt:   { default: null, parseHTML: el => el.getAttribute('alt') },
+          title: { default: null, parseHTML: el => el.getAttribute('title') },
+          style: { default: null, parseHTML: el => el.getAttribute('style') },
+          width: { default: null, parseHTML: el => el.getAttribute('width') },
+        };
+      },
+      parseHTML() { return [{ tag: 'img[src]' }]; },
+      renderHTML({ HTMLAttributes }) {
+        const attrs = {};
+        if (HTMLAttributes.src)   attrs.src   = HTMLAttributes.src;
+        if (HTMLAttributes.alt)   attrs.alt   = HTMLAttributes.alt;
+        if (HTMLAttributes.title) attrs.title = HTMLAttributes.title;
+        if (HTMLAttributes.style) attrs.style = HTMLAttributes.style;
+        if (HTMLAttributes.width) attrs.width = HTMLAttributes.width;
+        attrs.style = attrs.style || 'max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:pointer;';
+        return ['img', attrs];
+      },
+      addCommands() {
+        return {
+          setImage: (options) => ({ commands }) => {
+            return commands.insertContent({ type: 'image', attrs: options });
           },
         };
       },
