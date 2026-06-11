@@ -912,7 +912,17 @@ function renderNav(items) {
   const navEl = document.getElementById('nav-links');
   if (!navEl) return;
 
-  navEl.innerHTML = items.map((item, i) => {
+  const uniqueItems = [];
+  const seen = new Set();
+  (items || []).forEach(item => {
+    const href = (item.href || '').trim();
+    const key = href || (item.label || '').trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    uniqueItems.push({ ...item, href });
+  });
+
+  navEl.innerHTML = uniqueItems.map((item, i) => {
     const section = item.href ? item.href.replace('#', '') : '';
     return `<a href="${item.href || '#'}" class="nav-link${i === 0 ? ' active' : ''}" data-section="${section}">${item.label || ''}</a>`;
   }).join('');

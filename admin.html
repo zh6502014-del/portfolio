@@ -598,6 +598,13 @@ FROM (VALUES
   ('隨筆', '#notes', 3)
 ) AS v(label, href, sort_order)
 WHERE NOT EXISTS (SELECT 1 FROM nav_items);
+DELETE FROM nav_items a
+USING nav_items b
+WHERE a.href = b.href
+  AND a.id > b.id;
+
+CREATE UNIQUE INDEX IF NOT EXISTS nav_items_href_unique
+ON nav_items (href);
 
 -- RLS (開放匿名讀取，只有登入者可寫)
 ALTER TABLE profile ENABLE ROW LEVEL SECURITY;
