@@ -2067,38 +2067,34 @@ function applyImgScale(imgEl, scale) {
 
 async function renderNavigationPage() {
   const el = document.getElementById('page-navigation');
+  el.dataset.deletedIds = '[]';
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">導覽列</div><div class="page-desc">前台頂部三個導覽項目的文字與連結</div></div>
-      <button class="btn btn-primary btn-sm" onclick="saveNavigation()">儲存變更</button>
+      <div><div class="page-title">導覽列</div><div class="page-desc">前台頂部導覽項目的文字與連結</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="addNavigationItem()">+ 新增項目</button>
+        <button class="btn btn-primary btn-sm" onclick="saveNavigation()">儲存變更</button>
+      </div>
     </div>
     <div class="card">
       <p style="font-size:13px;color:var(--text-tertiary);margin-bottom:20px;">
         每個項目可設定顯示文字與 href 錨點（例如 <code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">#about</code>）
       </p>
       <div id="nav-items-list"></div>
+      <div class="form-actions">
+        <button class="btn btn-secondary btn-sm" onclick="addNavigationItem()">+ 新增項目</button>
+      </div>
     </div>
   `;
-  const { data } = await supabase_client.from('nav_items').select('*').order('sort_order');
+  const { data, error } = await supabase_client.from('nav_items').select('*').order('sort_order');
   const list = document.getElementById('nav-items-list');
-  if (!data || !data.length) {
-    list.innerHTML = '<p style="color:var(--text-tertiary);font-size:14px;">尚無資料，請先在 Supabase 執行建表 SQL。</p>';
-    return;
+  if (error) {
+    list.innerHTML = '<p style="color:var(--danger);font-size:14px;">載入失敗：' + error.message + '</p>';
+  } else if (data && data.length) {
+    list.innerHTML = data.map(item => navigationRowHTML(item)).join('');
+  } else {
+    list.innerHTML = '<p class="nav-empty" style="color:var(--text-tertiary);font-size:14px;margin-bottom:12px;">尚無導覽項目，請點擊「新增項目」。</p>';
   }
-  list.innerHTML = data.map((item, i) => `
-    <div class="form-row-2" style="align-items:flex-end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">
-      <div class="form-row" style="margin-bottom:0">
-        <label class="form-label">顯示文字</label>
-        <input class="form-input" id="nav-label-${item.id}" value="${item.label || ''}" placeholder="關於" />
-      </div>
-      <div class="form-row" style="margin-bottom:0">
-        <label class="form-label">href 錨點</label>
-        <input class="form-input" id="nav-href-${item.id}" value="${item.href || ''}" placeholder="#about" />
-      </div>
-    </div>
-  `).join('');
-  // 儲存 id 清單供 saveNavigation 使用
-  el.dataset.ids = JSON.stringify(data.map(d => d.id));
 
   // ── 錨點參考表 ──
   // 從 Supabase 讀取各 section 的實際標題內容
@@ -2146,22 +2142,102 @@ async function renderNavigationPage() {
   el.appendChild(refCard);
 }
 
+function navigationEscape(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function navigationRowHTML(item = {}) {
+  const id = item.id || ('new-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+  return `
+    <div class="nav-edit-row form-row-2" data-id="${navigationEscape(id)}" style="grid-template-columns:1fr 1fr auto;align-items:flex-end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+      <div class="form-row" style="margin-bottom:0">
+        <label class="form-label">顯示文字</label>
+        <input class="form-input nav-label-input" value="${navigationEscape(item.label || '')}" placeholder="關於" />
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <label class="form-label">href 錨點</label>
+        <input class="form-input nav-href-input" value="${navigationEscape(item.href || '')}" placeholder="#about" />
+      </div>
+      <button class="btn btn-danger btn-sm" type="button" onclick="removeNavigationItem(this)">移除</button>
+    </div>
+  `;
+}
+
+function addNavigationItem(label = '', href = '') {
+  const list = document.getElementById('nav-items-list');
+  if (!list) return;
+  const empty = list.querySelector('.nav-empty');
+  if (empty) empty.remove();
+  list.insertAdjacentHTML('beforeend', navigationRowHTML({ label, href }));
+}
+
+function removeNavigationItem(btn) {
+  const row = btn?.closest?.('.nav-edit-row');
+  const page = document.getElementById('page-navigation');
+  if (!row || !page) return;
+  const id = row.dataset.id || '';
+  if (id && !id.startsWith('new-')) {
+    const deleted = JSON.parse(page.dataset.deletedIds || '[]');
+    if (!deleted.includes(id)) deleted.push(id);
+    page.dataset.deletedIds = JSON.stringify(deleted);
+  }
+  row.remove();
+  const list = document.getElementById('nav-items-list');
+  if (list && !list.querySelector('.nav-edit-row')) {
+    list.innerHTML = '<p class="nav-empty" style="color:var(--text-tertiary);font-size:14px;margin-bottom:12px;">尚無導覽項目，請點擊「新增項目」。</p>';
+  }
+}
+
 async function saveNavigation() {
-  const el = document.getElementById('page-navigation');
-  const ids = JSON.parse(el.dataset.ids || '[]');
-  if (!ids.length) return;
-  const updates = ids.map(id => ({
-    id,
-    label: document.getElementById('nav-label-' + id)?.value.trim() || '',
-    href:  document.getElementById('nav-href-' + id)?.value.trim() || '',
-  }));
+  const page = document.getElementById('page-navigation');
+  const rows = Array.from(document.querySelectorAll('#nav-items-list .nav-edit-row')).map((row, index) => ({
+    id: row.dataset.id || '',
+    label: row.querySelector('.nav-label-input')?.value.trim() || '',
+    href: row.querySelector('.nav-href-input')?.value.trim() || '',
+    sort_order: index + 1,
+  })).filter(item => item.label || item.href);
+
+  if (rows.some(item => !item.label || !item.href)) {
+    toast('請填完整顯示文字與 href 錨點', 4000);
+    return;
+  }
+
+  const seen = new Set();
+  for (const item of rows) {
+    if (seen.has(item.href)) {
+      toast('href 錨點不可重複：' + item.href, 4000);
+      return;
+    }
+    seen.add(item.href);
+  }
+
   try {
-    for (const u of updates) {
-      const { error } = await supabase_client.from('nav_items').update({ label: u.label, href: u.href }).eq('id', u.id);
+    const deletedIds = JSON.parse(page?.dataset.deletedIds || '[]');
+    for (const id of deletedIds) {
+      const { error } = await supabase_client.from('nav_items').delete().eq('id', id);
+      if (error) { toast('刪除失敗：' + error.message, 5000); return; }
+    }
+
+    for (const item of rows) {
+      const payload = { label: item.label, href: item.href, sort_order: item.sort_order };
+      let error;
+      if (item.id && !item.id.startsWith('new-')) {
+        ({ error } = await supabase_client.from('nav_items').update(payload).eq('id', item.id));
+      } else {
+        ({ error } = await supabase_client.from('nav_items').insert([payload]));
+      }
       if (error) { toast('儲存失敗：' + error.message, 5000); return; }
     }
+
     toast('✓ 導覽列已儲存');
-  } catch(e) { toast('儲存失敗：' + e.message, 5000); }
+    renderNavigationPage();
+  } catch(e) {
+    toast('儲存失敗：' + e.message, 5000);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -2534,7 +2610,7 @@ async function renderProjectForm(proj) {
 
     <div class="card">
       <div class="form-actions">
-        <button class="btn btn-primary" id="pj-save-btn">
+        <button class="btn btn-primary" id="pj-save-btn" onclick="saveProject(${proj?.id || 'null'})">
           ${isEdit ? '儲存變更' : '新增專案'}
         </button>
         <button class="btn btn-secondary" onclick="renderProjectsPage()">取消</button>
@@ -2576,8 +2652,6 @@ async function renderProjectForm(proj) {
     ];
     makeGroupEditor('pj-sections', existingSections);
 
-    // Save button
-    document.getElementById('pj-save-btn').onclick = () => saveProject(projId);
   });
 }
 
@@ -2867,12 +2941,15 @@ window.insertVideo = insertVideo;
 window.renderNoteForm = renderNoteForm;
 window.renderNotesPage = renderNotesPage;
 window.renderProjectForm = renderProjectForm;
+window.saveProject = saveProject;
 window.renderProjectsPage = renderProjectsPage;
 window.renderSkillsPage = renderSkillsPage;
 window.renderToolForm = renderToolForm;
 window.renderToolsPage = renderToolsPage;
 window.resetConfig = resetConfig;
 window.saveConfig = saveConfig;
+window.addNavigationItem = addNavigationItem;
+window.removeNavigationItem = removeNavigationItem;
 window.saveNavigation = saveNavigation;
 window.saveNote = saveNote;
 window.saveProfile = saveProfile;
