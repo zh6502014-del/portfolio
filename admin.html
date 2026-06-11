@@ -1658,7 +1658,10 @@ function makeQuill(id, placeholder, richMode) {
   const q = new Quill('#quill-editor-' + id, {
     theme: 'snow',
     placeholder: placeholder || '在這裡輸入內容...',
-    modules: { toolbar: { container: toolbarOptions } }
+    modules: {
+      toolbar: { container: toolbarOptions },
+      table: richMode  // Quill 2 內建 table module
+    }
   });
 
   // 圖片上傳 handler
@@ -1730,11 +1733,26 @@ function setEditorHTML(id, html) {
   setTimeout(() => {
     const q = quillInstances[id];
     if (!q) return;
-    // 用 dangerouslyPasteHTML 讓 Quill 正確同步 delta
-    q.clipboard.dangerouslyPasteHTML(0, html, 'silent');
-    // 把游標移到末尾
-    q.setSelection(q.getLength(), 0, 'silent');
+    // 正規化：舊資料的 <iframe> 加上 ql-video class，讓 Quill video blot 認得
+    const normalized = normalizeQuillHtml(html);
+    // 先清空（移除初始空行），再貼入
+    q.setText('', 'silent');
+    q.clipboard.dangerouslyPasteHTML(0, normalized, 'silent');
+    q.setSelection(0, 0, 'silent');
   }, 0);
+}
+
+// 正規化 HTML：iframe 加 ql-video class
+function normalizeQuillHtml(html) {
+  try {
+    const doc = new DOMParser().parseFromString('<div id="__root">' + html + '</div>', 'text/html');
+    const root = doc.getElementById('__root');
+    if (!root) return html;
+    root.querySelectorAll('iframe').forEach(f => {
+      if (!f.classList.contains('ql-video')) f.classList.add('ql-video');
+    });
+    return root.innerHTML;
+  } catch(e) { return html; }
 }
 
 // ── Video embed modal ──
@@ -1812,10 +1830,6 @@ function openInsertTableModal(editorId) {
         '<div class="ins-table-field"><label>欄數</label><input type="number" id="ins-cols" value="3" min="1" max="10"></div>' +
         '<div class="ins-table-field"><label>列數</label><input type="number" id="ins-rows" value="3" min="1" max="20"></div>' +
       '</div>' +
-      '<div class="ins-table-header-row">' +
-        '<input type="checkbox" id="ins-header-row" checked>' +
-        '<label for="ins-header-row">第一列設為表頭</label>' +
-      '</div>' +
       '<div class="ins-table-footer">' +
         '<button class="btn btn-secondary btn-sm" id="ins-table-cancel">取消</button>' +
         '<button class="btn btn-primary btn-sm" id="ins-table-confirm">插入</button>' +
@@ -1828,26 +1842,18 @@ function openInsertTableModal(editorId) {
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 
   document.getElementById('ins-table-confirm').onclick = () => {
-    const rows   = Math.max(1, Math.min(20, parseInt(document.getElementById('ins-rows').value) || 3));
-    const cols   = Math.max(1, Math.min(10, parseInt(document.getElementById('ins-cols').value) || 3));
-    const header = document.getElementById('ins-header-row').checked;
+    const rows = Math.max(1, Math.min(20, parseInt(document.getElementById('ins-rows').value) || 3));
+    const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('ins-cols').value) || 3));
     const q = quillInstances[_tableQuillId];
     if (q) {
-      // 建立 table HTML 直接插入 root
-      let html = '<table style="border-collapse:collapse;width:100%;margin:12px 0;">';
-      for (let r = 0; r < rows; r++) {
-        html += '<tr>';
-        for (let c = 0; c < cols; c++) {
-          const isH = header && r === 0;
-          const tag = isH ? 'th' : 'td';
-          html += '<' + tag + ' style="border:1px solid #ccc;padding:7px 10px;min-width:40px;">' +
-            (isH ? '欄 ' + (c + 1) : '') + '</' + tag + '>';
-        }
-        html += '</tr>';
+      const tableModule = q.getModule('table');
+      if (tableModule) {
+        // 用 Quill 2 內建 table module，編輯與儲存才能正確同步
+        q.focus();
+        tableModule.insertTable(rows, cols);
+      } else {
+        toast('表格模組未啟用');
       }
-      html += '</table><p><br></p>';
-      const range = q.getSelection(true) || { index: Math.max(0, q.getLength() - 1) };
-      q.clipboard.dangerouslyPasteHTML(range.index, html, 'user');
     }
     modal.remove();
     toast('✓ 表格已插入');
