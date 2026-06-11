@@ -508,9 +508,10 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
     <details style="margin-bottom:20px">
       <summary style="font-size:12px; color:var(--text-tertiary); cursor:pointer; margin-bottom:8px">📋 SQL 建表語法（點擊展開）</summary>
       <pre style="background:var(--bg-tertiary);padding:14px;border-radius:var(--radius-md);font-size:11px;overflow-x:auto;color:var(--text-secondary);line-height:1.6;margin-top:8px">-- 個人資料
-CREATE TABLE profile (
+CREATE TABLE IF NOT EXISTS profile (
   id SERIAL PRIMARY KEY,
   name TEXT,
+  nav_name TEXT,
   tagline TEXT,
   description TEXT,
   email TEXT,
@@ -519,14 +520,17 @@ CREATE TABLE profile (
   status TEXT DEFAULT '目前在職',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE profile
+ADD COLUMN IF NOT EXISTS nav_name TEXT;
 INSERT INTO profile (name,tagline,description,email,phone,note)
-VALUES ('林艾奭','UI / UX Designer · 4 年經驗',
+SELECT '林艾奭','UI / UX Designer · 4 年經驗',
   '從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。',
   'zh6502014@gmail.com','0911-585-420',
-  '如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。');
+  '如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。'
+WHERE NOT EXISTS (SELECT 1 FROM profile);
 
 -- 技能
-CREATE TABLE skills (
+CREATE TABLE IF NOT EXISTS skills (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   icon TEXT DEFAULT '🎨',
@@ -535,7 +539,7 @@ CREATE TABLE skills (
 );
 
 -- 工具
-CREATE TABLE tools (
+CREATE TABLE IF NOT EXISTS tools (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -543,12 +547,14 @@ CREATE TABLE tools (
 );
 
 -- 專案
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   time_range TEXT,
   tags TEXT[] DEFAULT '{}',
   description TEXT,
+  content TEXT,
+  sections JSONB DEFAULT '[]'::jsonb,
   role TEXT,
   members TEXT,
   goals TEXT[] DEFAULT '{}',
@@ -562,9 +568,12 @@ CREATE TABLE projects (
   published BOOLEAN DEFAULT TRUE,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE projects
+ADD COLUMN IF NOT EXISTS content TEXT,
+ADD COLUMN IF NOT EXISTS sections JSONB DEFAULT '[]'::jsonb;
 
 -- 隨筆
-CREATE TABLE notes (
+CREATE TABLE IF NOT EXISTS notes (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   note_date DATE,
@@ -574,12 +583,42 @@ CREATE TABLE notes (
   published BOOLEAN DEFAULT TRUE
 );
 
+-- 導覽列
+CREATE TABLE IF NOT EXISTS nav_items (
+  id SERIAL PRIMARY KEY,
+  label TEXT NOT NULL,
+  href TEXT NOT NULL,
+  sort_order INT DEFAULT 0
+);
+INSERT INTO nav_items (label, href, sort_order)
+SELECT label, href, sort_order
+FROM (VALUES
+  ('關於', '#about', 1),
+  ('作品集', '#projects', 2),
+  ('隨筆', '#notes', 3)
+) AS v(label, href, sort_order)
+WHERE NOT EXISTS (SELECT 1 FROM nav_items);
+
 -- RLS (開放匿名讀取，只有登入者可寫)
 ALTER TABLE profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tools ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nav_items ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "public read" ON profile;
+DROP POLICY IF EXISTS "auth write" ON profile;
+DROP POLICY IF EXISTS "public read" ON skills;
+DROP POLICY IF EXISTS "auth write" ON skills;
+DROP POLICY IF EXISTS "public read" ON tools;
+DROP POLICY IF EXISTS "auth write" ON tools;
+DROP POLICY IF EXISTS "public read" ON projects;
+DROP POLICY IF EXISTS "auth write" ON projects;
+DROP POLICY IF EXISTS "public read" ON notes;
+DROP POLICY IF EXISTS "auth write" ON notes;
+DROP POLICY IF EXISTS "public read" ON nav_items;
+DROP POLICY IF EXISTS "auth write" ON nav_items;
 
 CREATE POLICY "public read" ON profile FOR SELECT USING (true);
 CREATE POLICY "auth write" ON profile FOR ALL USING (auth.role() = 'authenticated');
@@ -590,7 +629,9 @@ CREATE POLICY "auth write" ON tools FOR ALL USING (auth.role() = 'authenticated'
 CREATE POLICY "public read" ON projects FOR SELECT USING (true);
 CREATE POLICY "auth write" ON projects FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "public read" ON notes FOR SELECT USING (true);
-CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated');</pre>
+CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "public read" ON nav_items FOR SELECT USING (true);
+CREATE POLICY "auth write" ON nav_items FOR ALL USING (auth.role() = 'authenticated');</pre>
     </details>
 
     <button class="btn btn-primary" onclick="saveConfig()">儲存設定並繼續</button>
@@ -702,8 +743,7 @@ CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated'
 
 // ── Globals ──
 let supabase_client = null;
-// ── Tiptap instances ──
-// tiptapInstances removed - using quillInstances
+// ── Quill instances ──
 
 // ── Config ──
 function getConfig() {
@@ -2500,16 +2540,10 @@ async function renderProjectForm(proj) {
     // Image uploader
     initProjectImageArea(projId, parseImgArr(proj?.images));
 
-    // Content editor (Tiptap)
+    // Content editor (Quill)
     const contentEditor = makeQuill('pj-content-editor', '在這裡輸入專案完整內容...', true);
     if (proj?.content && contentEditor) {
       setEditorHTML('pj-content-editor', proj.content);
-      contentEditor.commands.setTextSelection(0);
-      // debug: 確認 image node 是否被解析
-      const doc = contentEditor.state.doc;
-      let imgCount = 0;
-      doc.descendants(node => { if (node.type.name === 'image') imgCount++; });
-      console.log('[Tiptap] image nodes found:', imgCount, '/ total content size:', doc.content.size);
     }
 
     // Auto-resize description textarea
