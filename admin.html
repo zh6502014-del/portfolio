@@ -1651,7 +1651,7 @@ async function makeTiptap(id, placeholder, richMode) {
   container.innerHTML = '';
 
   // 動態載入 Tiptap（ESM CDN）
-  const { Editor }       = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
+  const { Editor, Node } = await import('https://cdn.jsdelivr.net/npm/@tiptap/core@2.11.5/+esm');
   const { default: StarterKit } = await import('https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.11.5/+esm');
   const { default: TTable }     = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table@2.11.5/+esm');
   const { default: TTableRow }  = await import('https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@2.11.5/+esm');
@@ -1675,6 +1675,48 @@ async function makeTiptap(id, placeholder, richMode) {
   wrap.appendChild(tbEl);
   wrap.appendChild(edEl);
   container.appendChild(wrap);
+
+  const TIframe = Node.create({
+    name: 'iframe',
+    group: 'block',
+    atom: true,
+    addAttributes() {
+      return {
+        src: {
+          default: null,
+          parseHTML: el => el.getAttribute('src'),
+        },
+        style: {
+          default: null,
+          parseHTML: el => el.getAttribute('style'),
+        },
+        allowfullscreen: {
+          default: true,
+          parseHTML: el => el.hasAttribute('allowfullscreen'),
+        },
+        frameborder: {
+          default: '0',
+          parseHTML: el => el.getAttribute('frameborder') || '0',
+        },
+        allow: {
+          default: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+          parseHTML: el => el.getAttribute('allow'),
+        },
+      };
+    },
+    parseHTML() {
+      return [{ tag: 'iframe[src]' }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      const attrs = {
+        ...HTMLAttributes,
+        frameborder: HTMLAttributes.frameborder || '0',
+        allowfullscreen: HTMLAttributes.allowfullscreen !== false ? 'true' : null,
+        style: HTMLAttributes.style || 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
+      };
+      return ['iframe', attrs];
+    },
+  });
 
   const extensions = richMode ? [
     StarterKit,
@@ -1701,6 +1743,7 @@ async function makeTiptap(id, placeholder, richMode) {
         };
       },
     }),
+    TIframe,
     TLink.configure({ openOnClick: false }),
     TColor,
     TTextStyle,
@@ -1947,10 +1990,16 @@ function insertVideo() {
   const embedUrl = convertToEmbedUrl(rawUrl);
   const editor   = tiptapInstances[_videoTiptapId];
   if (editor) {
-    // Tiptap 插入 iframe 用 setImage 不合適，改用 insertContent HTML
-    editor.chain().focus().insertContent(
-      '<iframe src="' + embedUrl + '" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;"></iframe>'
-    ).run();
+    editor.chain().focus().insertContent({
+      type: 'iframe',
+      attrs: {
+        src: embedUrl,
+        frameborder: '0',
+        allowfullscreen: true,
+        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+        style: 'width:100%;aspect-ratio:16/9;border-radius:8px;margin:10px 0;display:block;',
+      },
+    }).run();
     toast('✓ 影片已嵌入');
   }
   closeVideoModal();
@@ -2097,7 +2146,7 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    if (data.description) { const el = document.querySelector('#tt-editor-p-desc-editor .ProseMirror'); if (el) { el.innerHTML = data.description; descEditor.commands.focus(); } }
+    if (data.description && descEditor) { descEditor.commands.setContent(data.description, false); }
   }
 }
 async function saveProfile() {
@@ -2442,7 +2491,7 @@ async function renderProjectForm(proj) {
 
     // Content editor (Tiptap)
     const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
-    if (proj?.content && contentEditor) { const el = document.querySelector('#tt-editor-pj-content-editor .ProseMirror'); if (el) { el.innerHTML = proj.content; contentEditor.commands.focus(); contentEditor.commands.setTextSelection(0); } }
+    if (proj?.content && contentEditor) { contentEditor.commands.setContent(proj.content, false); contentEditor.commands.setTextSelection(0); }
 
     // Auto-resize description textarea
     const descTa = document.getElementById('pj-desc');
@@ -2703,7 +2752,7 @@ async function renderNoteForm(note) {
     </div>
   `;
   const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
-  if (note?.content && q) { const el = document.querySelector('#tt-editor-nt-content-editor .ProseMirror'); if (el) { el.innerHTML = note.content; q.commands.focus(); q.commands.setTextSelection(0); } }
+  if (note?.content && q) { q.commands.setContent(note.content, false); q.commands.setTextSelection(0); }
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
