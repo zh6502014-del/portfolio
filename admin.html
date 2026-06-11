@@ -1726,9 +1726,15 @@ function getEditorHTML(id) {
 
 // 設定編輯器 HTML 內容
 function setEditorHTML(id, html) {
-  const q = quillInstances[id];
-  if (!q || !html) return;
-  q.root.innerHTML = html;
+  if (!html) return;
+  setTimeout(() => {
+    const q = quillInstances[id];
+    if (!q) return;
+    // 用 dangerouslyPasteHTML 讓 Quill 正確同步 delta
+    q.clipboard.dangerouslyPasteHTML(0, html, 'silent');
+    // 把游標移到末尾
+    q.setSelection(q.getLength(), 0, 'silent');
+  }, 0);
 }
 
 // ── Video embed modal ──
@@ -2143,7 +2149,6 @@ async function renderProfilePage() {
   }
 }
 async function saveProfile() {
-  const q = quillInstances['p-desc-editor'];
   const payload = {
     name: document.getElementById('p-name').value,
     nav_name: document.getElementById('p-navname').value,
@@ -2235,15 +2240,20 @@ async function saveSkill(id) {
     title: document.getElementById('sk-title').value,
     tags, sort_order: parseInt(document.getElementById('sk-order').value) || 0
   };
-  if (id) await supabase_client.from('skills').update(payload).eq('id', id);
-  else await supabase_client.from('skills').insert([payload]);
-  if (tags.length) acSave('skill_tags', tags);
-  toast('✓ 技能已儲存');
-  renderSkillsPage();
+  try {
+    let error;
+    if (id) ({ error } = await supabase_client.from('skills').update(payload).eq('id', id));
+    else     ({ error } = await supabase_client.from('skills').insert([payload]));
+    if (error) { toast('儲存失敗：' + error.message, 5000); return; }
+    if (tags.length) acSave('skill_tags', tags);
+    toast('✓ 技能已儲存');
+    renderSkillsPage();
+  } catch(e) { toast('儲存失敗：' + e.message, 5000); }
 }
 async function deleteSkill(id) {
   if (!confirm('確定要刪除這個技能嗎？')) return;
-  await supabase_client.from('skills').delete().eq('id', id);
+  const { error: skErr } = await supabase_client.from('skills').delete().eq('id', id);
+  if (skErr) { toast('刪除失敗：' + skErr.message, 5000); return; }
   toast('已刪除'); loadSkills();
 }
 
@@ -2305,19 +2315,21 @@ async function saveTool(id) {
     description: document.getElementById('tl-desc').value,
     sort_order: parseInt(document.getElementById('tl-order').value) || 0
   };
-  if (id) await supabase_client.from('tools').update(payload).eq('id', id);
-  else await supabase_client.from('tools').insert([payload]);
-  toast('✓ 工具已儲存'); renderToolsPage();
+  try {
+    let error;
+    if (id) ({ error } = await supabase_client.from('tools').update(payload).eq('id', id));
+    else     ({ error } = await supabase_client.from('tools').insert([payload]));
+    if (error) { toast('儲存失敗：' + error.message, 5000); return; }
+    toast('✓ 工具已儲存'); renderToolsPage();
+  } catch(e) { toast('儲存失敗：' + e.message, 5000); }
 }
 async function deleteTool(id) {
   if (!confirm('確定刪除？')) return;
-  await supabase_client.from('tools').delete().eq('id', id);
+  const { error: tlErr } = await supabase_client.from('tools').delete().eq('id', id);
+  if (tlErr) { toast('刪除失敗：' + tlErr.message, 5000); return; }
   toast('已刪除'); loadTools();
 }
 
-// ─────────────────────────────────────────────
-// PROJECTS PAGE
-// ─────────────────────────────────────────────
 // ─────────────────────────────────────────────
 // PROJECTS PAGE
 // ─────────────────────────────────────────────
@@ -2623,7 +2635,6 @@ function renderProjectImageArea() {
 }
 
 async function saveProject(id) {
-  const q = quillInstances['pj-content-editor'];
   const payload = {
     title: document.getElementById('pj-title')?.value?.trim() || '',
     time_range: document.getElementById('pj-time')?.value || '',
@@ -2758,12 +2769,11 @@ async function renderNoteForm(note) {
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
 async function saveNote(id) {
-  const q = quillInstances['nt-content-editor'];
   const payload = {
     title: document.getElementById('nt-title').value,
     note_date: parseNoteDate(document.getElementById('nt-date').value) || document.getElementById('nt-date').value || null,
     note_type: getTagInputValue('nt-type-ti').join(' · ') || '',
-    content: getEditorHTML('pj-content-editor'),
+    content: getEditorHTML('nt-content-editor'),
     published: document.getElementById('nt-published').checked,
   };
   try {
