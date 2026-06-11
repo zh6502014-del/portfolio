@@ -238,13 +238,14 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
 /* ── Tiptap editor ── */
-.tt-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; transition: border-color 0.15s; }
+.tt-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: visible; transition: border-color 0.15s; }
 .tt-wrap:focus-within { border-color: var(--border-strong); }
 .tt-toolbar {
   display: flex; flex-wrap: wrap; gap: 2px;
   padding: 6px 8px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 .tt-btn {
   height: 28px; min-width: 28px; padding: 0 6px;
@@ -1717,6 +1718,7 @@ async function makeTiptap(id, placeholder, richMode) {
     element: edEl,
     extensions,
     content: '',
+    enableContentCheck: false,
     editorProps: {
       attributes: {
         'data-placeholder': placeholder || '在這裡輸入內容...',
@@ -2095,7 +2097,7 @@ async function renderProfilePage() {
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
     document.getElementById('p-note').value = data.note || '';
-    if (data.description) descEditor.commands.setContent(data.description);
+    if (data.description) { const el = document.querySelector('#tt-editor-p-desc-editor .ProseMirror'); if (el) { el.innerHTML = data.description; descEditor.commands.focus(); } }
   }
 }
 async function saveProfile() {
@@ -2440,7 +2442,7 @@ async function renderProjectForm(proj) {
 
     // Content editor (Tiptap)
     const contentEditor = await makeTiptap('pj-content-editor', '在這裡輸入專案完整內容...', true);
-    if (proj?.content && contentEditor) contentEditor.commands.setContent(proj.content);
+    if (proj?.content && contentEditor) { const el = document.querySelector('#tt-editor-pj-content-editor .ProseMirror'); if (el) { el.innerHTML = proj.content; contentEditor.commands.focus(); contentEditor.commands.setTextSelection(0); } }
 
     // Auto-resize description textarea
     const descTa = document.getElementById('pj-desc');
@@ -2701,7 +2703,7 @@ async function renderNoteForm(note) {
     </div>
   `;
   const q = await makeTiptap('nt-content-editor', '在這裡撰寫文章內容...', true);
-  if (note?.content && q) q.commands.setContent(note.content);
+  if (note?.content && q) { const el = document.querySelector('#tt-editor-nt-content-editor .ProseMirror'); if (el) { el.innerHTML = note.content; q.commands.focus(); q.commands.setTextSelection(0); } }
   initNoteDatePicker(note?.note_date || '');
   makeTagInput('nt-type-ti', 'note_type', { multi: true, placeholder: '輸入類型，按 Enter 新增' });
 }
