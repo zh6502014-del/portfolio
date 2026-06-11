@@ -238,7 +238,8 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .form-actions { display: flex; gap: 8px; margin-top: 20px; }
 
 /* ── Tiptap editor ── */
-.tt-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.tt-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; transition: border-color 0.15s; }
+.tt-wrap:focus-within { border-color: var(--border-strong); }
 .tt-toolbar {
   display: flex; flex-wrap: wrap; gap: 2px;
   padding: 6px 8px;
@@ -266,17 +267,23 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 }
 .tt-select:hover { border-color: var(--border-strong); color: var(--text); }
 /* Tooltip */
-.tt-btn::after {
+.tt-btn[data-tip] { position: relative; }
+.tt-btn[data-tip]::after {
   content: attr(data-tip);
-  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  position: absolute; bottom: calc(100% + 7px); left: 50%;
   transform: translateX(-50%);
   background: var(--text); color: var(--bg);
-  font-size: 12px; white-space: nowrap;
+  font-size: 11px; white-space: nowrap;
   padding: 3px 8px; border-radius: var(--radius-sm);
-  pointer-events: none; opacity: 0; transition: opacity 0.15s;
-  z-index: 999;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .tt-btn[data-tip]:hover::after { opacity: 1; }
+/* 移除按鈕 hover 底線 */
+.tt-btn { text-decoration: none !important; }
+.tt-btn:hover { text-decoration: none !important; }
 /* Editor area */
 .tt-editor {
   min-height: 300px; padding: 14px 16px;
@@ -284,6 +291,8 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
   color: var(--text); line-height: 1.8;
   outline: none; background: var(--bg);
 }
+/* 編輯器本身不顯示 ProseMirror 預設藍框 */
+.tt-editor > .ProseMirror { outline: none !important; }
 .tt-editor p { margin: 4px 0; }
 .tt-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
 .tt-editor h2 { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
@@ -1803,7 +1812,7 @@ function buildRichToolbar(tbEl, id, editor) {
   tbEl.appendChild(mkSep());
 
   // 表格
-  tbEl.appendChild(mkBtn('table',      '插入表格', () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), id));
+  tbEl.appendChild(mkBtn('table',      '插入表格', () => openInsertTableModal(editor), id));
   tbEl.appendChild(mkBtn('colbefore',  '插入左欄', () => editor.chain().focus().addColumnBefore().run(), id));
   tbEl.appendChild(mkBtn('colafter',   '插入右欄', () => editor.chain().focus().addColumnAfter().run(), id));
   tbEl.appendChild(mkBtn('delcol',     '刪除欄',   () => editor.chain().focus().deleteColumn().run(), id));
@@ -2860,6 +2869,61 @@ function applyImgScale(imgEl, scale) {
   }
   toast('✓ 已套用 ' + scale + ' 縮放');
 }
+
+// ─────────────────────────────────────────────
+// INSERT TABLE MODAL
+// ─────────────────────────────────────────────
+function openInsertTableModal(editor) {
+  const existing = document.getElementById('ins-table-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'ins-table-modal';
+  modal.id = 'ins-table-modal';
+  modal.innerHTML =
+    '<div class="ins-table-card">' +
+      '<div class="ins-table-header">' +
+        '<span class="ins-table-title">插入表格</span>' +
+        '<button class="ins-table-close" id="ins-table-close-btn">✕</button>' +
+      '</div>' +
+      '<div class="ins-table-fields">' +
+        '<div class="ins-table-field">' +
+          '<label>欄數</label>' +
+          '<input type="number" id="ins-cols" value="3" min="1" max="10">' +
+        '</div>' +
+        '<div class="ins-table-field">' +
+          '<label>列數</label>' +
+          '<input type="number" id="ins-rows" value="3" min="1" max="20">' +
+        '</div>' +
+      '</div>' +
+      '<div class="ins-table-header-row">' +
+        '<input type="checkbox" id="ins-header-row" checked>' +
+        '<label for="ins-header-row">第一列設為表頭</label>' +
+      '</div>' +
+      '<div class="ins-table-footer">' +
+        '<button class="btn btn-secondary btn-sm" id="ins-table-cancel">取消</button>' +
+        '<button class="btn btn-primary btn-sm" id="ins-table-confirm">插入</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+
+  document.getElementById('ins-table-close-btn').onclick  = () => modal.remove();
+  document.getElementById('ins-table-cancel').onclick     = () => modal.remove();
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  document.getElementById('ins-table-confirm').onclick = () => {
+    const rows   = Math.max(1, Math.min(20, parseInt(document.getElementById('ins-rows').value) || 3));
+    const cols   = Math.max(1, Math.min(10, parseInt(document.getElementById('ins-cols').value) || 3));
+    const header = document.getElementById('ins-header-row').checked;
+    editor.chain().focus().insertTable({ rows, cols, withHeaderRow: header }).run();
+    modal.remove();
+  };
+
+  // focus cols input
+  setTimeout(() => document.getElementById('ins-cols')?.focus(), 50);
+}
+
 
 // ── Expose functions to window for onclick handlers ──
 window.addSkill = addSkill;
