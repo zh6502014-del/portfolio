@@ -1666,6 +1666,10 @@ loadData();
     if ('cameraOrbit' in model) model.cameraOrbit = orbit;
   }
 
+  function getMaxScrollY() {
+    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  }
+
   function isModelNearViewport() {
     if (!hero) return true;
     if (window.innerWidth <= 760) {
@@ -1682,7 +1686,7 @@ loadData();
     if (scrollTicking) return;
     scrollTicking = true;
     requestAnimationFrame(() => {
-      baseH = 25 + Math.min(lastScrollY, 900) * 0.22;
+      baseH = 25 + Math.min(lastScrollY, getMaxScrollY()) * 0.22;
       applyOrbit(mouseOffsetH, mouseOffsetV);
       scrollTicking = false;
     });
