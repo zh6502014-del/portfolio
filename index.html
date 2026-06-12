@@ -76,7 +76,7 @@
     --orb-2:             rgba(154,230,180,0.4);
     --orb-3:             rgba(165,170,240,0.32);
     --orb-opacity:       1;
-    --grain-opacity:     0.022;
+    --grain-opacity:     0.028;
 
     /* ── 自訂：Glass pill (Light) ── */
     --glass-pill-bg:       rgba(0,0,0,0.06);
@@ -140,7 +140,7 @@
       --orb-1:             rgba(90,140,230,0.18);
       --orb-2:             rgba(64,165,150,0.13);
       --orb-3:             rgba(120,115,215,0.12);
-      --grain-opacity:     0.07;
+      --grain-opacity:     0.06;
 
       --glass-pill-bg:      rgba(255,255,255,0.06);
       --glass-pill-border:  rgba(255,255,255,0.1);
@@ -200,7 +200,7 @@
     --orb-2:             rgba(64,165,150,0.13);
     --orb-3:             rgba(120,115,215,0.12);
     --orb-opacity:       1;
-    --grain-opacity:     0.07;
+    --grain-opacity:     0.06;
 
     --glass-pill-bg:      rgba(255,255,255,0.06);
     --glass-pill-border:  rgba(255,255,255,0.1);
@@ -296,21 +296,21 @@
       border-color 0.5s cubic-bezier(0.4,0,0.2,1) !important;
   }
   body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:20px; min-height:100vh; position:relative; }
-  /* ── Background orbs for glass effect ── */
+  /* ── Background orbs for glass effect ──
+     效能關鍵：orbs 必須保持靜態。fixed 元素若持續動畫，
+     所有玻璃元素的 backdrop 每幀都在變、backdrop-filter 結果無法快取，
+     會與 model-viewer 的 WebGL 重繪搶 GPU 造成捲動卡頓 ── */
   body::before, body::after {
     content:''; position:fixed; pointer-events:none; z-index:0; border-radius:50%;
     filter:blur(80px); opacity:1; transition:opacity 0.5s;
-    will-change:transform;
   }
   body::before {
     width:600px; height:600px; top:-100px; right:-100px;
     background:radial-gradient(circle, var(--orb-1) 0%, transparent 70%);
-    animation:orbDrift1 26s ease-in-out infinite alternate;
   }
   body::after {
     width:500px; height:500px; bottom:10%; left:-80px;
     background:radial-gradient(circle, var(--orb-2) 0%, transparent 70%);
-    animation:orbDrift2 32s ease-in-out infinite alternate;
   }
   /* 第三顆光球：頁面中段，讓捲動到下方的玻璃卡片也有色彩可折射 */
   .bg-orb-3 {
@@ -318,8 +318,6 @@
     width:460px; height:460px; top:45%; right:-140px;
     background:radial-gradient(circle, var(--orb-3) 0%, transparent 72%);
     filter:blur(100px); opacity:1;
-    animation:orbDrift3 38s ease-in-out infinite alternate;
-    will-change:transform;
   }
   /* 漸進增強：支援 color-mix 的瀏覽器改用多停駐點漸層直接畫柔邊，
      移除 filter:blur 這一次額外的 8-bit 量化（色帶的來源之一） */
@@ -347,9 +345,6 @@
         transparent 76%);
     }
   }
-  @keyframes orbDrift1 { from{transform:translate(0,0) scale(1)} to{transform:translate(-90px,70px) scale(1.12)} }
-  @keyframes orbDrift2 { from{transform:translate(0,0) scale(1)} to{transform:translate(80px,-60px) scale(1.08)} }
-  @keyframes orbDrift3 { from{transform:translate(0,0) scale(1)} to{transform:translate(-120px,-80px) scale(1.15)} }
   /* ── 全頁噪點層：以極低不透明度 dither 掉深色漸層的色帶（banding）。
      必須疊在內容之上（z-index 高於 modal、低於 lightbox），
      若放在玻璃下方會被 backdrop-filter 的 blur 抹掉而失效 ── */
@@ -357,14 +352,15 @@
     position:fixed; inset:0; z-index:9000;
     pointer-events:none;
     opacity:var(--grain-opacity, 0.03);
-    mix-blend-mode:overlay;
+    /* 不用 mix-blend-mode：混合模式會強迫整頁（含 WebGL canvas）逐幀重新合成。
+       普通 alpha 疊加的 dithering 已足夠，translateZ(0) 提升為可快取的獨立圖層 */
+    transform:translateZ(0);
     background-image:
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size:160px 160px, 97px 97px;
   }
   @media (prefers-reduced-motion: reduce) {
-    body::before, body::after, .bg-orb-3 { animation:none; }
     .glass-el:hover, .tag:hover, .note-type:hover,
     .glass-card:hover, .theme-toggle:hover,
     .nav-links.hover-slide::after { animation:none; }
