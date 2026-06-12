@@ -87,6 +87,22 @@
     --glass-pill-shadow:   rgba(0,0,0,0.08);
     --glass-el-bg:         rgba(255,255,255,0.34);
     --glass-el-border:     rgba(255,255,255,0.5);
+    --glass-control-bf:     blur(16px) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+    --glass-control-bg:     linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 45%), var(--glass-el-bg);
+    --glass-control-shadow:
+      inset 0 0 0 1px var(--glass-rim),
+      inset 1.8px 3px 0 -2px var(--glass-shine-top),
+      inset -2px -2px 0 -2px var(--glass-shine-bottom),
+      inset 0 -8px 14px -10px var(--glass-inner-shadow),
+      0 1px 2px var(--glass-pill-shadow),
+      0 6px 18px -4px var(--glass-pill-shadow);
+    --glass-control-shadow-hover:
+      inset 0 0 0 1px var(--glass-rim),
+      inset 1.8px 3px 0 -2px var(--glass-shine-top),
+      inset -2px -2px 0 -2px var(--glass-shine-bottom),
+      inset 0 -8px 14px -10px var(--glass-inner-shadow),
+      0 2px 4px var(--glass-pill-shadow),
+      0 10px 28px -4px var(--glass-pill-shadow);
   }
 
   /* ══════════════════════════════════════════
@@ -234,19 +250,13 @@
   }
   /* Theme toggle button */
   .theme-toggle {
-    --bf: blur(12px) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+    --bf: var(--glass-control-bf);
     width:36px; height:36px; border-radius:50%;
-    background:
-      linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 55%),
-      var(--glass-indicator-bg);
-    border:1px solid var(--glass-pill-border);
+    background:var(--glass-control-bg);
+    border:1px solid var(--glass-el-border);
     backdrop-filter:var(--bf);
     -webkit-backdrop-filter:var(--bf);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-rim),
-      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
-      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
-      0px 2px 8px 0px var(--glass-pill-shadow);
+    box-shadow:var(--glass-control-shadow);
     display:flex; align-items:center; justify-content:center;
     cursor:pointer; font-size:17px;
     transition:transform .15s cubic-bezier(0.4,0,0.2,1), box-shadow .15s;
@@ -254,11 +264,7 @@
   }
   .theme-toggle:hover {
     animation: pillStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-shine-top),
-      inset 1.5px 2px 0px -1.5px var(--glass-shine-top),
-      inset -1.5px -2px 0px -1.5px var(--glass-shine-bottom),
-      0px 4px 16px 0px var(--glass-pill-shadow);
+    box-shadow:var(--glass-control-shadow-hover);
   }
   .theme-toggle:active { transform:scale(0.94); }
   .theme-toggle::after {
@@ -404,17 +410,11 @@
     width: var(--pill-w, 52px);
     height: calc(100% - 8px);
     border-radius: 99em;
-    --bf: blur(8px) saturate(var(--lg-sat)) brightness(1.08);
-    background:
-      linear-gradient(160deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%),
-      var(--glass-indicator-bg);
+    --bf: var(--glass-control-bf);
+    background:var(--glass-control-bg);
     backdrop-filter: var(--bf);
     -webkit-backdrop-filter: var(--bf);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-pill-border),
-      inset 2px 1px 0px -1px var(--glass-shine-top),
-      inset -1.5px -1px 0px -1px var(--glass-shine-bottom),
-      0px 2px 8px 0px var(--glass-pill-shadow);
+    box-shadow:var(--glass-control-shadow);
     z-index: 0;
     translate: var(--pill-x, 0px) 0;
     transition:
@@ -463,6 +463,7 @@
     overflow:visible;
     z-index:0;
     pointer-events:none;
+    contain:layout paint;
   }
 
   /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
@@ -506,6 +507,7 @@
     width:100%;
     height:100%;
     background:transparent;
+    contain:strict;
     --poster-color:transparent;
     --progress-bar-color:transparent;
     --progress-bar-height:0px;
@@ -538,31 +540,17 @@
      架構：各元素以 --bf 宣告自己的 backdrop-filter 鏈，
      html.lg-refract 時統一在鏈前加上 url(#glass-distort) 邊緣折射 */
   .glass-el {
-    --bf: blur(16px) saturate(var(--lg-sat)) brightness(var(--lg-bright));
-    background:
-      linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 45%),
-      var(--glass-el-bg);
+    --bf: var(--glass-control-bf);
+    background:var(--glass-control-bg);
     border: 1px solid var(--glass-el-border);
     backdrop-filter: var(--bf);
     -webkit-backdrop-filter: var(--bf);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-rim),                       /* 全周折射細環 */
-      inset 1.8px 3px 0 -2px var(--glass-shine-top),          /* 左上主鏡面 */
-      inset -2px -2px 0 -2px var(--glass-shine-bottom),       /* 右下次高光 */
-      inset 0 -8px 14px -10px var(--glass-inner-shadow),      /* 內側底部折射暗緣 */
-      0 1px 2px var(--glass-pill-shadow),                     /* 貼地陰影 */
-      0 6px 18px -4px var(--glass-pill-shadow);               /* 環境投影 */
+    box-shadow:var(--glass-control-shadow);
     transition: box-shadow .2s;
   }
   .glass-el:hover {
     animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-rim),
-      inset 1.8px 3px 0 -2px var(--glass-shine-top),
-      inset -2px -2px 0 -2px var(--glass-shine-bottom),
-      inset 0 -8px 14px -10px var(--glass-inner-shadow),
-      0 2px 4px var(--glass-pill-shadow),
-      0 10px 28px -4px var(--glass-pill-shadow);
+    box-shadow:var(--glass-control-shadow-hover);
   }
   /* 邊緣折射：僅 Chromium（html.lg-refract）啟用。
      重要：只套用在「小型膠囊控制項」上——
@@ -599,19 +587,14 @@
     45%      { scale: 1.04 1; }
   }
   .hero-badge {
-    --bf: blur(12px) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+    --bf: var(--glass-control-bf);
     display:inline-flex; align-items:center; gap:6px; font-size:14px;
     color:var(--text-tertiary); border-radius:100px; padding:5px 14px;
     margin-bottom:28px; white-space:nowrap;
-    background:
-      linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 50%),
-      var(--glass-el-bg);
+    background:var(--glass-control-bg);
     border:1px solid var(--glass-el-border);
     backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-rim),
-      inset 1.5px 2px 0 -1.5px var(--glass-shine-top),
-      0 2px 8px 0 var(--glass-pill-shadow);
+    box-shadow:var(--glass-control-shadow);
   }
   .hero-badge-dot { width:6px; height:6px; min-width:6px; background:#22c55e; border-radius:50%; display:inline-block; }
   .hero-title { font-size:clamp(44px,6vw,68px); font-weight:700; line-height:1.15; letter-spacing:-.02em; margin-bottom:24px; }
@@ -655,7 +638,7 @@
     margin-bottom:14px; font-size:18px;
   }
   .skill-card-title { font-size:16px; font-weight:500; margin-bottom:10px; }
-  .skill-tag-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .skill-tag-list { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
   .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
   .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:14px 18px; border-radius:var(--radius-md); color:var(--text-secondary); }
   .tool-name { font-weight:500; color:var(--text); font-size:16px; }
@@ -683,26 +666,23 @@
   .project-row-num { font-size:13px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
   .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
   .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-  .project-tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .project-tags { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
   .tag, .note-type {
-    --bf: blur(12px) saturate(var(--lg-sat)) brightness(var(--lg-bright));
-    font-size:13px; padding:4px 12px; border-radius:100px; color:var(--text-secondary);
-    background:
-      linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 50%),
-      var(--glass-el-bg);
+    --bf: var(--glass-control-bf);
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:16px; line-height:1.5; padding:8px 18px;
+    border-radius:100px; color:var(--text-secondary);
+    background:var(--glass-control-bg);
     border: 1px solid var(--glass-el-border);
     backdrop-filter: var(--bf);
     -webkit-backdrop-filter: var(--bf);
-    box-shadow:
-      inset 0 0 0 1px var(--glass-rim),
-      inset 1.5px 2px 0 -1.5px var(--glass-shine-top),
-      inset -1.5px -2px 0 -1.5px var(--glass-shine-bottom),
-      0 2px 8px 0 var(--glass-pill-shadow);
+    box-shadow:var(--glass-control-shadow);
     transition: box-shadow .2s;
-    display: inline-block;
+    white-space:nowrap;
   }
   .tag:hover, .note-type:hover {
     animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+    box-shadow:var(--glass-control-shadow-hover);
   }
   .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
   .project-time { font-size:14px; color:var(--text-tertiary); white-space:nowrap; }
@@ -717,19 +697,21 @@
   .modal-close:hover { transform:scale(1.08); }
   .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
   .modal-title { font-family:var(--font-sans); font-size:24px; font-weight:600; margin-bottom:8px; line-height:1.3; }
-  .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:10px; overflow:visible; }
   /* collapsible meta：scroll 向下時縮起，滾回頂部展開 */
   .modal-collapsible {
     overflow:hidden;
-    max-height:200px;
+    max-height:240px;
     opacity:1;
-    transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, margin 0.3s ease;
+    padding:2px 0 12px;
+    transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, margin 0.3s ease, padding 0.3s ease;
     margin-top:6px;
   }
   .modal-collapsible.collapsed {
     max-height:0;
     opacity:0;
     margin-top:0;
+    padding:0;
   }
   .modal-time { font-size:14px; color:var(--text-tertiary); margin-right:4px; }
   .modal-desc { font-size:18px; color:var(--text-secondary); line-height:1.85; margin-bottom:28px; }
@@ -867,7 +849,7 @@
     .modal-body { padding:18px 18px 44px; }
     .modal-grid { grid-template-columns:1fr; }
     .modal-title { font-size:20px; }
-    .modal-meta { flex-wrap:wrap; gap:6px; }
+    .modal-meta { flex-wrap:wrap; gap:10px; }
   }
 
   /* ── Lightbox ── */
@@ -1296,7 +1278,7 @@ function renderNotes(data) {
       <span class="note-date">${formatDate(n.note_date)}</span>
       <div style="flex:1;display:flex;flex-direction:column;gap:6px">
         <span class="note-title">${n.title}</span>
-        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
+        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
       </div>
 
     </div>
@@ -1312,9 +1294,9 @@ function openNote(id) {
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + n.title + '</h2>' +
     '<div class="modal-collapsible" id="modal-collapsible">' +
-    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:6px">' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
-      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
     '</div>' +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml;
@@ -1337,10 +1319,10 @@ function openModal(id) {
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + p.title + '</h2>' +
     '<div class="modal-collapsible" id="modal-collapsible">' +
-    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:8px">' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
-      (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:6px">' + membersHtml + '</div>' : '') +
-      '<div style="display:flex;flex-wrap:wrap;gap:6px">' + tagsHtml + '</div>' +
+      (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + membersHtml + '</div>' : '') +
+      '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + tagsHtml + '</div>' +
     '</div>';
 
   // Body: cover → description → sections → rest images
@@ -1585,7 +1567,15 @@ function updateNav() {
   const active = document.querySelector('.nav-link.active');
   if (active) setPillPosition(active);
 }
-window.addEventListener('scroll', updateNav, { passive: true });
+let navScrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (navScrollTicking) return;
+  navScrollTicking = true;
+  requestAnimationFrame(() => {
+    updateNav();
+    navScrollTicking = false;
+  });
+}, { passive: true });
 
 loadData();
 
@@ -1658,15 +1648,28 @@ loadData();
 (function() {
   const model = document.getElementById('hero-model');
   if (!model) return;
+  const hero = document.querySelector('.hero');
+  const container = document.querySelector('.hero-3d');
   let ticking = false;
   let lastScrollY = 0;
   let baseH = 25;
   let mouseOffsetH = 0;
   let mouseOffsetV = 0;
   let returnAnim = null;
+  let lastPointerEvent = null;
+  let pointerTicking = false;
 
   function applyOrbit(offsetH, offsetV) {
     model.cameraOrbit = `${baseH + offsetH}deg ${75 + offsetV}deg auto`;
+  }
+
+  function isModelNearViewport() {
+    if (!hero) return true;
+    if (window.innerWidth <= 760) {
+      const rect = hero.getBoundingClientRect();
+      return rect.bottom > -160 && rect.top < window.innerHeight + 160;
+    }
+    return window.scrollY < hero.offsetTop + hero.offsetHeight + 520;
   }
 
   // scroll
@@ -1674,8 +1677,10 @@ loadData();
     lastScrollY = window.scrollY;
     if (!ticking) {
       requestAnimationFrame(() => {
-        baseH = 25 + lastScrollY * 0.3;
-        applyOrbit(mouseOffsetH, mouseOffsetV);
+        if (isModelNearViewport()) {
+          baseH = 25 + Math.min(lastScrollY, 900) * 0.22;
+          applyOrbit(mouseOffsetH, mouseOffsetV);
+        }
         ticking = false;
       });
       ticking = true;
@@ -1685,9 +1690,8 @@ loadData();
   // mousemove：用 document 監聽，hero-3d 有 pointer-events:none 無法直接接收事件
   function ease(t) { return 1 - Math.pow(1 - t, 3); }
 
-  document.addEventListener('mousemove', (e) => {
-    const container = document.querySelector('.hero-3d');
-    if (!container) return;
+  function handlePointerMove(e) {
+    if (!container || !isModelNearViewport()) return;
     const rect = container.getBoundingClientRect();
 
     // 判斷滑鼠是否在容器範圍內
@@ -1722,12 +1726,21 @@ loadData();
       }
       requestAnimationFrame(animate);
     }
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    lastPointerEvent = e;
+    if (pointerTicking) return;
+    pointerTicking = true;
+    requestAnimationFrame(() => {
+      pointerTicking = false;
+      if (lastPointerEvent) handlePointerMove(lastPointerEvent);
+    });
   }, { passive: true });
 
   // touchstart：記錄手指是否落在容器內
   let isTouching3D = false;
   document.addEventListener('touchstart', (e) => {
-    const container = document.querySelector('.hero-3d');
     if (!container) return;
     const touch = e.touches[0];
     const rect = container.getBoundingClientRect();
@@ -1737,15 +1750,13 @@ loadData();
     );
   }, { passive: true });
 
-  // touchmove：手機觸控版，passive:false 才能 preventDefault 阻止滾動
+  // touchmove：手機觸控版只更新模型角度，不阻止頁面原生滾動
   document.addEventListener('touchmove', (e) => {
-    const container = document.querySelector('.hero-3d');
-    if (!container) return;
+    if (!container || !isTouching3D || !isModelNearViewport()) return;
     const touch = e.touches[0];
     const rect = container.getBoundingClientRect();
     if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
         touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
-      if (isTouching3D) e.preventDefault(); // 阻止頁面滾動
       if (returnAnim) { returnAnim = null; }
       const relX = (touch.clientX - rect.left) / rect.width;
       const relY = (touch.clientY - rect.top)  / rect.height;
@@ -1753,10 +1764,11 @@ loadData();
       mouseOffsetV = (relY - 0.5) * -60;
       applyOrbit(mouseOffsetH, mouseOffsetV);
     }
-  }, { passive: false });
+  }, { passive: true });
 
   // touchend：手指離開後 ease-out 回正
   document.addEventListener('touchend', () => {
+    isTouching3D = false;
     if (mouseOffsetH === 0 && mouseOffsetV === 0) return;
     const startH = mouseOffsetH;
     const startV = mouseOffsetV;
