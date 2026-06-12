@@ -1670,6 +1670,17 @@ loadData();
     return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   }
 
+  function getScrollProgress() {
+    const maxScrollY = getMaxScrollY();
+    if (!maxScrollY) return 0;
+    return Math.min(Math.max(lastScrollY / maxScrollY, 0), 1);
+  }
+
+  function syncOrbitFromScroll() {
+    baseH = 25 + getScrollProgress() * 720;
+    applyOrbit(mouseOffsetH, mouseOffsetV);
+  }
+
   function isModelNearViewport() {
     if (!hero) return true;
     if (window.innerWidth <= 760) {
@@ -1686,10 +1697,13 @@ loadData();
     if (scrollTicking) return;
     scrollTicking = true;
     requestAnimationFrame(() => {
-      baseH = 25 + Math.min(lastScrollY, getMaxScrollY()) * 0.22;
-      applyOrbit(mouseOffsetH, mouseOffsetV);
+      syncOrbitFromScroll();
       scrollTicking = false;
     });
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    lastScrollY = window.scrollY || 0;
+    syncOrbitFromScroll();
   }, { passive: true });
 
   // mousemove：用 document 監聽，hero-3d 有 pointer-events:none 無法直接接收事件
