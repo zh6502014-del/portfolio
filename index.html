@@ -648,6 +648,7 @@
 
   .projects-grid { display:flex; flex-direction:column; }
   .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .project-row:last-child { border-bottom:none; }
   .project-cover { width:240px; height:135px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
   .project-cover-empty {
     --bf: blur(10px) saturate(var(--lg-sat));
@@ -788,6 +789,7 @@
 
   .notes-list { display:flex; flex-direction:column; }
   .note-item:first-child { border-top:none; }
+  .note-item:last-child { border-bottom:none; }
   .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:18px; color:var(--text); }
 
