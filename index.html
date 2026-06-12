@@ -691,8 +691,8 @@
   .modal-overlay.open { opacity:1; pointer-events:all; }
   .modal { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
   .modal-overlay.open .modal { transform:translateY(0); }
-  .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
-  .modal-header-left { flex:1; min-width:0; }
+  .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; overflow:visible; }
+  .modal-header-left { flex:1; min-width:0; overflow:visible; }
   .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { transform:scale(1.08); }
   .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
@@ -700,14 +700,15 @@
   .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:10px; overflow:visible; }
   /* collapsible meta：scroll 向下時縮起，滾回頂部展開 */
   .modal-collapsible {
-    overflow:hidden;
+    overflow:visible;
     max-height:240px;
     opacity:1;
-    padding:2px 0 12px;
+    padding:2px 0 18px;
     transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, margin 0.3s ease, padding 0.3s ease;
     margin-top:6px;
   }
   .modal-collapsible.collapsed {
+    overflow:hidden;
     max-height:0;
     opacity:0;
     margin-top:0;
