@@ -453,15 +453,15 @@
     position:relative;
     z-index:2;
   }
-  /* hero-3d：absolute，貼 hero 右上角，z-index 高於下層內容 */
+  /* hero-3d：放在 hero 內，跟著 hero 一起滾走，避免 fixed WebGL layer 卡住滾動 */
   .hero-3d {
-    position:fixed;
-    top:100px;
-    right:100px;
+    position:absolute;
+    top:72px;
+    right:40px;
     width:400px;
     height:460px;
     overflow:visible;
-    z-index:0;
+    z-index:1;
     pointer-events:none;
     contain:layout paint;
   }
@@ -1634,9 +1634,9 @@ loadData();
         hero.insertBefore(model3d, heroText);
       }
     } else {
-      // 大網：把 hero-3d 移回 body 層（fixed 定位）
-      if (model3d.parentElement !== document.body) {
-        document.body.appendChild(model3d);
+      // 大網：保留在 hero 內用 absolute 定位，避免 fixed WebGL layer 影響捲動
+      if (model3d.parentElement !== hero) {
+        hero.appendChild(model3d);
       }
     }
   }
@@ -1645,14 +1645,12 @@ loadData();
   window.addEventListener('resize', rearrange, { passive: true });
 })();
 
-// ── Scroll-based 3D model rotation（rAF 節流） ──
+// ── 3D model pointer rotation（不綁 scroll，避免滾動時搶 WebGL repaint） ──
 (function() {
   const model = document.getElementById('hero-model');
   if (!model) return;
   const hero = document.querySelector('.hero');
   const container = document.querySelector('.hero-3d');
-  let ticking = false;
-  let lastScrollY = 0;
   let baseH = 25;
   let mouseOffsetH = 0;
   let mouseOffsetV = 0;
@@ -1673,20 +1671,7 @@ loadData();
     return window.scrollY < hero.offsetTop + hero.offsetHeight + 520;
   }
 
-  // scroll
-  window.addEventListener('scroll', () => {
-    lastScrollY = window.scrollY;
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        if (isModelNearViewport()) {
-          baseH = 25 + Math.min(lastScrollY, 900) * 0.22;
-          applyOrbit(mouseOffsetH, mouseOffsetV);
-        }
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
+  applyOrbit(0, 0);
 
   // mousemove：用 document 監聽，hero-3d 有 pointer-events:none 無法直接接收事件
   function ease(t) { return 1 - Math.pow(1 - t, 3); }
@@ -1737,55 +1722,6 @@ loadData();
       pointerTicking = false;
       if (lastPointerEvent) handlePointerMove(lastPointerEvent);
     });
-  }, { passive: true });
-
-  // touchstart：記錄手指是否落在容器內
-  let isTouching3D = false;
-  document.addEventListener('touchstart', (e) => {
-    if (!container) return;
-    const touch = e.touches[0];
-    const rect = container.getBoundingClientRect();
-    isTouching3D = (
-      touch.clientX >= rect.left && touch.clientX <= rect.right &&
-      touch.clientY >= rect.top  && touch.clientY <= rect.bottom
-    );
-  }, { passive: true });
-
-  // touchmove：手機觸控版只更新模型角度，不阻止頁面原生滾動
-  document.addEventListener('touchmove', (e) => {
-    if (!container || !isTouching3D || !isModelNearViewport()) return;
-    const touch = e.touches[0];
-    const rect = container.getBoundingClientRect();
-    if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-        touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
-      if (returnAnim) { returnAnim = null; }
-      const relX = (touch.clientX - rect.left) / rect.width;
-      const relY = (touch.clientY - rect.top)  / rect.height;
-      mouseOffsetH = (relX - 0.5) * -60;
-      mouseOffsetV = (relY - 0.5) * -60;
-      applyOrbit(mouseOffsetH, mouseOffsetV);
-    }
-  }, { passive: true });
-
-  // touchend：手指離開後 ease-out 回正
-  document.addEventListener('touchend', () => {
-    isTouching3D = false;
-    if (mouseOffsetH === 0 && mouseOffsetV === 0) return;
-    const startH = mouseOffsetH;
-    const startV = mouseOffsetV;
-    mouseOffsetH = 0;
-    mouseOffsetV = 0;
-    const duration = 600;
-    const startTime = performance.now();
-    const id = {};
-    returnAnim = id;
-    function animateTouch(now) {
-      if (returnAnim !== id) return;
-      const t = Math.min((now - startTime) / duration, 1);
-      applyOrbit(startH * (1 - ease(t)), startV * (1 - ease(t)));
-      if (t < 1) requestAnimationFrame(animateTouch);
-    }
-    requestAnimationFrame(animateTouch);
   }, { passive: true });
 })();
 </script>
