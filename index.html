@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>林艾奭 — UI/UX Designer</title>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- 連線預熱：DNS / TLS 在實際請求前先握手完成，縮短字型、資料、3D 模型的首次往返延遲 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://wlxlhyieypohktsvwuuc.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <!-- model-viewer 函式庫不在 <head> 立即載入：它與 GLB 體積大，會與字型 / Supabase 資料搶頻寬，
+       拖慢可見內容的首次繪製。改在頁面互動後（idle）才注入，3D 區塊在此之前已有載入中骨架，效果不變。 -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1109,16 +1114,20 @@ function sbFetch(table, params = '') {
   ).then(r => r.json());
 }
 
+// 連線預熱完成後，盡早把 6 個查詢一起送出（不等下方數百行 render 函式解析完才開始），
+// 讓資料在網路上往返的同時，瀏覽器繼續解析 JS，縮短可見資料出現的時間。
+const _dataPromise = Promise.all([
+  sbFetch('profile', 'limit=1'),
+  sbFetch('skills', 'order=sort_order'),
+  sbFetch('tools',  'order=sort_order'),
+  sbFetch('projects', 'published=eq.true&order=sort_order'),
+  sbFetch('notes',    'published=eq.true&order=sort_order'),
+  sbFetch('nav_items', 'order=sort_order'),
+]);
+
 async function loadData() {
   try {
-    const [profile, skills, tools, projects, notes, navItems] = await Promise.all([
-      sbFetch('profile', 'limit=1'),
-      sbFetch('skills', 'order=sort_order'),
-      sbFetch('tools',  'order=sort_order'),
-      sbFetch('projects', 'published=eq.true&order=sort_order'),
-      sbFetch('notes',    'published=eq.true&order=sort_order'),
-      sbFetch('nav_items', 'order=sort_order'),
-    ]);
+    const [profile, skills, tools, projects, notes, navItems] = await _dataPromise;
     if (profile?.[0])   renderProfile(profile[0]);
     if (skills?.length)  renderSkills(skills);
     if (tools?.length)   renderTools(tools);
@@ -1238,6 +1247,7 @@ function renderProjects(data) {
       coverEl.src = coverUrl;
       coverEl.alt = p.title + ' 封面';
       coverEl.loading = 'lazy';
+      coverEl.decoding = 'async';
       coverEl.onerror = function() {
         const e = document.createElement('div');
         e.className = 'project-cover-empty';
@@ -1338,6 +1348,7 @@ function openModal(id) {
     coverImg.src = coverUrl;
     coverImg.alt = p.title;
     coverImg.loading = 'lazy';
+    coverImg.decoding = 'async';
     coverWrap.appendChild(coverImg);
     body.appendChild(coverWrap);
   }
@@ -1608,16 +1619,40 @@ loadData();
     }, 400);
   });
 
-  // 備援：若 load 事件未觸發，3 秒後強制隱藏 loader
-  setTimeout(() => {
-    if (loader && !loader.classList.contains('hidden')) {
-      loader.classList.add('hidden');
-    }
-  }, 3000);
+  // 備援：若 load 事件未觸發，隱藏 loader（計時從函式庫實際開始載入起算，
+  // 避免延後注入時 loader 提前消失）
+  function armFallback() {
+    setTimeout(() => {
+      if (loader && !loader.classList.contains('hidden')) {
+        loader.classList.add('hidden');
+      }
+    }, 6000);
+  }
 
   model.addEventListener('error', () => {
     if (label) label.textContent = '載入失敗';
   });
+
+  // ── 延後注入 model-viewer 函式庫 ──
+  // 監聽器已綁定完成，現在才把大型 ES module 載入：
+  // 自訂元素 <model-viewer> 會在 module 定義後自動升級並補發事件，效果完全不變，
+  // 但首屏的文字、Supabase 資料與字型不再與它搶頻寬，整體載入更順暢。
+  function loadModelViewer() {
+    if (document.getElementById('mv-lib')) return;
+    const s = document.createElement('script');
+    s.id = 'mv-lib';
+    s.type = 'module';
+    s.src = 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
+    document.head.appendChild(s);
+    armFallback();
+  }
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(loadModelViewer, { timeout: 2500 });
+  } else {
+    // 不支援 idle callback 時，等首屏繪製穩定後再載入
+    if (document.readyState === 'complete') setTimeout(loadModelViewer, 300);
+    else window.addEventListener('load', () => setTimeout(loadModelViewer, 300), { once: true });
+  }
 })();
 
 // ── 手機版：hero-3d 移入 hero section 置中顯示 ──
