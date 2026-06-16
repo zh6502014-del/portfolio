@@ -1362,6 +1362,8 @@ function parseImgArr(val) {
 
 // ── Image processing: crop to 16:9 + compress ──
 async function processImage(file) {
+  // GIF 動畫無法用 canvas 處理（toBlob 只輸出單一影格、JPEG 也不支援動畫），原檔上傳以保留動畫
+  if (file.type === 'image/gif') return file;
   return new Promise((resolve) => {
     const img = new Image();
     const reader = new FileReader();
@@ -1422,11 +1424,12 @@ async function processImage(file) {
 }
 
 async function uploadImage(file, bucket = 'portfolio-images') {
-  // Process image before upload (crop 16:9 + compress)
+  // Process image before upload (crop 16:9 + compress；GIF 維持原檔)
   const processed = await processImage(file);
-  const ext = 'jpg';
+  const ext = ((processed.name.match(/\.([^.]+)$/) || [, 'jpg'])[1]).toLowerCase();
+  const contentType = processed.type || 'image/jpeg';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType: 'image/jpeg' });
+  const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType });
   if (error) throw error;
   const { data } = supabase_client.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
@@ -1456,7 +1459,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
     bar.id = containerId + '-bar';
     bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
 
-    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP，單檔上限 5MB</div>';
+    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP、GIF，單檔上限 5MB</div>';
     uploadArea.appendChild(fileInput);
     container.appendChild(uploadArea);
     container.appendChild(bar);
