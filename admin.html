@@ -1363,7 +1363,7 @@ function parseImgArr(val) {
 // ── Image processing: crop to 16:9 + compress ──
 async function processImage(file) {
   // GIF 動畫無法用 canvas 處理（toBlob 只輸出單一影格、JPEG 也不支援動畫），原檔上傳以保留動畫
-  if (file.type === 'image/gif') return file;
+  if (file.type === 'image/gif' || /\.gif$/i.test(file.name)) return file;
   return new Promise((resolve) => {
     const img = new Image();
     const reader = new FileReader();
@@ -1427,7 +1427,8 @@ async function uploadImage(file, bucket = 'portfolio-images') {
   // Process image before upload (crop 16:9 + compress；GIF 維持原檔)
   const processed = await processImage(file);
   const ext = ((processed.name.match(/\.([^.]+)$/) || [, 'jpg'])[1]).toLowerCase();
-  const contentType = processed.type || 'image/jpeg';
+  const MIME = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' };
+  const contentType = processed.type || MIME[ext] || 'image/jpeg';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType });
   if (error) throw error;
@@ -1459,7 +1460,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
     bar.id = containerId + '-bar';
     bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
 
-    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP、GIF，單檔上限 5MB</div>';
+    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP（上限 5MB）、GIF（上限 15MB，保留動畫）</div>';
     uploadArea.appendChild(fileInput);
     container.appendChild(uploadArea);
     container.appendChild(bar);
@@ -1472,7 +1473,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
       for (let i = 0; i < files.length; i++) {
         if (fillEl) fillEl.style.width = ((i / files.length) * 100) + '%';
         const file = files[i];
-        if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超過 5MB，已略過'); continue; }
+        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast(file.name + ' 超過 ' + lim + 'MB，已略過'); continue; } }
         try {
           const url = await uploadImage(file);
           urls.push(url);
@@ -1757,7 +1758,7 @@ function makeQuill(id, placeholder, richMode) {
       input.type = 'file'; input.accept = 'image/*';
       input.onchange = async () => {
         const file = input.files[0]; if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
+        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB 上限'); return; } }
         toast('圖片上傳中...');
         try {
           const url = await uploadImage(file);
@@ -2863,7 +2864,7 @@ function renderProjectImageArea() {
     replaceInput.style.display = 'none';
     replaceInput.onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
+      { const lim = f.type === 'image/gif' ? 15 : 5; if (f.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB'); return; } }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
@@ -2891,7 +2892,7 @@ function renderProjectImageArea() {
     fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
     fileInput.onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
+      { const lim = f.type === 'image/gif' ? 15 : 5; if (f.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB'); return; } }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
