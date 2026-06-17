@@ -733,9 +733,9 @@
   .chip-row { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
   @media (max-width:720px) {
     .chip-row {
-      flex-wrap:nowrap; width:100%; min-width:0; max-width:100%;
+      flex-wrap:nowrap; width:calc(100vw - 18px); max-width:none; min-width:0;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-      scrollbar-width:none; padding-bottom:2px;
+      scrollbar-width:none; padding-right:18px; padding-bottom:2px;
     }
     .chip-row::-webkit-scrollbar { display:none; }
     .chip-row > * { flex-shrink:0; }
@@ -1153,7 +1153,6 @@ function sbFetch(table, params = '') {
   return fetch(
     `${SUPABASE_URL}/rest/v1/${table}?${params}`,
     {
-      cache: 'no-store',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
