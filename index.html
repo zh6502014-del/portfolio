@@ -733,7 +733,7 @@
   .chip-row { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
   @media (max-width:720px) {
     .chip-row {
-      flex-wrap:nowrap; align-self:stretch; max-width:100%;
+      flex-wrap:nowrap; width:100%; min-width:0; max-width:100%;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; padding-bottom:2px;
     }
