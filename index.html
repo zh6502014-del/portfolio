@@ -694,8 +694,42 @@
 
   .modal-overlay { position:fixed; inset:0; z-index:200; background:var(--overlay-bg); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; backdrop-filter:blur(6px) saturate(140%); -webkit-backdrop-filter:blur(6px) saturate(140%); }
   .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
+  .modal { position:relative; --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
   .modal-overlay.open .modal { transform:translateY(0); }
+
+  /* ── 彈窗滿版 + 左側目錄（scroll-spy） ── */
+  .modal-header-actions { display:flex; align-items:flex-start; gap:8px; flex-shrink:0; }
+  .modal-fs { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; color:var(--text-secondary); transition:transform .15s, box-shadow .2s; flex-shrink:0; margin-top:2px; }
+  .modal-fs:hover { transform:scale(1.08); }
+  .modal.fullscreen { max-width:100%; width:100%; height:100%; max-height:100%; border-radius:0; border:none; transform:none !important; }
+  .modal.fullscreen .modal-header { border-radius:0; }
+  .modal-toc { display:none; }
+  @media (min-width:1024px) {
+    .modal.fullscreen .modal-body { padding:48px 64px 96px 296px; }
+    .modal.fullscreen .modal-body > * { max-width:760px; margin-left:auto; margin-right:auto; }
+    .modal.fullscreen .modal-toc:not([hidden]) {
+      display:block; position:absolute; left:28px; top:88px; width:216px;
+      max-height:calc(100% - 128px); overflow-y:auto; z-index:20;
+      padding:14px 12px;
+      background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-lg);
+      backdrop-filter:blur(20px) saturate(var(--lg-sat)); -webkit-backdrop-filter:blur(20px) saturate(var(--lg-sat));
+      box-shadow:0 4px 24px var(--glass-shadow);
+    }
+    .modal-toc-head { display:flex; align-items:center; gap:6px; width:100%; background:none; border:none; cursor:pointer; padding:2px 6px 10px; color:var(--text); font-family:inherit; }
+    .modal-toc-title { font-size:15px; font-weight:600; }
+    .modal-toc-chevron { font-size:16px; line-height:1; color:var(--text-tertiary); transition:transform .2s; }
+    .modal-toc-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+    .modal-toc-list a { display:block; font-size:13.5px; line-height:1.5; color:var(--text-tertiary); text-decoration:none; padding:5px 8px; border-radius:var(--radius-sm); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .15s; cursor:pointer; }
+    .modal-toc-list a:hover { color:var(--text); }
+    .modal-toc-list a.active { color:var(--text); font-weight:600; }
+    .modal-toc-list a.lvl-2 { padding-left:18px; }
+    .modal-toc-list a.lvl-3 { padding-left:30px; font-size:13px; }
+    .modal.fullscreen .modal-toc.collapsed { width:auto; padding:8px 14px; }
+    .modal-toc.collapsed .modal-toc-list { display:none; }
+    .modal-toc.collapsed .modal-toc-head { padding:0; }
+    .modal-toc.collapsed .modal-toc-chevron { transform:rotate(180deg); }
+  }
+
   .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; overflow:visible; }
   .modal-header-left { flex:1; min-width:0; overflow:visible; }
   .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
@@ -1084,10 +1118,20 @@
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-  <div class="modal">
+  <div class="modal" id="modal-box">
+    <nav class="modal-toc" id="modal-toc" aria-label="文章目錄" hidden>
+      <button class="modal-toc-head" id="modal-toc-head" type="button" aria-expanded="true">
+        <span class="modal-toc-chevron" aria-hidden="true">‹</span>
+        <span class="modal-toc-title">文章目錄</span>
+      </button>
+      <ul class="modal-toc-list" id="modal-toc-list"></ul>
+    </nav>
     <div class="modal-header" id="modal-header">
       <div class="modal-header-left" id="modal-header-content"></div>
-      <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
+      <div class="modal-header-actions">
+        <button class="modal-fs glass-el" id="modal-fs-btn" onclick="toggleModalFullscreen()" aria-label="放大為滿版" aria-pressed="false">⤢</button>
+        <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
+      </div>
     </div>
     <div class="modal-body" id="modal-content"></div>
   </div>
@@ -1403,6 +1447,7 @@ function openModal(id) {
             collapsible.classList.remove('collapsed');
           }
         }
+        updateTocActive();
         ticking = false;
       });
       ticking = true;
@@ -1425,7 +1470,118 @@ function bindContentLightbox(container) {
   });
 }
 
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+// ── 滿版彈窗 + 左側目錄（scroll-spy） ──
+let tocItems = [];  // [{el, link, top}]
+
+function isTocViewport() { return window.matchMedia('(min-width:1024px)').matches; }
+
+function toggleModalFullscreen() {
+  const box = document.getElementById('modal-box');
+  const btn = document.getElementById('modal-fs-btn');
+  const on = box.classList.toggle('fullscreen');
+  btn.textContent = on ? '⤡' : '⤢';
+  btn.setAttribute('aria-label', on ? '還原視窗' : '放大為滿版');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (on) { buildModalToc(); }
+  else { hideModalToc(); }
+}
+
+function hideModalToc() {
+  const toc = document.getElementById('modal-toc');
+  toc.hidden = true;
+  toc.classList.remove('collapsed');
+  document.getElementById('modal-toc-list').innerHTML = '';
+  tocItems = [];
+}
+
+function buildModalToc() {
+  const toc = document.getElementById('modal-toc');
+  const list = document.getElementById('modal-toc-list');
+  const body = document.getElementById('modal-content');
+  list.innerHTML = '';
+  tocItems = [];
+
+  // 只在桌機顯示；非桌機就算滿版也不建目錄
+  if (!isTocViewport()) { toc.hidden = true; return; }
+
+  // 從富文字容器抓標題（專案 .modal-desc／隨筆 .note-content）
+  const scope = body.querySelector('.modal-desc, .note-content') || body;
+  const heads = Array.from(scope.querySelectorAll('h1, h2, h3'))
+    .filter(h => h.textContent.trim());
+
+  if (!heads.length) { hideModalToc(); return; }
+
+  heads.forEach((h, i) => {
+    if (!h.id) h.id = 'toc-h-' + i;
+    const lvl = Number(h.tagName.slice(1));
+    const a = document.createElement('a');
+    a.className = 'lvl-' + lvl;
+    a.textContent = h.textContent.trim();
+    a.title = a.textContent;
+    a.href = '#' + h.id;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const top = headTopInBody(h, body) - 20;
+      body.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+    list.appendChild(a);
+    tocItems.push({ el: h, link: a });
+  });
+
+  toc.hidden = false;
+  // 依實際 header 高度定位，避免與標題列重疊
+  const headerH = (document.getElementById('modal-header').offsetHeight) || 80;
+  toc.style.top = (headerH + 16) + 'px';
+  toc.style.maxHeight = 'calc(100% - ' + (headerH + 48) + 'px)';
+  updateTocActive();
+}
+
+function headTopInBody(h, body) {
+  return h.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+}
+
+function updateTocActive() {
+  if (!tocItems.length) return;
+  const body = document.getElementById('modal-content');
+  const pos = body.scrollTop + 28;  // 目前視窗頂部對應的內容位置
+  let activeIdx = 0;
+  for (let i = 0; i < tocItems.length; i++) {
+    if (headTopInBody(tocItems[i].el, body) <= pos) activeIdx = i; else break;
+  }
+  tocItems.forEach((it, i) => it.link.classList.toggle('active', i === activeIdx));
+}
+
+// 目錄收合
+(function() {
+  const head = document.getElementById('modal-toc-head');
+  if (!head) return;
+  head.addEventListener('click', () => {
+    const toc = document.getElementById('modal-toc');
+    const collapsed = toc.classList.toggle('collapsed');
+    head.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  });
+})();
+
+window.addEventListener('resize', () => {
+  const box = document.getElementById('modal-box');
+  if (box && box.classList.contains('fullscreen')) buildModalToc();
+});
+
+function closeModal() {
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  // 還原滿版與目錄狀態
+  const box = document.getElementById('modal-box');
+  if (box.classList.contains('fullscreen')) {
+    box.classList.remove('fullscreen');
+    const btn = document.getElementById('modal-fs-btn');
+    btn.textContent = '⤢';
+    btn.setAttribute('aria-label', '放大為滿版');
+    btn.setAttribute('aria-pressed', 'false');
+  }
+  hideModalToc();
+}
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
