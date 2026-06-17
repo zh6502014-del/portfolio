@@ -725,8 +725,6 @@
     .modal-toc-list a { display:block; font-size:13.5px; line-height:1.5; color:var(--text-tertiary); text-decoration:none; padding:5px 8px; border-radius:var(--radius-sm); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .15s; cursor:pointer; }
     .modal-toc-list a:hover { color:var(--text); }
     .modal-toc-list a.active { color:var(--text); font-weight:600; }
-    .modal-toc-list a.lvl-2 { padding-left:18px; }
-    .modal-toc-list a.lvl-3 { padding-left:30px; font-size:13px; }
   }
 
   .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; overflow:visible; }
@@ -1527,10 +1525,12 @@ function buildModalToc() {
   });
 
   toc.hidden = false;
-  // 依實際 header 高度定位，避免與標題列重疊
+  // 目錄頂端對齊內容（封面）頂端：header 高度 + body 上內距
   const headerH = (document.getElementById('modal-header').offsetHeight) || 80;
-  toc.style.top = (headerH + 16) + 'px';
-  toc.style.maxHeight = 'calc(100% - ' + (headerH + 48) + 'px)';
+  const bodyPadTop = parseFloat(getComputedStyle(body).paddingTop) || 48;
+  const topPx = headerH + bodyPadTop;
+  toc.style.top = topPx + 'px';
+  toc.style.maxHeight = 'calc(100% - ' + (topPx + 40) + 'px)';
   updateTocActive();
 }
 
