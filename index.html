@@ -733,12 +733,18 @@
   .chip-row { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
   @media (max-width:720px) {
     .chip-row {
-      flex-wrap:nowrap; width:calc(100vw - 18px); max-width:none; min-width:0;
+      flex-wrap:nowrap; min-width:0; max-width:none;
+      width:calc(100vw - 2px);
+      /* 上右下左：左/上/下保留陰影緩衝；右側為 0 讓 chips 貼齊螢幕邊緣 */
+      margin:-10px 0 -22px -16px;
+      padding:10px 0 22px 16px;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-      scrollbar-width:none; padding-right:18px; padding-bottom:2px;
+      scrollbar-width:none;
     }
     .chip-row::-webkit-scrollbar { display:none; }
     .chip-row > * { flex-shrink:0; }
+    /* 結尾緩衝：滑到底時最後一個 chip 離邊緣 16px（平常不影響右側貼齊） */
+    .chip-row::after { content:''; flex:0 0 16px; align-self:stretch; }
   }
   .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { transform:scale(1.08); }
