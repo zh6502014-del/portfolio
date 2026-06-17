@@ -729,6 +729,17 @@
 
   .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; overflow:visible; }
   .modal-header-left { flex:1; min-width:0; overflow:visible; }
+  /* 彈窗 tag 群組統一規則：桌機換行；小網單行、超出水平捲動 */
+  .chip-row { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
+  @media (max-width:720px) {
+    .chip-row {
+      flex-wrap:nowrap; align-self:stretch; max-width:100%;
+      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none; padding-bottom:2px;
+    }
+    .chip-row::-webkit-scrollbar { display:none; }
+    .chip-row > * { flex-shrink:0; }
+  }
   .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { transform:scale(1.08); }
   .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
@@ -1142,6 +1153,7 @@ function sbFetch(table, params = '') {
   return fetch(
     `${SUPABASE_URL}/rest/v1/${table}?${params}`,
     {
+      cache: 'no-store',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -1345,7 +1357,7 @@ function openNote(id) {
     '<div class="modal-collapsible" id="modal-collapsible">' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
-      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+      (n.note_type ? '<div class="chip-row">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
     '</div>' +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml;
@@ -1370,8 +1382,8 @@ function openModal(id) {
     '<div class="modal-collapsible" id="modal-collapsible">' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
-      (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + membersHtml + '</div>' : '') +
-      '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + tagsHtml + '</div>' +
+      (membersHtml ? '<div class="chip-row">' + membersHtml + '</div>' : '') +
+      '<div class="chip-row">' + tagsHtml + '</div>' +
     '</div>';
 
   // Body: cover → description → sections → rest images
