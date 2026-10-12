@@ -139,6 +139,20 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .nav-item.active { background: var(--bg-tertiary); color: var(--text); font-weight: 500; }
 .nav-item svg { opacity: 0.5; flex-shrink: 0; }
 .nav-item.active svg { opacity: 1; }
+
+/* ── 前台顯示開關 ── */
+.nav-row { display: flex; align-items: center; gap: 2px; }
+.nav-row .nav-item { flex: 1; min-width: 0; transition: background 0.1s, color 0.1s, opacity 0.15s; }
+.nav-row.off .nav-item:not(.active) { opacity: 0.5; }
+.nav-row.off .nav-item.active { opacity: 0.75; }
+.sec-switch { position: relative; display: inline-flex; flex-shrink: 0; width: 28px; height: 16px; margin: 0 6px 0 2px; cursor: pointer; }
+.sec-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.sec-switch .track { position: absolute; inset: 0; border-radius: 999px; background: var(--border-strong, var(--text-tertiary)); opacity: 0.55; transition: background 0.18s, opacity 0.18s; }
+.sec-switch .track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); transition: transform 0.18s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.sec-switch input:checked + .track { background: var(--accent); opacity: 1; }
+.sec-switch input:checked + .track::after { transform: translateX(12px); background: var(--accent-text); }
+.sec-switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nav-section-hint { font-size: 11px; color: var(--text-tertiary); padding: 0 10px 6px; line-height: 1.5; }
 .sidebar-footer {
   margin-top: auto; padding: 12px 8px;
   border-top: 1px solid var(--border);
@@ -674,7 +688,19 @@ CREATE POLICY "auth write" ON projects FOR ALL USING (auth.role() = 'authenticat
 CREATE POLICY "public read" ON notes FOR SELECT USING (true);
 CREATE POLICY "auth write" ON notes FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "public read" ON nav_items FOR SELECT USING (true);
-CREATE POLICY "auth write" ON nav_items FOR ALL USING (auth.role() = 'authenticated');</pre>
+CREATE POLICY "auth write" ON nav_items FOR ALL USING (auth.role() = 'authenticated');
+
+-- 前台區塊顯示開關
+CREATE TABLE IF NOT EXISTS section_settings (
+  key TEXT PRIMARY KEY,
+  visible BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE section_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "public read" ON section_settings;
+DROP POLICY IF EXISTS "auth write" ON section_settings;
+CREATE POLICY "public read" ON section_settings FOR SELECT USING (true);
+CREATE POLICY "auth write" ON section_settings FOR ALL USING (auth.role() = 'authenticated');</pre>
     </details>
 
     <button class="btn btn-primary" onclick="saveConfig()">儲存設定並繼續</button>
@@ -716,30 +742,49 @@ CREATE POLICY "auth write" ON nav_items FOR ALL USING (auth.role() = 'authentica
       </div>
       <div class="nav-section">
         <div class="nav-section-label">內容管理</div>
-        <button class="nav-item active" onclick="showPage('profile',this)">
+        <div class="nav-section-hint">右側開關：關閉後，前台會隱藏該區塊</div>
+        <div class="nav-row" data-section="profile">
+          <button class="nav-item active" onclick="showPage('profile',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           個人資料
         </button>
-        <button class="nav-item" onclick="showPage('skills',this)">
+          <label class="sec-switch" title="前台顯示 / 隱藏此區塊"><input type="checkbox" checked aria-label="前台顯示此區塊" onchange="toggleSection('profile', this)"><span class="track"></span></label>
+        </div>
+        <div class="nav-row" data-section="skills">
+          <button class="nav-item" onclick="showPage('skills',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
           設計技能
         </button>
-        <button class="nav-item" onclick="showPage('tools',this)">
+          <label class="sec-switch" title="前台顯示 / 隱藏此區塊"><input type="checkbox" checked aria-label="前台顯示此區塊" onchange="toggleSection('skills', this)"><span class="track"></span></label>
+        </div>
+        <div class="nav-row" data-section="tools">
+          <button class="nav-item" onclick="showPage('tools',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           使用工具
         </button>
-        <button class="nav-item" onclick="showPage('projects',this)">
+          <label class="sec-switch" title="前台顯示 / 隱藏此區塊"><input type="checkbox" checked aria-label="前台顯示此區塊" onchange="toggleSection('tools', this)"><span class="track"></span></label>
+        </div>
+        <div class="nav-row" data-section="projects">
+          <button class="nav-item" onclick="showPage('projects',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
           作品集專案
         </button>
-        <button class="nav-item" onclick="showPage('notes',this)">
+          <label class="sec-switch" title="前台顯示 / 隱藏此區塊"><input type="checkbox" checked aria-label="前台顯示此區塊" onchange="toggleSection('projects', this)"><span class="track"></span></label>
+        </div>
+        <div class="nav-row" data-section="notes">
+          <button class="nav-item" onclick="showPage('notes',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           隨筆紀錄
         </button>
-        <button class="nav-item" onclick="showPage('navigation',this)">
+          <label class="sec-switch" title="前台顯示 / 隱藏此區塊"><input type="checkbox" checked aria-label="前台顯示此區塊" onchange="toggleSection('notes', this)"><span class="track"></span></label>
+        </div>
+        <div class="nav-row" data-section="navigation">
+          <button class="nav-item" onclick="showPage('navigation',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           導覽列
         </button>
+          <label class="sec-switch" title="前台顯示 / 隱藏此區塊"><input type="checkbox" checked aria-label="前台顯示此區塊" onchange="toggleSection('navigation', this)"><span class="track"></span></label>
+        </div>
       </div>
       <div class="sidebar-footer">
         <div class="storage-widget" id="storage-widget">
@@ -861,6 +906,41 @@ async function checkStorageUsage() {
   }
 }
 
+// ── 前台區塊顯示開關（section_settings）──
+const SECTION_KEYS = ['profile','skills','tools','projects','notes','navigation'];
+let sectionVisibility = {};
+
+function syncSectionSwitches() {
+  document.querySelectorAll('.nav-row[data-section]').forEach(row => {
+    const on = sectionVisibility[row.dataset.section] !== false;
+    const input = row.querySelector('input');
+    if (input) input.checked = on;
+    row.classList.toggle('off', !on);
+  });
+}
+async function loadSectionVisibility() {
+  try {
+    const { data, error } = await supabase_client.from('section_settings').select('key,visible');
+    if (error) throw error;
+    (data || []).forEach(r => { sectionVisibility[r.key] = r.visible !== false; });
+  } catch (e) { console.warn('section_settings 讀取失敗（尚未建表時預設全部顯示）', e); }
+  syncSectionSwitches();
+}
+async function toggleSection(key, input) {
+  const visible = input.checked;
+  const { error } = await supabase_client.from('section_settings')
+    .upsert({ key, visible, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) {
+    input.checked = !visible;
+    toast('✗ 儲存失敗：請先在 Supabase 執行 section_settings 建表語法');
+    console.error(error);
+    return;
+  }
+  sectionVisibility[key] = visible;
+  syncSectionSwitches();
+  toast(visible ? '✓ 前台已顯示此區塊' : '✓ 前台已隱藏此區塊');
+}
+
 // ── Boot ──
 async function boot() {
   const cfg = getConfig();
@@ -887,6 +967,7 @@ function showApp() {
   if (btn) showPage(page, btn);
   else renderProfilePage();
   checkStorageUsage();
+  loadSectionVisibility();
 }
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -1363,7 +1444,7 @@ function parseImgArr(val) {
 // ── Image processing: crop to 16:9 + compress ──
 async function processImage(file) {
   // GIF 動畫無法用 canvas 處理（toBlob 只輸出單一影格、JPEG 也不支援動畫），原檔上傳以保留動畫
-  if (file.type === 'image/gif' || /\.gif$/i.test(file.name)) return file;
+  if (file.type === 'image/gif') return file;
   return new Promise((resolve) => {
     const img = new Image();
     const reader = new FileReader();
@@ -1427,8 +1508,7 @@ async function uploadImage(file, bucket = 'portfolio-images') {
   // Process image before upload (crop 16:9 + compress；GIF 維持原檔)
   const processed = await processImage(file);
   const ext = ((processed.name.match(/\.([^.]+)$/) || [, 'jpg'])[1]).toLowerCase();
-  const MIME = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' };
-  const contentType = processed.type || MIME[ext] || 'image/jpeg';
+  const contentType = processed.type || 'image/jpeg';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType });
   if (error) throw error;
@@ -1460,7 +1540,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
     bar.id = containerId + '-bar';
     bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
 
-    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP（上限 5MB）、GIF（上限 15MB，保留動畫）</div>';
+    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP、GIF，單檔上限 5MB</div>';
     uploadArea.appendChild(fileInput);
     container.appendChild(uploadArea);
     container.appendChild(bar);
@@ -1473,7 +1553,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
       for (let i = 0; i < files.length; i++) {
         if (fillEl) fillEl.style.width = ((i / files.length) * 100) + '%';
         const file = files[i];
-        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast(file.name + ' 超過 ' + lim + 'MB，已略過'); continue; } }
+        if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超過 5MB，已略過'); continue; }
         try {
           const url = await uploadImage(file);
           urls.push(url);
@@ -1685,6 +1765,7 @@ function showApp() {
   if (btn) showPage(page, btn);
   else renderProfilePage();
   checkStorageUsage();
+  loadSectionVisibility();
 }
 
 function showPage(name, btn) {
@@ -1758,7 +1839,7 @@ function makeQuill(id, placeholder, richMode) {
       input.type = 'file'; input.accept = 'image/*';
       input.onchange = async () => {
         const file = input.files[0]; if (!file) return;
-        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB 上限'); return; } }
+        if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
         toast('圖片上傳中...');
         try {
           const url = await uploadImage(file);
@@ -2864,7 +2945,7 @@ function renderProjectImageArea() {
     replaceInput.style.display = 'none';
     replaceInput.onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      { const lim = f.type === 'image/gif' ? 15 : 5; if (f.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB'); return; } }
+      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
@@ -2892,7 +2973,7 @@ function renderProjectImageArea() {
     fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
     fileInput.onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      { const lim = f.type === 'image/gif' ? 15 : 5; if (f.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB'); return; } }
+      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
