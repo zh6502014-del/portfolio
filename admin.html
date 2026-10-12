@@ -374,6 +374,62 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .qx-slash-desc { display: block; font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
 .qx-slash-empty { padding: 10px 8px; font-size: 13px; color: var(--text-tertiary); }
 
+/* ── 表格編輯增強（qt-*）── */
+.ql-editor table[data-cols="equal"] { table-layout: fixed; }
+.ql-editor table[data-header="1"] tr:first-child td { font-weight: 600; background: var(--bg-tertiary); }
+.ql-editor td[data-align="center"] { text-align: center; }
+.ql-editor td[data-align="right"] { text-align: right; }
+.ql-editor td[data-bg="gray"]   { background: color-mix(in oklab, #9ca3af 22%, transparent) !important; }
+.ql-editor td[data-bg="red"]    { background: color-mix(in oklab, #ef4444 18%, transparent) !important; }
+.ql-editor td[data-bg="orange"] { background: color-mix(in oklab, #f97316 18%, transparent) !important; }
+.ql-editor td[data-bg="yellow"] { background: color-mix(in oklab, #eab308 22%, transparent) !important; }
+.ql-editor td[data-bg="green"]  { background: color-mix(in oklab, #22c55e 18%, transparent) !important; }
+.ql-editor td[data-bg="blue"]   { background: color-mix(in oklab, #3b82f6 18%, transparent) !important; }
+.ql-editor td[data-bg="purple"] { background: color-mix(in oklab, #a855f7 18%, transparent) !important; }
+.qt-add {
+  position: absolute; z-index: 6; display: none; border: none; padding: 0; cursor: pointer;
+  background: var(--bg-tertiary); color: var(--text-tertiary); border-radius: var(--radius-sm);
+  font-size: 14px; line-height: 1; align-items: center; justify-content: center;
+  opacity: .55; transition: opacity .12s, background .12s, color .12s;
+}
+.qt-add.show { display: inline-flex; }
+.qt-add:hover { opacity: 1; background: var(--accent); color: var(--accent-text); }
+.qt-bar {
+  position: fixed; z-index: 10002; display: none; align-items: center; gap: 2px; flex-wrap: wrap;
+  background: var(--bg); color: var(--text); padding: 4px;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0,0,0,.16), 0 1px 3px rgba(0,0,0,.08);
+  font-family: 'Noto Sans TC', system-ui, sans-serif; max-width: calc(100vw - 16px);
+}
+.qt-bar.show { display: flex; }
+.qt-bar .qt-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; width: 100%; }
+.qt-bar .qt-row.sub { border-top: 1px solid var(--border); padding-top: 4px; margin-top: 2px; }
+.qt-bar button {
+  min-width: 28px; height: 28px; padding: 0 7px; border: none; border-radius: var(--radius-sm);
+  background: none; color: var(--text-secondary); font-size: 12px; font-family: inherit;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap;
+}
+.qt-bar button:hover { background: var(--bg-tertiary); color: var(--text); }
+.qt-bar button.on { background: var(--bg-tertiary); color: var(--text); font-weight: 600; }
+.qt-bar button.danger:hover { color: var(--danger); }
+.qt-bar .sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
+.qt-bar .qt-label { font-size: 11px; line-height: 28px; color: var(--text-tertiary); padding: 0 2px 0 6px; }
+.qt-swatch { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border-strong); display: inline-block; }
+.qt-bar button.swatch-btn { padding: 0 4px; min-width: 26px; }
+.qt-bar button.swatch-btn.on .qt-swatch { outline: 2px solid var(--accent); outline-offset: 1px; }
+.qt-grid {
+  position: fixed; z-index: 10003; display: none; padding: 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0,0,0,.16); font-family: 'Noto Sans TC', system-ui, sans-serif;
+}
+.qt-grid.show { display: block; }
+.qt-grid-cells { display: grid; grid-template-columns: repeat(10, 18px); gap: 3px; }
+.qt-grid-cell { width: 18px; height: 18px; border: 1px solid var(--border-strong); border-radius: 3px; background: var(--bg); cursor: pointer; }
+.qt-grid-cell.on { background: color-mix(in oklab, var(--accent) 22%, transparent); border-color: var(--accent); }
+.qt-grid-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+.qt-grid-foot button { border: none; background: none; color: var(--text-tertiary); font-size: 12px; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+.qt-grid-foot button:hover { color: var(--text); text-decoration: underline; }
+
 /* ── 圖片編輯增強（qi-*）── */
 .ql-editor img { transition: opacity .2s; }
 .ql-editor img[data-uploading] { opacity: .45; }
@@ -2022,7 +2078,10 @@ const QX_COMMANDS = [
   { group: '媒體', icon: '▶', label: '影片', desc: '嵌入 YouTube / Vimeo', kw: 'video youtube vimeo 影片 視頻 嵌入',
     run: (q, i, id) => openVideoModal(id) },
   { group: '媒體', icon: '▦', label: '表格', desc: '插入表格', kw: 'table 表格',
-    run: (q, i, id) => openInsertTableModal(id) },
+    run: (q, i, id) => {
+      const b = q.getBounds(i), rc = q.container.getBoundingClientRect();
+      qtOpenGrid(q, id, { top: rc.top + b.top, bottom: rc.top + b.bottom, left: rc.left + b.left });
+    } },
 ];
 const QX_SLASH_CHARS = ['/', '／', '、'];
 
@@ -2968,6 +3027,338 @@ async function qiOpenCrop(img) {
   };
 }
 
+// ═════════════════════════════════════════════
+// 表格編輯增強（qt-*）
+//  1. 格子選擇器插入表格（取代輸入數字的視窗，可切換「第一列為標題」）
+//  2. 游標在表格內 → 表格工具列：插入 / 刪除列欄、標題列、欄寬、底色、對齊、刪除表格
+//  3. 表格右側 / 底部「＋」快速新增欄 / 列
+//  4. 最後一格按 Tab 自動新增一列
+//  5. 載入或貼上含 <th> 的表格 → 轉成一般儲存格，不再整列消失
+// 設定都寫在 <table> / <td> 的 data-* 屬性上，前台直接沿用
+// ═════════════════════════════════════════════
+
+const QT = { q: null, id: null, wrap: null, table: null, bar: null, grid: null, sub: null, entries: new Set() };
+const QT_BG = [
+  { v: '',       label: '無',   sw: 'transparent' },
+  { v: 'gray',   label: '灰',   sw: '#9ca3af' },
+  { v: 'red',    label: '紅',   sw: '#ef4444' },
+  { v: 'orange', label: '橘',   sw: '#f97316' },
+  { v: 'yellow', label: '黃',   sw: '#eab308' },
+  { v: 'green',  label: '綠',   sw: '#22c55e' },
+  { v: 'blue',   label: '藍',   sw: '#3b82f6' },
+  { v: 'purple', label: '紫',   sw: '#a855f7' },
+];
+
+function qtEl(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function qtBtn(html, tip, fn, opts = {}) {
+  const b = qtEl('button', (opts.on ? 'on ' : '') + (opts.cls || ''), html);
+  b.type = 'button'; b.title = tip; b.setAttribute('aria-label', tip);
+  b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fn(b); });
+  return b;
+}
+
+// ── HTML 正規化：<th>/<thead>/<tfoot> → 一般列；原本有標題列就標記 data-header ──
+function qtNormalizeTables(root) {
+  root.querySelectorAll('table').forEach(table => {
+    const firstRow = table.querySelector('tr');
+    const hadHeader = !!table.querySelector('thead') || !!(firstRow && firstRow.querySelector('th'));
+    table.querySelectorAll('th').forEach(th => {
+      const td = th.ownerDocument.createElement('td');
+      Array.from(th.attributes).forEach(a => { if (a.name !== 'scope') td.setAttribute(a.name, a.value); });
+      while (th.firstChild) td.appendChild(th.firstChild);
+      th.replaceWith(td);
+    });
+    const sections = Array.from(table.querySelectorAll('thead, tfoot'));
+    if (sections.length) {
+      let tbody = table.querySelector('tbody');
+      if (!tbody) { tbody = table.ownerDocument.createElement('tbody'); table.appendChild(tbody); }
+      const thead = table.querySelector('thead'), tfoot = table.querySelector('tfoot');
+      if (thead) { Array.from(thead.children).reverse().forEach(tr => tbody.insertBefore(tr, tbody.firstChild)); thead.remove(); }
+      if (tfoot) { Array.from(tfoot.children).forEach(tr => tbody.appendChild(tr)); tfoot.remove(); }
+    }
+    table.querySelectorAll('caption, colgroup').forEach(n => n.remove());
+    if (hadHeader && !table.hasAttribute('data-header')) table.setAttribute('data-header', '1');
+    // 每一列的儲存格要有相同的 data-row，否則 Quill 會把沒有標記的列全部黏成同一列
+    table.querySelectorAll('tr').forEach(tr => {
+      const tds = Array.from(tr.children).filter(c => c.tagName === 'TD');
+      const tagged = tds.find(td => td.getAttribute('data-row'));
+      const id = tagged ? tagged.getAttribute('data-row') : 'row-' + Math.random().toString(36).slice(2, 6);
+      tds.forEach(td => td.setAttribute('data-row', id));
+    });
+  });
+}
+
+// ── 取得目前表格 / 選取的儲存格 ──
+function qtModule(q) { return q.getModule('table'); }
+function qtCurrent(q, range) {
+  try {
+    const r = range || q.getSelection();
+    if (!r) return null;
+    const [table, row, cell] = qtModule(q).getTable(r);
+    return table ? { table, row, cell } : null;
+  } catch (e) { return null; }
+}
+function qtSelectedCells(q) {
+  const r = q.getSelection(); if (!r) return [];
+  const lines = q.getLines(r.index, Math.max(r.length, 1));
+  const tds = lines.filter(l => l.statics && l.statics.blotName === 'table').map(l => l.domNode);
+  return Array.from(new Set(tds));
+}
+function qtFocusCell(q, cellBlot) { if (cellBlot) q.setSelection(q.getIndex(cellBlot), 0, 'user'); }
+
+// ── 1. 格子選擇器 ──
+function qtHeaderPref() { try { return localStorage.getItem('qt_header_default') !== '0'; } catch (e) { return true; } }
+function qtSetHeaderPref(v) { try { localStorage.setItem('qt_header_default', v ? '1' : '0'); } catch (e) {} }
+
+function qtInsertTable(q, rows, cols, header, atRange) {
+  if (atRange) q.setSelection(atRange.index, 0, 'silent');
+  const t = qtModule(q);
+  if (!t) { toast('表格模組未啟用'); return; }
+  if (qtCurrent(q)) { toast('游標在表格裡，請先移到表格外再插入'); return; }
+  q.focus();
+  t.insertTable(rows, cols);
+  const cur = qtCurrent(q);
+  if (cur) {
+    if (header) cur.table.domNode.setAttribute('data-header', '1');
+    qtFocusCell(q, cur.table.rows()[0].children.head);
+  }
+  qtRefresh();
+}
+
+function qtOpenGrid(q, id, anchorRect) {
+  qtEnsureUI();
+  const saved = q.getSelection(true) || { index: q.getLength() - 1, length: 0 };
+  const g = QT.grid; g.innerHTML = '';
+  const ROWS = 8, COLS = 10;
+  const cells = qtEl('div', 'qt-grid-cells');
+  const label = qtEl('span', '', '選擇表格大小');
+  let header = qtHeaderPref();
+  const paint = (r, c) => {
+    cells.querySelectorAll('.qt-grid-cell').forEach(el => el.classList.toggle('on', +el.dataset.r <= r && +el.dataset.c <= c));
+    label.textContent = r && c ? `${c} 欄 × ${r} 列` : '選擇表格大小';
+  };
+  for (let r = 1; r <= ROWS; r++) for (let c = 1; c <= COLS; c++) {
+    const cell = qtEl('div', 'qt-grid-cell'); cell.dataset.r = r; cell.dataset.c = c;
+    cell.addEventListener('mouseenter', () => paint(r, c));
+    cell.addEventListener('click', () => { qtCloseGrid(); qtInsertTable(q, r, c, header, saved); });
+    cells.appendChild(cell);
+  }
+  cells.addEventListener('mouseleave', () => paint(0, 0));
+  const foot = qtEl('div', 'qt-grid-foot');
+  const hdr = qtEl('label', '', '<input type="checkbox"> 第一列為標題');
+  hdr.style.cssText = 'display:flex;align-items:center;gap:4px;cursor:pointer';
+  const cb = hdr.querySelector('input'); cb.checked = header;
+  cb.addEventListener('change', () => { header = cb.checked; qtSetHeaderPref(header); });
+  const more = qtEl('button', '', '自訂大小…'); more.type = 'button';
+  more.addEventListener('click', () => { qtCloseGrid(); q.setSelection(saved.index, 0, 'silent'); openInsertTableModal(id); });
+  const left = qtEl('div'); left.style.cssText = 'display:flex;flex-direction:column;gap:6px';
+  left.appendChild(label); left.appendChild(hdr);
+  foot.appendChild(left); foot.appendChild(more);
+  g.appendChild(cells); g.appendChild(foot);
+  g.classList.add('show');
+  const w = g.offsetWidth, h = g.offsetHeight;
+  let top = anchorRect.bottom + 6, leftPx = anchorRect.left;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, anchorRect.top - h - 6);
+  leftPx = Math.max(8, Math.min(leftPx, window.innerWidth - w - 8));
+  g.style.top = top + 'px'; g.style.left = leftPx + 'px';
+}
+function qtCloseGrid() { if (QT.grid) QT.grid.classList.remove('show'); }
+
+// ── 2. 表格工具列 ──
+function qtEnsureUI() {
+  if (QT.bar) return;
+  QT.bar = qtEl('div', 'qt-bar');
+  QT.grid = qtEl('div', 'qt-grid');
+  [QT.bar, QT.grid].forEach(el => {
+    el.addEventListener('mousedown', e => { if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') e.preventDefault(); });
+    document.body.appendChild(el);
+  });
+  document.addEventListener('scroll', () => { qtPlaceBar(); qtCloseGrid(); }, true);
+  window.addEventListener('resize', qtRefresh);
+  document.addEventListener('mousedown', e => {
+    if (QT.grid.classList.contains('show') && !QT.grid.contains(e.target)) qtCloseGrid();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') qtCloseGrid(); });
+}
+
+function qtRenderBar() {
+  const q = QT.q, cur = q && qtCurrent(q);
+  if (!cur) { qtHideBar(); return; }
+  const t = qtModule(q), tbl = cur.table.domNode;
+  const cells = qtSelectedCells(q);
+  const first = cells[0] || cur.cell.domNode;
+  const bar = QT.bar; bar.innerHTML = '';
+  const row = qtEl('div', 'qt-row');
+  const sep = () => row.appendChild(qtEl('span', 'sep'));
+  const run = fn => () => { fn(); qtRefresh(); };
+  const nRows = cur.table.rows().length, nCols = cur.row.children.length;
+
+  row.appendChild(qtEl('span', 'qt-label', '列'));
+  row.appendChild(qtBtn('↑ 插入', '在上方插入一列', run(() => t.insertRowAbove())));
+  row.appendChild(qtBtn('↓ 插入', '在下方插入一列', run(() => t.insertRowBelow())));
+  row.appendChild(qtBtn('刪除', '刪除這一列', run(() => { nRows <= 1 ? t.deleteTable() : t.deleteRow(); }), { cls: 'danger' }));
+  sep();
+  row.appendChild(qtEl('span', 'qt-label', '欄'));
+  row.appendChild(qtBtn('← 插入', '在左邊插入一欄', run(() => t.insertColumnLeft())));
+  row.appendChild(qtBtn('→ 插入', '在右邊插入一欄', run(() => t.insertColumnRight())));
+  row.appendChild(qtBtn('刪除', '刪除這一欄', run(() => { nCols <= 1 ? t.deleteTable() : t.deleteColumn(); }), { cls: 'danger' }));
+  sep();
+  const isHeader = tbl.getAttribute('data-header') === '1';
+  row.appendChild(qtBtn('標題列', '第一列設為標題（加粗、底色）', run(() => { isHeader ? tbl.removeAttribute('data-header') : tbl.setAttribute('data-header', '1'); }), { on: isHeader }));
+  const equal = tbl.getAttribute('data-cols') === 'equal';
+  row.appendChild(qtBtn(equal ? '欄寬：平均' : '欄寬：依內容', '切換欄寬：平均分配 / 依內容', run(() => { equal ? tbl.removeAttribute('data-cols') : tbl.setAttribute('data-cols', 'equal'); }), { on: equal }));
+  sep();
+  const align = first.getAttribute('data-align') || 'left';
+  const setAlign = v => cells.forEach(td => v === 'left' ? td.removeAttribute('data-align') : td.setAttribute('data-align', v));
+  const AL = d => `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="${d}"/></svg>`;
+  [['left', AL('M4 6h16M4 12h10M4 18h13'), '靠左'], ['center', AL('M4 6h16M7 12h10M5.5 18h13'), '置中'], ['right', AL('M4 6h16M10 12h10M7 18h13'), '靠右']].forEach(([v, ic, tip]) =>
+    row.appendChild(qtBtn(ic, '儲存格' + tip + (cells.length > 1 ? `（${cells.length} 格）` : ''), run(() => setAlign(v)), { on: align === v })));
+  const bgNow = first.getAttribute('data-bg') || '';
+  const swNow = (QT_BG.find(b => b.v === bgNow) || QT_BG[0]).sw;
+  row.appendChild(qtBtn(`<span class="qt-swatch" style="background:${swNow}"></span>底色 ▾`, '儲存格底色', () => { QT.sub = QT.sub === 'bg' ? null : 'bg'; qtRenderBar(); }, { on: QT.sub === 'bg' }));
+  sep();
+  row.appendChild(qtBtn('刪除表格', '刪除整個表格', run(() => { t.deleteTable(); }), { cls: 'danger' }));
+  bar.appendChild(row);
+
+  if (QT.sub === 'bg') {
+    const sub = qtEl('div', 'qt-row sub');
+    sub.appendChild(qtEl('span', 'qt-label', cells.length > 1 ? `套用到 ${cells.length} 格` : '儲存格底色'));
+    QT_BG.forEach(b => sub.appendChild(qtBtn(`<span class="qt-swatch" style="background:${b.sw}"></span>`, b.label,
+      run(() => cells.forEach(td => b.v ? td.setAttribute('data-bg', b.v) : td.removeAttribute('data-bg'))), { cls: 'swatch-btn', on: bgNow === b.v })));
+    bar.appendChild(sub);
+  }
+  QT.table = tbl;
+  bar.classList.add('show');
+  qtPlaceBar();
+}
+
+function qtPlaceBar() {
+  const bar = QT.bar, tbl = QT.table;
+  if (!bar || !bar.classList.contains('show') || !tbl || !tbl.isConnected) return;
+  const r = tbl.getBoundingClientRect();
+  const tb = QT.wrap && QT.wrap.querySelector('.ql-toolbar');
+  const minTop = tb ? Math.max(8, tb.getBoundingClientRect().bottom + 6) : 8;
+  const h = bar.offsetHeight, w = bar.offsetWidth;
+  let top = r.top - h - 8;
+  if (top < minTop) top = minTop;                                  // 表格上緣捲出畫面 → 貼在工具列下方
+  if (top > r.bottom - 10) top = r.bottom + 8;                      // 表格已捲到上方 → 放表格下方
+  let left = r.left;
+  left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+  bar.style.top = top + 'px'; bar.style.left = left + 'px';
+}
+function qtHideBar() { if (QT.bar) QT.bar.classList.remove('show'); QT.table = null; QT.sub = null; }
+
+// ── 3. 「＋」新增列 / 欄 ──
+function qtLayoutAdders(en, tbl) {
+  const { addRow, addCol, wrap } = en;
+  if (!tbl || !tbl.isConnected) { addRow.classList.remove('show'); addCol.classList.remove('show'); en.hoverTable = null; return; }
+  const w = wrap.getBoundingClientRect(), r = tbl.getBoundingClientRect();
+  Object.assign(addRow.style, { left: (r.left - w.left) + 'px', top: (r.bottom - w.top + 4) + 'px', width: r.width + 'px', height: '16px' });
+  Object.assign(addCol.style, { left: (r.right - w.left + 4) + 'px', top: (r.top - w.top) + 'px', width: '16px', height: r.height + 'px' });
+  addRow.classList.add('show'); addCol.classList.add('show');
+  en.hoverTable = tbl;
+}
+
+function qtAddAtEdge(en, kind) {
+  const q = en.q, tbl = en.hoverTable; if (!tbl) return;
+  const tableBlot = Quill.find(tbl); if (!tableBlot) return;
+  const rows = tableBlot.rows();
+  const t = qtModule(q);
+  if (kind === 'row') {
+    const lastRow = rows[rows.length - 1];
+    qtFocusCell(q, lastRow.children.head);
+    t.insertRowBelow();
+    const after = Quill.find(tbl).rows();
+    qtFocusCell(q, after[after.length - 1].children.head);
+  } else {
+    const firstRow = rows[0];
+    qtFocusCell(q, firstRow.children.tail);
+    t.insertColumnRight();
+    qtFocusCell(q, Quill.find(tbl).rows()[0].children.tail);
+  }
+  QT.q = q; QT.id = en.id; QT.wrap = en.wrap;
+  qtRefresh();
+}
+
+function qtRefresh() {
+  QT.entries.forEach(en => {
+    if (!en.wrap.isConnected) { QT.entries.delete(en); return; }
+    const cur = qtCurrent(en.q);
+    qtLayoutAdders(en, cur ? cur.table.domNode : (en.hoverTable && en.hoverTable.isConnected ? en.hoverTable : null));
+  });
+  if (QT.q) {
+    if (qtCurrent(QT.q)) qtRenderBar(); else qtHideBar();
+  }
+}
+
+// ── 掛載 ──
+function qtEnhance(q, id, wrap) {
+  qtEnsureUI();
+  const addRow = qtEl('button', 'qt-add', '+'); addRow.type = 'button'; addRow.title = '新增一列';
+  const addCol = qtEl('button', 'qt-add', '+'); addCol.type = 'button'; addCol.title = '新增一欄';
+  wrap.appendChild(addRow); wrap.appendChild(addCol);
+  const en = { q, id, wrap, addRow, addCol, hoverTable: null };
+  QT.entries.add(en);
+  [addRow, addCol].forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+  addRow.addEventListener('click', () => qtAddAtEdge(en, 'row'));
+  addCol.addEventListener('click', () => qtAddAtEdge(en, 'col'));
+
+  // 滑過表格也顯示「＋」
+  wrap.addEventListener('mousemove', e => {
+    if (e.target === addRow || e.target === addCol) return;
+    const tbl = e.target.closest && e.target.closest('.ql-editor table');
+    if (tbl && tbl !== en.hoverTable) qtLayoutAdders(en, tbl);
+    else if (!tbl && !qtCurrent(q) && en.hoverTable) {
+      const r = en.hoverTable.getBoundingClientRect();
+      if (e.clientX > r.right + 26 || e.clientY > r.bottom + 26 || e.clientX < r.left - 6 || e.clientY < r.top - 6) qtLayoutAdders(en, null);
+    }
+  });
+  wrap.addEventListener('mouseleave', () => { if (!qtCurrent(q)) qtLayoutAdders(en, null); });
+
+  q.on('selection-change', (range) => {
+    if (range) {
+      QT.q = q; QT.id = id; QT.wrap = wrap;
+      const cur = qtCurrent(q);
+      if (!cur || cur.table.domNode !== QT.table) QT.sub = null;   // 換到別的表格 → 收起底色選單
+    }
+    else if (QT.q === q && !QT.bar.matches(':hover')) { qtHideBar(); }
+    if (range) qtRefresh();
+  });
+  let raf = 0;
+  q.on('text-change', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(qtRefresh); });
+
+  // 4. 最後一格按 Tab → 新增一列（插在 Quill 預設的表格 Tab 之前）
+  q.keyboard.addBinding({ key: 'Tab', shiftKey: false, format: ['table'] }, function (range) {
+    const cur = qtCurrent(q, range);
+    if (!cur || cur.row.next || cur.cell.next) return true;
+    qtModule(q).insertRowBelow();
+    const rows = qtCurrent(q).table.rows();
+    qtFocusCell(q, rows[rows.length - 1].children.head);
+    return false;
+  });
+  const tabs = q.keyboard.bindings['Tab'];
+  if (tabs && tabs.length) tabs.unshift(tabs.pop());
+
+  // 5. 貼上含 <th> 的表格：先正規化 HTML
+  const origOnPaste = q.clipboard.onPaste.bind(q.clipboard);
+  q.clipboard.onPaste = function (range, data) {
+    let hadHeader = false;
+    if (data && data.html && /<t[hf]|<thead/i.test(data.html)) {
+      try {
+        const doc = new DOMParser().parseFromString(data.html, 'text/html');
+        qtNormalizeTables(doc.body);
+        hadHeader = !!doc.body.querySelector('table[data-header="1"]');
+        data = { ...data, html: doc.body.innerHTML };
+      } catch (e) {}
+    }
+    const before = new Set(q.root.querySelectorAll('table'));
+    const res = origOnPaste(range, data);
+    // 貼上的表格原本有標題列 → 新出現的表格標記為標題列
+    if (hadHeader) setTimeout(() => q.root.querySelectorAll('table').forEach(t => { if (!before.has(t)) t.setAttribute('data-header', '1'); }), 0);
+    return res;
+  };
+}
+
 function makeQuill(id, placeholder, richMode) {
   if (quillInstances[id]) {
     try {
@@ -3053,7 +3444,7 @@ function makeQuill(id, placeholder, richMode) {
       tableBtn.innerHTML = '▦';
       tableBtn.setAttribute('aria-label', '插入表格');
       tableBtn.dataset.tip = '插入表格';
-      tableBtn.onclick = () => openInsertTableModal(id);
+      tableBtn.onclick = () => qtOpenGrid(q, id, tableBtn.getBoundingClientRect());
 
       span.appendChild(videoBtn);
       span.appendChild(tableBtn);
@@ -3063,6 +3454,8 @@ function makeQuill(id, placeholder, richMode) {
 
     // 點擊圖片 → 圖片工具列（取代舊的比例/縮放浮層）
     qiEnhance(q, id, wrap);
+    // 表格：工具列、＋按鈕、Tab 新增列、貼上 <th>
+    qtEnhance(q, id, wrap);
   }
 
   quillInstances[id] = q;
@@ -3183,6 +3576,8 @@ function normalizeQuillHtml(html) {
       walk(list, 0);
       list.replaceWith(out);
     });
+    // <th>/<thead> → 一般儲存格（否則載入時標題列會整列消失），原本有標題就標記 data-header
+    qtNormalizeTables(root);
     return root.innerHTML;
   } catch(e) { return html; }
 }
@@ -3281,8 +3676,7 @@ function openInsertTableModal(editorId) {
       const tableModule = q.getModule('table');
       if (tableModule) {
         // 用 Quill 2 內建 table module，編輯與儲存才能正確同步
-        q.focus();
-        tableModule.insertTable(rows, cols);
+        qtInsertTable(q, rows, cols, qtHeaderPref());
       } else {
         toast('表格模組未啟用');
       }

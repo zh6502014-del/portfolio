@@ -444,6 +444,22 @@
   .rich-figure[data-image-layout="third"] { display:inline-block; vertical-align:top; margin:10px 6px 10px 0; }
   .rich-figure[data-image-layout="half"] { width:calc(50% - 8px); max-width:calc(50% - 8px); }
   .rich-figure[data-image-layout="third"] { width:calc(33.333% - 8px); max-width:calc(33.333% - 8px); }
+  .rich-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:18px 0; }
+  .rich-table-wrap table { border-collapse:collapse; width:100%; font-size:15px; line-height:1.6; }
+  .rich-table-wrap table[data-cols="equal"] { table-layout:fixed; }
+  .rich-table-wrap td, .rich-table-wrap th { border:1px solid color-mix(in oklab, var(--text) 16%, transparent); padding:10px 12px; vertical-align:top; text-align:left; min-width:7.5em; }
+  .rich-table-wrap th,
+  .rich-table-wrap table[data-header="1"] tr:first-child td { font-weight:600; background:color-mix(in oklab, var(--text) 6%, transparent); }
+  .rich-table-wrap td[data-align="center"] { text-align:center; }
+  .rich-table-wrap td[data-align="right"] { text-align:right; }
+  .rich-table-wrap td[data-bg="gray"]   { background:color-mix(in oklab, #9ca3af 22%, transparent); }
+  .rich-table-wrap td[data-bg="red"]    { background:color-mix(in oklab, #ef4444 18%, transparent); }
+  .rich-table-wrap td[data-bg="orange"] { background:color-mix(in oklab, #f97316 18%, transparent); }
+  .rich-table-wrap td[data-bg="yellow"] { background:color-mix(in oklab, #eab308 22%, transparent); }
+  .rich-table-wrap td[data-bg="green"]  { background:color-mix(in oklab, #22c55e 18%, transparent); }
+  .rich-table-wrap td[data-bg="blue"]   { background:color-mix(in oklab, #3b82f6 18%, transparent); }
+  .rich-table-wrap td[data-bg="purple"] { background:color-mix(in oklab, #a855f7 18%, transparent); }
+  .rich-table-wrap p { margin:0; }
   .rich-caption { display:block; margin-top:8px; font-size:13px; line-height:1.6; color:var(--text-tertiary); text-align:center; }
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--text); font-weight: 500; }
@@ -1297,7 +1313,20 @@ function wrapRichCaptions(html) {
   });
   return root.innerHTML;
 }
-function prepRichHtml(html) { return wrapRichCaptions(fixRichLists(html)); }
+// ── 表格：外包一層可左右捲動的容器（手機不會撐破版面）──
+function wrapRichTables(html) {
+  if (!html || html.indexOf('<table') === -1) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  root.querySelectorAll('table').forEach(tbl => {
+    if (tbl.parentElement && tbl.parentElement.classList.contains('rich-table-wrap')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'rich-table-wrap';
+    tbl.replaceWith(wrap); wrap.appendChild(tbl);
+  });
+  return root.innerHTML;
+}
+function prepRichHtml(html) { return wrapRichTables(wrapRichCaptions(fixRichLists(html))); }
 
 // ── renderNav ──
 function renderNav(items) {
