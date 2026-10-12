@@ -438,6 +438,13 @@
   }
   .section-hidden { display: none !important; }
   .modal-body hr { border: 0; border-top: 1px solid var(--border); margin: 28px 0; }
+  .rich-figure { display:block; margin:10px 0; box-sizing:border-box; }
+  .rich-figure > img { display:block; width:100%; max-width:100%; margin:0 !important; }
+  .rich-figure[data-image-layout="half"],
+  .rich-figure[data-image-layout="third"] { display:inline-block; vertical-align:top; margin:10px 6px 10px 0; }
+  .rich-figure[data-image-layout="half"] { width:calc(50% - 8px); max-width:calc(50% - 8px); }
+  .rich-figure[data-image-layout="third"] { width:calc(33.333% - 8px); max-width:calc(33.333% - 8px); }
+  .rich-caption { display:block; margin-top:8px; font-size:13px; line-height:1.6; color:var(--text-tertiary); text-align:center; }
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--text); font-weight: 500; }
 
@@ -1267,6 +1274,31 @@ function fixRichLists(html) {
   return root.innerHTML;
 }
 
+
+// ── 圖片說明文字：img[data-caption] → <span class="rich-figure"> + 說明 ──
+// 用 span（而非 figure）包裝，才能留在 <p> 裡、不被瀏覽器拆開；寬度 / 對齊 / 併排樣式從 img 移到外框
+function wrapRichCaptions(html) {
+  if (!html || html.indexOf('data-caption') === -1) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  root.querySelectorAll('img[data-caption]').forEach(img => {
+    const fig = document.createElement('span');
+    fig.className = 'rich-figure';
+    const layout = img.getAttribute('data-image-layout');
+    if (layout && layout !== 'block') fig.setAttribute('data-image-layout', layout);
+    ['width', 'maxWidth', 'margin', 'verticalAlign'].forEach(k => { if (img.style[k]) { fig.style[k] = img.style[k]; img.style[k] = ''; } });
+    img.removeAttribute('data-image-layout');
+    img.style.width = '100%'; img.style.maxWidth = '100%'; img.style.margin = '0'; img.style.display = 'block';
+    const cap = document.createElement('span');
+    cap.className = 'rich-caption';
+    cap.textContent = img.getAttribute('data-caption');
+    img.replaceWith(fig);
+    fig.appendChild(img); fig.appendChild(cap);
+  });
+  return root.innerHTML;
+}
+function prepRichHtml(html) { return wrapRichCaptions(fixRichLists(html)); }
+
 // ── renderNav ──
 function renderNav(items) {
   const navEl = document.getElementById('nav-links');
@@ -1327,7 +1359,7 @@ function renderProfile(p) {
         .join('');
       descEl.textContent = text;
     } else {
-      descEl.innerHTML = fixRichLists(p.description || '');
+      descEl.innerHTML = prepRichHtml(p.description || '');
       bindContentLightbox(descEl);
     }
   }
@@ -1430,7 +1462,7 @@ function openNote(id) {
   const n = allNotes.find(x => x.id === id);
   if (!n) return;
   const contentHtml = n.content
-    ? `<div class="note-content">${fixRichLists(n.content)}</div>`
+    ? `<div class="note-content">${prepRichHtml(n.content)}</div>`
     : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + n.title + '</h2>' +
@@ -1506,7 +1538,7 @@ function openModal(id) {
     const desc = document.createElement('div');
     desc.className = 'modal-desc';
     desc.style.marginTop = '20px';
-    desc.innerHTML = fixRichLists(p.content);
+    desc.innerHTML = prepRichHtml(p.content);
     bindContentLightbox(desc);
     body.appendChild(desc);
   }
