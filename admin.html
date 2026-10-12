@@ -373,6 +373,99 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 }
 .qx-slash-desc { display: block; font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
 .qx-slash-empty { padding: 10px 8px; font-size: 13px; color: var(--text-tertiary); }
+
+/* ── 圖片編輯增強（qi-*）── */
+.ql-editor img { transition: opacity .2s; }
+.ql-editor img[data-uploading] { opacity: .45; }
+.ql-editor img[data-caption] { margin-bottom: 38px !important; }
+.qi-box {
+  position: absolute; z-index: 6; pointer-events: none; display: none;
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-md);
+}
+.qi-box.show { display: block; }
+.qi-handle {
+  position: absolute; top: 50%; width: 8px; height: 44px; margin-top: -22px;
+  border-radius: 4px; background: var(--bg); border: 1px solid var(--border-strong);
+  box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: ew-resize; pointer-events: auto;
+  touch-action: none;
+}
+.qi-handle.l { left: -6px; }
+.qi-handle.r { right: -6px; }
+.qi-box.no-resize .qi-handle { display: none; }
+.qi-size-tag {
+  position: absolute; top: 8px; right: 8px; padding: 2px 7px; border-radius: 999px;
+  background: rgba(0,0,0,.65); color: #fff; font-size: 11px; display: none;
+}
+.qi-box.resizing .qi-size-tag { display: block; }
+.qi-caps { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.qi-cap {
+  position: absolute; pointer-events: auto; cursor: text;
+  font-size: 13px; line-height: 1.5; color: var(--text-tertiary); text-align: center;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px;
+}
+.qi-cap:hover { color: var(--text-secondary); }
+.qi-bar {
+  position: fixed; z-index: 10002; display: none; flex-direction: column; gap: 4px;
+  background: var(--bg); color: var(--text); padding: 4px;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0,0,0,.16), 0 1px 3px rgba(0,0,0,.08);
+  font-family: 'Noto Sans TC', system-ui, sans-serif; max-width: calc(100vw - 16px);
+}
+.qi-bar.show { display: flex; }
+.qi-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.qi-row.sub { border-top: 1px solid var(--border); padding-top: 4px; }
+.qi-bar button {
+  min-width: 28px; height: 28px; padding: 0 6px; border: none; border-radius: var(--radius-sm);
+  background: none; color: var(--text-secondary); font-size: 12px; font-family: inherit;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  white-space: nowrap;
+}
+.qi-bar button:hover { background: var(--bg-tertiary); color: var(--text); }
+.qi-bar button.on { background: var(--bg-tertiary); color: var(--text); font-weight: 600; }
+.qi-bar button.danger:hover { color: var(--danger); }
+.qi-bar button:disabled { opacity: .35; cursor: default; background: none; }
+.qi-bar .sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
+.qi-bar .qi-label { font-size: 11px; color: var(--text-tertiary); padding: 0 4px 0 6px; }
+.qi-bar input {
+  width: 260px; height: 28px; border: none; outline: none; background: none;
+  color: var(--text); font-size: 13px; font-family: inherit; padding: 0 6px;
+}
+.qi-modal {
+  position: fixed; inset: 0; z-index: 10010; background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.qi-modal-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0,0,0,.25); padding: 18px; width: min(920px, 100%);
+  max-height: calc(100vh - 48px); display: flex; flex-direction: column; gap: 12px;
+}
+.qi-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.qi-modal-title { font-size: 15px; font-weight: 600; }
+.qi-modal-hint { font-size: 12px; color: var(--text-tertiary); }
+.qi-modal-body { position: relative; flex: 1; min-height: 0; display: flex; gap: 16px; align-items: flex-start; justify-content: center; }
+.qi-modal-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qi-modal-foot .spacer { flex: 1; }
+.qi-modal-foot .btn { width: auto; margin-top: 0; }
+.qi-chip {
+  height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text-secondary); font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.qi-chip.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.qi-focal-stage { position: relative; display: inline-block; line-height: 0; cursor: crosshair; user-select: none; touch-action: none; }
+.qi-focal-stage img { max-width: 100%; max-height: 60vh; border-radius: var(--radius-md); display: block; }
+.qi-focal-dot {
+  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  border: 3px solid #fff; background: rgba(0,0,0,.35); box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.4);
+  pointer-events: none;
+}
+.qi-focal-preview { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+.qi-focal-preview img { width: 100%; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border); }
+.qi-crop-stage { width: 100%; height: min(60vh, 560px); background: var(--bg-tertiary); border-radius: var(--radius-md); overflow: hidden; }
+.qi-crop-stage img { display: block; max-width: 100%; }
+@media (max-width: 720px) {
+  .qi-modal-body { flex-direction: column; align-items: stretch; }
+  .qi-focal-preview { width: 100%; }
+}
 /* ── 插入表格 Modal ── */
 .ins-table-modal {
   position: fixed; inset: 0; z-index: 9999;
@@ -2245,6 +2338,636 @@ function qxEnhance(q, id, wrap, richMode) {
   }, true);
 }
 
+
+// ═════════════════════════════════════════════
+// 圖片編輯增強（qi-*）
+//  1. 貼上 / 拖入 / 工具列上傳 → 一律上傳到 Storage（不再存 base64），保留原始比例
+//  2. 點圖片 → 浮動工具列（對齊、寬度、排版、比例、焦點、裁切、說明、替代文字、替換、原圖、刪除）
+//  3. 拖曳左右把手自由調整寬度
+//  4. 焦點：比例裁切時以指定重點為中心（object-position）
+//  5. 裁切：Cropper.js，裁完另存新檔，保留原圖可還原
+//  6. 說明文字（data-caption）與替代文字（alt）
+// ═════════════════════════════════════════════
+
+const QI_MAX_SIDE = 2000;           // 編輯器內圖片最長邊
+const QI_JPEG_TARGET = 600 * 1024;  // JPEG 壓縮目標
+let qiPending = 0;                  // 上傳中的張數
+
+function qiSizeLimitMB(file) { return (file.type === 'image/gif' || /\.gif$/i.test(file.name || '')) ? 15 : 20; }
+
+// 編輯器圖片處理：保留原始比例、縮到最長邊 2000px、壓縮；GIF / SVG 原檔上傳
+function processEditorImage(file) {
+  const type = file.type || '';
+  if (type === 'image/gif' || type === 'image/svg+xml' || /\.(gif|svg)$/i.test(file.name || '')) return Promise.resolve(file);
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, QI_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      // PNG / WebP 可能有透明背景 → 輸出 WebP 保留透明；其他 → JPEG
+      const keepAlpha = /png|webp/.test(type);
+      if (!keepAlpha) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); }
+      ctx.drawImage(img, 0, 0, w, h);
+      const base = (file.name || 'image').replace(/\.[^.]+$/, '');
+      if (keepAlpha) {
+        canvas.toBlob(b => resolve(b && b.size < file.size * 1.2 ? new File([b], base + '.webp', { type: 'image/webp' }) : file), 'image/webp', 0.9);
+        return;
+      }
+      let q = 0.9;
+      const tryOnce = () => canvas.toBlob(b => {
+        if (!b) return resolve(file);
+        if (b.size <= QI_JPEG_TARGET || q <= 0.6) return resolve(new File([b], base + '.jpg', { type: 'image/jpeg' }));
+        q -= 0.1; tryOnce();
+      }, 'image/jpeg', q);
+      tryOnce();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
+async function qiUploadBlob(blob, nameHint) {
+  const MIME_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg' };
+  const ext = MIME_EXT[blob.type] || ((nameHint || '').match(/\.([a-z0-9]+)$/i) || [, 'jpg'])[1].toLowerCase();
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { error } = await supabase_client.storage.from('portfolio-images')
+    .upload(path, blob, { contentType: blob.type || 'image/jpeg' });
+  if (error) throw error;
+  return supabase_client.storage.from('portfolio-images').getPublicUrl(path).data.publicUrl;
+}
+
+async function uploadEditorImage(file) {
+  const processed = await processEditorImage(file);
+  return qiUploadBlob(processed, processed.name || file.name);
+}
+
+function qiIndexOf(q, el) {
+  try { const blot = Quill.find(el); return blot ? blot.offset(q.scroll) : -1; } catch (e) { return -1; }
+}
+
+// 先用本機預覽插入，上傳完成再換成正式網址；失敗則移除
+function qiUploadInto(q, img, file, opts = {}) {
+  img.setAttribute('data-uploading', '1');
+  qiPending++;
+  const localUrl = img.getAttribute('src');
+  return uploadEditorImage(file).then(url => {
+    if (img.isConnected) { img.setAttribute('src', url); img.removeAttribute('data-uploading'); }
+  }).catch(e => {
+    toast('圖片上傳失敗：' + (e.message || e), 4000);
+    if (opts.restoreSrc && img.isConnected) {   // 替換失敗 → 換回原圖
+      img.setAttribute('src', opts.restoreSrc); img.removeAttribute('data-uploading');
+      if (opts.restoreOriginal) img.dataset.original = opts.restoreOriginal;
+      return;
+    }
+    const i = qiIndexOf(q, img);
+    if (i >= 0) q.deleteText(i, 1, 'api'); else img.remove();
+  }).finally(() => {
+    qiPending--;
+    if (localUrl && localUrl.startsWith('blob:')) URL.revokeObjectURL(localUrl);
+    qiRefreshAll();
+  });
+}
+
+function qiInsertFiles(q, index, files) {
+  const list = Array.from(files || []).filter(f => /^image\//.test(f.type));
+  if (!list.length) return;
+  let idx = Math.max(0, Math.min(index, q.getLength() - 1));
+  const jobs = [];
+  list.forEach(file => {
+    const lim = qiSizeLimitMB(file);
+    if (file.size > lim * 1024 * 1024) { toast(`${file.name} 超過 ${lim}MB，已略過`); return; }
+    // Quill 不接受 blob: 網址 → 先插入帶唯一標記的透明佔位圖，再直接改 DOM 換成本機預覽
+    const token = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7#qi' + Date.now() + Math.random().toString(36).slice(2);
+    q.insertEmbed(idx, 'image', token, 'user');
+    const img = Array.from(q.root.querySelectorAll('img')).find(el => el.getAttribute('src') === token);
+    if (img) {
+      img.setAttribute('data-uploading', '1');   // 先標記，避免被當成貼上的 base64 再上傳一次
+      img.setAttribute('src', URL.createObjectURL(file));
+      jobs.push(qiUploadInto(q, img, file));
+    }
+    idx++;
+  });
+  q.setSelection(idx, 0, 'silent');
+  if (jobs.length) {
+    toast(jobs.length > 1 ? `上傳 ${jobs.length} 張圖片中...` : '圖片上傳中...');
+    Promise.allSettled(jobs).then(() => { if (!qiPending) toast('✓ 圖片已上傳'); });
+  }
+}
+
+// 從網頁 / Word 貼上的 base64 圖片 → 轉檔上傳
+function qiSweepDataImages(q) {
+  q.root.querySelectorAll('img[src^="data:image"]:not([data-uploading])').forEach(img => {
+    fetch(img.getAttribute('src')).then(r => r.blob()).then(blob => {
+      const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+      qiUploadInto(q, img, new File([blob], 'pasted.' + ext, { type: blob.type }));
+    }).catch(() => {});
+    img.setAttribute('data-uploading', '1');
+  });
+}
+
+function qiPickFiles(multiple) {
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*'; input.multiple = !!multiple;
+    input.onchange = () => resolve(Array.from(input.files || []));
+    input.click();
+  });
+}
+
+// ── 圖片樣式（全部寫在 <img> 的 style / data-* 上，前台直接沿用）──
+function qiLayoutOf(img) { return img.dataset.imageLayout || detectCurrentLayout(img.getAttribute('style') || ''); }
+function qiRatioOf(img) { return detectCurrentRatio(img.getAttribute('style') || ''); }
+function qiAlignOf(img) {
+  if (img.dataset.align) return img.dataset.align;
+  const m = img.style.margin || '';
+  if (/auto.*auto/.test(m) || m === '8px auto') return 'center';
+  return 'left';
+}
+function qiWidthOf(img) {
+  const m = (img.style.maxWidth || img.style.width || '').match(/^(\d+(?:\.\d+)?)%$/);
+  return m ? Math.round(+m[1]) : 100;
+}
+function qiApplyAlign(img, align) {
+  img.dataset.align = align;
+  img.style.display = 'block';
+  img.style.verticalAlign = '';
+  img.style.margin = align === 'center' ? '8px auto' : align === 'right' ? '8px 0 8px auto' : '8px 0';
+}
+function qiApplyWidth(img, pct) {
+  pct = Math.max(10, Math.min(100, Math.round(pct)));
+  if (pct >= 100) { img.style.maxWidth = ''; img.style.width = img.style.aspectRatio ? '100%' : ''; }
+  else { img.style.maxWidth = pct + '%'; img.style.width = pct + '%'; }
+}
+function qiApplyLayout(img, layout) {
+  img.dataset.imageLayout = layout;
+  if (layout === 'half' || layout === 'third') {
+    const w = layout === 'half' ? 'calc(50% - 8px)' : 'calc(33.333% - 8px)';
+    img.style.display = 'inline-block';
+    img.style.width = w; img.style.maxWidth = w;
+    img.style.margin = '8px 6px 8px 0';
+    img.style.verticalAlign = 'top';
+  } else {
+    if ((img.style.width || '').includes('calc(')) img.style.width = img.style.aspectRatio ? '100%' : '';
+    if ((img.style.maxWidth || '').includes('calc(')) img.style.maxWidth = '';
+    qiApplyAlign(img, img.dataset.align || 'left');
+  }
+}
+function qiApplyRatio(img, ratio) {
+  if (!ratio.w) {
+    img.style.aspectRatio = ''; img.style.objectFit = ''; img.style.objectPosition = '';
+    if (img.style.width === '100%' && !img.style.maxWidth) img.style.width = '';
+  } else {
+    img.style.aspectRatio = ratio.w + '/' + ratio.h;
+    img.style.objectFit = 'cover';
+    if (qiLayoutOf(img) === 'block' && !img.style.width) img.style.width = '100%';
+  }
+}
+
+// ── 狀態 ──
+const QI = { q: null, id: null, wrap: null, img: null, bar: null, mode: null, ratioOpen: false, resizing: false };
+const QI_EDITORS = new Set();   // { q, id, wrap, box, caps }
+
+const QI_ICON = {
+  left:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="5" x2="21" y2="5"/><rect x="3" y="9" width="10" height="7" rx="1"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
+  center: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="5" x2="21" y2="5"/><rect x="7" y="9" width="10" height="7" rx="1"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
+  right:  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="5" x2="21" y2="5"/><rect x="11" y="9" width="10" height="7" rx="1"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
+  crop:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>',
+  focal:  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>',
+  replace:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+  open:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+  trash:  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+};
+
+function qiEl(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function qiBtn(html, tip, onClick, opts = {}) {
+  const b = qiEl('button', (opts.on ? 'on ' : '') + (opts.cls || ''), html);
+  b.type = 'button'; b.title = tip; b.setAttribute('aria-label', tip);
+  if (opts.disabled) b.disabled = true;
+  b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onClick(b); });
+  return b;
+}
+
+function qiEnsureBar() {
+  if (QI.bar) return;
+  QI.bar = qiEl('div', 'qi-bar');
+  QI.bar.addEventListener('mousedown', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+  document.body.appendChild(QI.bar);
+  document.addEventListener('scroll', () => { if (QI.img) qiPlaceBar(); }, true);
+  window.addEventListener('resize', qiRefreshAll);
+  // 選取圖片時：Delete / Backspace 刪除、Esc 取消、其他按鍵回到打字（焦點可能已不在編輯器上，所以掛在 document）
+  document.addEventListener('keydown', e => {
+    if (!QI.img || QI.mode || e.isComposing || e.keyCode === 229 || document.querySelector('.qi-modal')) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t.isContentEditable && !t.closest('.ql-editor')))) return;
+    if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); e.stopPropagation(); qiDelete(QI.img); }
+    else if (e.key === 'Escape') { e.preventDefault(); qiDeselect(); }
+    else if (!['Shift', 'Meta', 'Control', 'Alt', 'CapsLock'].includes(e.key)) qiDeselect();
+  }, true);
+  document.addEventListener('mousedown', e => {
+    if (!QI.img || QI.resizing) return;
+    if (QI.bar.contains(e.target) || e.target === QI.img || e.target.closest('.qi-box, .qi-modal, .qi-cap')) return;
+    qiDeselect();
+  });
+}
+
+function qiSelect(entry, img) {
+  qiEnsureBar();
+  if (typeof qxHideAll === 'function') qxHideAll();
+  QI.q = entry.q; QI.id = entry.id; QI.wrap = entry.wrap; QI.entry = entry;
+  QI.img = img; QI.mode = null; QI.ratioOpen = false;
+  qiRenderBar();
+  qiRefreshAll();
+}
+
+function qiDeselect() {
+  QI.img = null; QI.mode = null; QI.ratioOpen = false;
+  if (QI.bar) QI.bar.classList.remove('show');
+  QI_EDITORS.forEach(en => en.box.classList.remove('show'));
+}
+
+function qiChanged() {
+  // 樣式改在 DOM 上，Quill 不會記錄；更新選取框 / 說明位置即可
+  qiRefreshAll();
+  if (QI.img && !QI.mode) qiRenderBar();
+}
+
+// ── 工具列 ──
+function qiRenderBar() {
+  const img = QI.img; if (!img) return;
+  const bar = QI.bar; bar.innerHTML = '';
+  if (QI.mode === 'caption' || QI.mode === 'alt') return qiRenderInput();
+  const layout = qiLayoutOf(img), isBlock = layout === 'block';
+  const align = qiAlignOf(img), width = qiWidthOf(img), ratio = qiRatioOf(img);
+  const uploading = img.hasAttribute('data-uploading');
+  const row = qiEl('div', 'qi-row');
+  const sep = () => row.appendChild(qiEl('span', 'sep'));
+  const act = fn => () => { fn(); qiChanged(); };
+
+  [['left', '靠左'], ['center', '置中'], ['right', '靠右']].forEach(([v, tip]) =>
+    row.appendChild(qiBtn(QI_ICON[v], tip, act(() => qiApplyAlign(img, v)), { on: isBlock && align === v, disabled: !isBlock })));
+  sep();
+  [25, 50, 75, 100].forEach(p =>
+    row.appendChild(qiBtn(p + '%', '寬度 ' + p + '%（也可拖曳圖片左右把手）', act(() => qiApplyWidth(img, p)), { on: isBlock && width === p, disabled: !isBlock })));
+  sep();
+  [['block', '單張'], ['half', '½ 併排'], ['third', '⅓ 併排']].forEach(([v, label]) =>
+    row.appendChild(qiBtn(label, '排版：' + label, act(() => qiApplyLayout(img, v)), { on: layout === v })));
+  sep();
+  row.appendChild(qiBtn('比例 ' + (ratio === '原圖' ? '' : ratio) + ' ▾', '顯示比例', () => { QI.ratioOpen = !QI.ratioOpen; qiRenderBar(); qiPlaceBar(); }, { on: QI.ratioOpen || ratio !== '原圖' }));
+  row.appendChild(qiBtn(QI_ICON.focal, '焦點：設定裁切時保留的重點', () => qiOpenFocal(img), { disabled: uploading }));
+  row.appendChild(qiBtn(QI_ICON.crop, '裁切圖片', () => qiOpenCrop(img), { disabled: uploading }));
+  sep();
+  row.appendChild(qiBtn('說明', img.dataset.caption ? '編輯說明文字' : '新增說明文字', () => { QI.mode = 'caption'; qiRenderBar(); }, { on: !!img.dataset.caption }));
+  row.appendChild(qiBtn('Alt', img.getAttribute('alt') ? '編輯替代文字' : '新增替代文字（無障礙 / SEO）', () => { QI.mode = 'alt'; qiRenderBar(); }, { on: !!img.getAttribute('alt') }));
+  sep();
+  row.appendChild(qiBtn(QI_ICON.replace, '替換圖片', () => qiReplace(img), { disabled: uploading }));
+  row.appendChild(qiBtn(QI_ICON.open, '在新分頁檢視原圖', () => window.open(img.dataset.original || img.getAttribute('src'), '_blank', 'noopener'), { disabled: uploading }));
+  row.appendChild(qiBtn(QI_ICON.trash, '刪除圖片', () => qiDelete(img), { cls: 'danger' }));
+  bar.appendChild(row);
+
+  if (QI.ratioOpen) {
+    const sub = qiEl('div', 'qi-row sub');
+    sub.appendChild(qiEl('span', 'qi-label', '顯示比例'));
+    IMG_RATIOS.forEach(r => sub.appendChild(qiBtn(r.label, r.label, act(() => qiApplyRatio(img, r)), { on: ratio === r.label })));
+    if (ratio !== '原圖') sub.appendChild(qiEl('span', 'qi-label', '・裁切位置可用「焦點」調整'));
+    bar.appendChild(sub);
+  }
+  bar.classList.add('show');
+  qiPlaceBar();
+}
+
+function qiRenderInput() {
+  const img = QI.img, isCap = QI.mode === 'caption';
+  const row = qiEl('div', 'qi-row');
+  row.appendChild(qiEl('span', 'qi-label', isCap ? '說明文字' : '替代文字'));
+  const input = qiEl('input');
+  input.value = isCap ? (img.dataset.caption || '') : (img.getAttribute('alt') || '');
+  input.placeholder = isCap ? '顯示在圖片下方，例如：首頁改版前後對照' : '描述圖片內容，給螢幕閱讀器與搜尋引擎';
+  const done = (save) => {
+    if (save) {
+      const v = input.value.trim();
+      if (isCap) { if (v) img.dataset.caption = v; else delete img.dataset.caption; }
+      else { if (v) img.setAttribute('alt', v); else img.removeAttribute('alt'); }
+    }
+    QI.mode = null; qiChanged();
+  };
+  input.addEventListener('keydown', e => {
+    if (e.isComposing || e.keyCode === 229) return;
+    if (e.key === 'Enter') { e.preventDefault(); done(true); }
+    if (e.key === 'Escape') { e.preventDefault(); done(false); }
+  });
+  row.appendChild(input);
+  row.appendChild(qiBtn('套用', '套用', () => done(true)));
+  if (isCap ? img.dataset.caption : img.getAttribute('alt')) row.appendChild(qiBtn('移除', '移除', () => { input.value = ''; done(true); }, { cls: 'danger' }));
+  row.appendChild(qiBtn('取消', '取消', () => done(false)));
+  QI.bar.appendChild(row);
+  QI.bar.classList.add('show');
+  qiPlaceBar();
+  input.focus();
+  input.select();
+}
+
+function qiPlaceBar() {
+  const img = QI.img, bar = QI.bar;
+  if (!img || !bar || !img.isConnected) return;
+  const r = img.getBoundingClientRect();
+  const tb = QI.wrap && QI.wrap.querySelector('.ql-toolbar');
+  const minTop = tb ? Math.max(8, tb.getBoundingClientRect().bottom + 6) : 8;
+  const h = bar.offsetHeight, w = bar.offsetWidth;
+  let top = r.top - h - 10;
+  if (top < minTop) top = r.bottom + 10;                                   // 上方被擋 → 放下方
+  if (top + h > window.innerHeight - 8) top = Math.max(minTop, Math.min(r.top + 10, window.innerHeight - h - 8)); // 圖太高 → 貼在可視範圍內
+  let left = r.left + r.width / 2 - w / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+  bar.style.top = top + 'px'; bar.style.left = left + 'px';
+}
+
+// ── 選取框、拖曳縮放、說明文字 ──
+function qiRefreshAll() {
+  QI_EDITORS.forEach(en => {
+    if (!en.wrap.isConnected) { QI_EDITORS.delete(en); return; }
+    qiLayoutEditor(en);
+  });
+  if (QI.img && !QI.img.isConnected) qiDeselect();
+  if (QI.img) qiPlaceBar();
+}
+
+function qiRectIn(wrap, el) {
+  const w = wrap.getBoundingClientRect(), r = el.getBoundingClientRect();
+  return { left: r.left - w.left, top: r.top - w.top, width: r.width, height: r.height };
+}
+
+function qiLayoutEditor(en) {
+  // 選取框
+  if (QI.img && QI.entry === en && QI.img.isConnected) {
+    const r = qiRectIn(en.wrap, QI.img);
+    Object.assign(en.box.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
+    en.box.classList.add('show');
+    en.box.classList.toggle('no-resize', qiLayoutOf(QI.img) !== 'block');
+  } else en.box.classList.remove('show');
+  // 說明文字
+  en.caps.innerHTML = '';
+  en.q.root.querySelectorAll('img[data-caption]').forEach(img => {
+    const r = qiRectIn(en.wrap, img);
+    const cap = qiEl('div', 'qi-cap');
+    cap.textContent = img.dataset.caption;
+    Object.assign(cap.style, { left: r.left + 'px', top: (r.top + r.height + 8) + 'px', width: r.width + 'px' });
+    cap.title = '點擊編輯說明文字';
+    cap.addEventListener('mousedown', e => e.preventDefault());
+    cap.addEventListener('click', () => { qiSelect(en, img); QI.mode = 'caption'; qiRenderBar(); });
+    en.caps.appendChild(cap);
+  });
+}
+
+function qiStartResize(e, side) {
+  const img = QI.img, en = QI.entry;
+  if (!img || qiLayoutOf(img) !== 'block') return;
+  e.preventDefault(); e.stopPropagation();
+  const root = en.q.root;
+  const cs = getComputedStyle(root);
+  const avail = root.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const startX = e.clientX, startW = img.getBoundingClientRect().width;
+  const factor = qiAlignOf(img) === 'center' ? 2 : 1;
+  const tag = en.box.querySelector('.qi-size-tag');
+  QI.resizing = true; en.box.classList.add('resizing');
+  QI.bar.classList.remove('show');
+  const move = ev => {
+    const dx = (ev.clientX - startX) * (side === 'r' ? 1 : -1) * factor;
+    const pct = Math.max(10, Math.min(100, (startW + dx) / avail * 100));
+    qiApplyWidth(img, pct);
+    tag.textContent = Math.round(pct) + '%';
+    qiLayoutEditor(en);
+  };
+  const up = () => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    QI.resizing = false; en.box.classList.remove('resizing');
+    qiChanged();
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+}
+
+// ── 替換 / 刪除 ──
+async function qiReplace(img) {
+  const [file] = await qiPickFiles(false);
+  if (!file) return;
+  const lim = qiSizeLimitMB(file);
+  if (file.size > lim * 1024 * 1024) { toast(`圖片超過 ${lim}MB 上限`); return; }
+  const prev = img.getAttribute('src'), prevOriginal = img.dataset.original;
+  img.setAttribute('src', URL.createObjectURL(file));
+  delete img.dataset.original;
+  img.style.objectPosition = '';
+  toast('圖片上傳中...');
+  qiUploadInto(QI.q, img, file, { restoreSrc: prev, restoreOriginal: prevOriginal }).then(() => {
+    if (img.isConnected && img.getAttribute('src') !== prev) toast('✓ 圖片已替換');
+  });
+  qiChanged();
+}
+
+function qiDelete(img) {
+  const q = QI.q;
+  const i = qiIndexOf(q, img);
+  qiDeselect();
+  if (i >= 0) q.deleteText(i, 1, 'user'); else img.remove();
+  toast('已刪除圖片');
+}
+
+// ── 掛載到編輯器 ──
+function qiEnhance(q, id, wrap) {
+  qiEnsureBar();
+  const box = qiEl('div', 'qi-box', '<div class="qi-handle l"></div><div class="qi-handle r"></div><span class="qi-size-tag"></span>');
+  const caps = qiEl('div', 'qi-caps');
+  wrap.appendChild(caps);
+  wrap.appendChild(box);
+  const en = { q, id, wrap, box, caps };
+  QI_EDITORS.add(en);
+  box.querySelector('.qi-handle.l').addEventListener('pointerdown', e => qiStartResize(e, 'l'));
+  box.querySelector('.qi-handle.r').addEventListener('pointerdown', e => qiStartResize(e, 'r'));
+
+  q.root.addEventListener('click', e => {
+    if (e.target.tagName === 'IMG') qiSelect(en, e.target);
+    else if (QI.img && QI.entry === en) qiDeselect();
+  });
+  // 圖片載入完成 → 重新計算位置
+  q.root.addEventListener('load', () => qiRefreshAll(), true);
+
+  let raf = 0;
+  q.on('text-change', (delta, old, source) => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      if (source === 'user') qiSweepDataImages(q);
+      qiRefreshAll();
+    });
+  });
+
+  // 選取圖片時：Delete / Backspace 刪除、Esc 取消、其他按鍵回到打字
+
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => qiRefreshAll()).observe(q.root);
+}
+
+// ── 共用 Modal ──
+function qiModal(title, hint) {
+  const overlay = qiEl('div', 'qi-modal');
+  const card = qiEl('div', 'qi-modal-card');
+  const head = qiEl('div', 'qi-modal-head');
+  const t = qiEl('div'); t.appendChild(qiEl('div', 'qi-modal-title')).textContent = title;
+  if (hint) t.appendChild(qiEl('div', 'qi-modal-hint')).textContent = hint;
+  const x = qiEl('button', 'btn btn-secondary btn-sm', '✕'); x.type = 'button';
+  head.appendChild(t); head.appendChild(x);
+  const body = qiEl('div', 'qi-modal-body');
+  const foot = qiEl('div', 'qi-modal-foot');
+  card.appendChild(head); card.appendChild(body); card.appendChild(foot);
+  overlay.appendChild(card);
+  const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey, true); m.onClose && m.onClose(); };
+  const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  x.onclick = close;
+  overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
+  document.body.appendChild(overlay);
+  const m = { overlay, body, foot, close, onClose: null };
+  return m;
+}
+function qiFootBtn(m, label, cls, fn) {
+  const b = qiEl('button', 'btn btn-sm ' + cls, label); b.type = 'button'; b.onclick = fn; m.foot.appendChild(b); return b;
+}
+
+// ── 4. 焦點 ──
+function qiOpenFocal(img) {
+  const ratio = qiRatioOf(img);
+  const m = qiModal('設定焦點', '在左邊圖片上點選或拖曳，裁切成固定比例時會以這個點為中心');
+  const stage = qiEl('div', 'qi-focal-stage');
+  const full = qiEl('img'); full.src = img.getAttribute('src'); full.draggable = false;
+  const dot = qiEl('div', 'qi-focal-dot');
+  stage.appendChild(full); stage.appendChild(dot);
+  m.body.appendChild(stage);
+
+  const side = qiEl('div', 'qi-focal-preview');
+  side.appendChild(qiEl('div', 'qi-modal-hint')).textContent = '預覽';
+  const chips = qiEl('div'); chips.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
+  const prev = qiEl('img'); prev.src = full.src;
+  side.appendChild(chips); side.appendChild(prev);
+  m.body.appendChild(side);
+
+  const parse = (img.style.objectPosition || '50% 50%').match(/([\d.]+)%\s+([\d.]+)%/);
+  let fx = parse ? +parse[1] : 50, fy = parse ? +parse[2] : 50;
+  let previewRatio = ratio !== '原圖' ? ratio : '1:1';
+  const draw = () => {
+    dot.style.left = fx + '%'; dot.style.top = fy + '%';
+    prev.style.objectPosition = `${fx}% ${fy}%`;
+    const r = IMG_RATIOS.find(x => x.label === previewRatio);
+    prev.style.aspectRatio = r.w + '/' + r.h;
+  };
+  IMG_RATIOS.filter(r => r.w).forEach(r => {
+    const c = qiEl('button', 'qi-chip' + (r.label === previewRatio ? ' on' : ''), r.label); c.type = 'button';
+    c.onclick = () => { previewRatio = r.label; chips.querySelectorAll('.qi-chip').forEach(b => b.classList.toggle('on', b === c)); draw(); };
+    chips.appendChild(c);
+  });
+  const setFrom = e => {
+    const r = full.getBoundingClientRect();
+    fx = Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * 100);
+    fy = Math.round(Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) * 100);
+    draw();
+  };
+  stage.addEventListener('pointerdown', e => {
+    e.preventDefault(); setFrom(e);
+    const mv = ev => setFrom(ev);
+    const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+  });
+  draw();
+
+  if (ratio === '原圖') m.foot.appendChild(qiEl('span', 'qi-modal-hint', '目前是原圖比例，焦點會在選擇固定比例後生效。'));
+  m.foot.appendChild(qiEl('span', 'spacer'));
+  qiFootBtn(m, '重設為置中', 'btn-secondary', () => { fx = 50; fy = 50; draw(); });
+  qiFootBtn(m, '取消', 'btn-secondary', m.close);
+  qiFootBtn(m, '套用', 'btn-primary', () => {
+    img.style.objectPosition = (fx === 50 && fy === 50) ? '' : `${fx}% ${fy}%`;
+    m.close(); qiChanged(); toast('✓ 已設定焦點');
+  });
+}
+
+// ── 5. 裁切（Cropper.js，用到時才載入）──
+let _qiCropperLoading = null;
+function qiLoadCropper() {
+  if (window.Cropper) return Promise.resolve();
+  if (_qiCropperLoading) return _qiCropperLoading;
+  _qiCropperLoading = new Promise((resolve, reject) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = 'https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css';
+    document.head.appendChild(css);
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js';
+    s.onload = () => resolve(); s.onerror = () => { _qiCropperLoading = null; reject(new Error('裁切工具載入失敗')); };
+    document.head.appendChild(s);
+  });
+  return _qiCropperLoading;
+}
+
+async function qiOpenCrop(img) {
+  const srcUrl = img.dataset.original || img.getAttribute('src');
+  if (/\.gif(\?|$)/i.test(srcUrl)) { toast('GIF 動圖裁切後會失去動畫，請先在其他工具處理'); return; }
+  toast('載入裁切工具...');
+  let blobUrl, blobType;
+  try {
+    await qiLoadCropper();
+    const res = await fetch(srcUrl, { mode: 'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    blobType = blob.type; blobUrl = URL.createObjectURL(blob);
+  } catch (e) { toast('無法開啟裁切：' + (e.message || e), 4000); return; }
+
+  const m = qiModal('裁切圖片', '拖曳框線調整範圍；裁切後會另存新檔，原圖保留，可隨時還原');
+  const stage = qiEl('div', 'qi-crop-stage');
+  const cimg = qiEl('img'); cimg.src = blobUrl;
+  stage.appendChild(cimg); m.body.appendChild(stage);
+  let cropper = null;
+  m.onClose = () => { if (cropper) cropper.destroy(); URL.revokeObjectURL(blobUrl); };
+
+  const ratios = [{ label: '自由', v: NaN }, { label: '1:1', v: 1 }, { label: '16:9', v: 16 / 9 }, { label: '4:3', v: 4 / 3 }, { label: '3:4', v: 3 / 4 }];
+  ratios.forEach((r, i) => {
+    const c = qiEl('button', 'qi-chip' + (i === 0 ? ' on' : ''), r.label); c.type = 'button';
+    c.onclick = () => { cropper && cropper.setAspectRatio(r.v); m.foot.querySelectorAll('.qi-chip').forEach(b => b.classList.toggle('on', b === c)); };
+    m.foot.appendChild(c);
+  });
+  m.foot.appendChild(qiEl('span', 'spacer'));
+  if (img.dataset.original) {
+    qiFootBtn(m, '還原原圖', 'btn-secondary', () => {
+      img.setAttribute('src', img.dataset.original); delete img.dataset.original;
+      m.close(); qiChanged(); toast('✓ 已還原原圖');
+    });
+  }
+  qiFootBtn(m, '取消', 'btn-secondary', m.close);
+  const apply = qiFootBtn(m, '套用裁切', 'btn-primary', async () => {
+    if (!cropper) return;
+    apply.disabled = true; apply.textContent = '上傳中...';
+    try {
+      const canvas = cropper.getCroppedCanvas({ maxWidth: QI_MAX_SIDE, maxHeight: QI_MAX_SIDE, imageSmoothingQuality: 'high' });
+      const keepAlpha = /png|webp/.test(blobType);
+      const outType = keepAlpha ? 'image/webp' : 'image/jpeg';
+      const blob = await new Promise(r => canvas.toBlob(r, outType, 0.9));
+      const url = await qiUploadBlob(blob, keepAlpha ? 'crop.webp' : 'crop.jpg');
+      if (!img.dataset.original) img.dataset.original = img.getAttribute('src');
+      img.setAttribute('src', url);
+      // 已經真的裁過 → 取消顯示比例與焦點，避免二次裁切
+      img.style.aspectRatio = ''; img.style.objectFit = ''; img.style.objectPosition = '';
+      if (img.style.width === '100%' && !img.style.maxWidth) img.style.width = '';
+      m.close(); qiChanged(); toast('✓ 已裁切');
+    } catch (e) {
+      apply.disabled = false; apply.textContent = '套用裁切';
+      toast('裁切失敗：' + (e.message || e), 4000);
+    }
+  });
+  cimg.onload = () => {
+    cropper = new Cropper(cimg, { viewMode: 1, autoCropArea: 1, background: false, responsive: true, checkCrossOrigin: false });
+  };
+}
+
 function makeQuill(id, placeholder, richMode) {
   if (quillInstances[id]) {
     try {
@@ -2257,6 +2980,7 @@ function makeQuill(id, placeholder, richMode) {
   if (!container) return null;
   container.innerHTML = '';
   qxHideAll();
+  qiDeselect();
 
   // 建立 wrapper
   const wrap = document.createElement('div');
@@ -2288,28 +3012,24 @@ function makeQuill(id, placeholder, richMode) {
     modules: {
       toolbar: { container: toolbarOptions },
       table: richMode,  // Quill 2 內建 table module
-      keyboard: { bindings: QX_MD_BINDINGS }
+      keyboard: { bindings: QX_MD_BINDINGS },
+      // 貼上 / 拖入圖片：上傳到 Storage，不再以 base64 存進內容
+      uploader: {
+        mimetypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'],
+        handler(range, files) {
+          if (!richMode) { toast('此欄位不支援圖片'); return; }
+          qiInsertFiles(this.quill, range ? range.index : this.quill.getLength() - 1, files);
+        }
+      }
     }
   });
 
   // 圖片上傳 handler
   if (richMode) {
-    q.getModule('toolbar').addHandler('image', () => {
-      const input = document.createElement('input');
-      input.type = 'file'; input.accept = 'image/*';
-      input.onchange = async () => {
-        const file = input.files[0]; if (!file) return;
-        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB 上限'); return; } }
-        toast('圖片上傳中...');
-        try {
-          const url = await uploadImage(file);
-          const range = q.getSelection(true) || { index: q.getLength() - 1 };
-          q.insertEmbed(range.index, 'image', url, 'user');
-          q.setSelection(range.index + 1);
-          toast('✓ 圖片已插入');
-        } catch(e) { toast('圖片上傳失敗：' + e.message); }
-      };
-      input.click();
+    q.getModule('toolbar').addHandler('image', async () => {
+      const range = q.getSelection(true) || { index: q.getLength() - 1 };
+      const files = await qiPickFiles(true);
+      if (files.length) qiInsertFiles(q, range.index, files);
     });
 
     // 影片 & 表格自訂按鈕（在 toolbar DOM ready 後附加）
@@ -2341,11 +3061,8 @@ function makeQuill(id, placeholder, richMode) {
       attachQuillTooltips(id);
     }, 0);
 
-    // 點擊圖片 → 比例/縮放浮層
-    q.root.addEventListener('click', (e) => {
-      if (e.target.tagName !== 'IMG') { closeImgRatioPopover(); return; }
-      openImgRatioPopover(e.target, null);
-    });
+    // 點擊圖片 → 圖片工具列（取代舊的比例/縮放浮層）
+    qiEnhance(q, id, wrap);
   }
 
   quillInstances[id] = q;
@@ -2411,7 +3128,12 @@ function attachQuillTooltips(id) {
 // 取得編輯器 HTML 內容
 function getEditorHTML(id) {
   const q = quillInstances[id];
-  return q ? q.root.innerHTML : '';
+  if (!q) return '';
+  if (q.root.querySelector('img[data-uploading]')) {
+    toast('還有圖片正在上傳，請等上傳完成再儲存', 4000);
+    throw new Error('圖片仍在上傳中，請稍候再儲存');
+  }
+  return q.root.innerHTML;
 }
 
 // 設定編輯器 HTML 內容
@@ -2709,7 +3431,9 @@ function positionImgRatioPopover(imgEl) {
 }
 
 function detectCurrentRatio(style) {
-  if (!style || !style.includes('aspect-ratio')) return '原圖';
+  // 瀏覽器會把 aspect-ratio 寫成「1 / 1」（含空格），先去掉空白再比對
+  style = (style || '').replace(/\s+/g, '');
+  if (!style.includes('aspect-ratio')) return '原圖';
   if (style.includes('1/1'))  return '1:1';
   if (style.includes('16/9')) return '16:9';
   if (style.includes('4/3'))  return '4:3';
