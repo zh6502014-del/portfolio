@@ -437,6 +437,7 @@
     white-space: nowrap;
   }
   .section-hidden { display: none !important; }
+  .modal-body hr { border: 0; border-top: 1px solid var(--border); margin: 28px 0; }
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--text); font-weight: 500; }
 
@@ -695,10 +696,58 @@
 
   .modal-overlay { position:fixed; inset:0; z-index:200; background:var(--overlay-bg); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; backdrop-filter:blur(6px) saturate(140%); -webkit-backdrop-filter:blur(6px) saturate(140%); }
   .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
+  .modal { position:relative; --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
   .modal-overlay.open .modal { transform:translateY(0); }
+
+  /* ── 彈窗滿版 + 左側目錄（scroll-spy） ── */
+  .modal-header-actions { display:flex; align-items:flex-start; gap:8px; flex-shrink:0; }
+  .modal-fs { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
+  .modal-fs svg { display:block; width:16px; height:16px; }
+  .modal-fs:hover { transform:scale(1.08); }
+  .modal.fullscreen { max-width:100%; width:100%; height:100%; max-height:100%; border-radius:0; border:none; transform:none !important; }
+  .modal.fullscreen .modal-header { border-radius:0; }
+  .modal-toc { display:none; }
+  @media (min-width:1024px) {
+    /* 內容置中於整個視窗 */
+    .modal.fullscreen .modal-body { padding:48px 24px 96px; }
+    .modal.fullscreen .modal-body > * { max-width:760px; margin-left:auto; margin-right:auto; }
+  }
+  @media (min-width:1280px) {
+    /* 目錄貼齊置中內容欄的左側、保持固定間距，避免與內容重疊 */
+    .modal.fullscreen .modal-toc:not([hidden]) {
+      display:block; position:absolute; right:calc(50vw - 612px); top:88px; width:200px;
+      max-height:calc(100% - 128px); overflow-y:auto; z-index:20; padding:14px 12px;
+      background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-lg);
+      backdrop-filter:blur(20px) saturate(var(--lg-sat)); -webkit-backdrop-filter:blur(20px) saturate(var(--lg-sat));
+      box-shadow:0 4px 24px var(--glass-shadow);
+    }
+    .modal-toc-head { padding:2px 6px 10px; color:var(--text); }
+    .modal-toc-title { font-size:15px; font-weight:600; }
+    .modal-toc-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+    .modal-toc-list a { display:block; font-size:13.5px; line-height:1.5; color:var(--text-tertiary); text-decoration:none; padding:5px 8px; border-radius:var(--radius-sm); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .15s; cursor:pointer; }
+    .modal-toc-list a:hover { color:var(--text); }
+    .modal-toc-list a.active { color:var(--text); font-weight:600; }
+  }
+
   .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; overflow:visible; }
   .modal-header-left { flex:1; min-width:0; overflow:visible; }
+  /* 彈窗 tag 群組統一規則：桌機換行；小網單行、超出水平捲動 */
+  .chip-row { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
+  @media (max-width:720px) {
+    .chip-row {
+      flex-wrap:nowrap; min-width:0; max-width:none;
+      width:calc(100vw - 2px);
+      /* 上右下左：左/上/下保留陰影緩衝；右側為 0 讓 chips 貼齊螢幕邊緣 */
+      margin:-10px 0 -22px -16px;
+      padding:10px 0 22px 16px;
+      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .chip-row::-webkit-scrollbar { display:none; }
+    .chip-row > * { flex-shrink:0; }
+    /* 結尾緩衝：滑到底時最後一個 chip 離邊緣 16px（平常不影響右側貼齊） */
+    .chip-row::after { content:''; flex:0 0 16px; align-self:stretch; }
+  }
   .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
   .modal-close:hover { transform:scale(1.08); }
   .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
@@ -739,6 +788,9 @@
   .modal-desc ol, .modal-desc ul,
   .note-content ol, .note-content ul { padding-left:1.5em; margin:0.5em 0; }
   .modal-desc li, .note-content li { margin:0.25em 0; }
+  .modal-desc ul, .note-content ul { list-style:disc; }
+  .modal-desc ol, .note-content ol { list-style:decimal; }
+  .modal-desc li > ul, .note-content li > ul { list-style:circle; }
   .modal-desc blockquote, .note-content blockquote {
     border-left:3px solid var(--border-strong); margin:0.75em 0;
     padding:4px 12px; color:var(--text-secondary);
@@ -1085,10 +1137,17 @@
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-  <div class="modal">
+  <div class="modal" id="modal-box">
+    <nav class="modal-toc" id="modal-toc" aria-label="文章目錄" hidden>
+      <div class="modal-toc-head"><span class="modal-toc-title">文章目錄</span></div>
+      <ul class="modal-toc-list" id="modal-toc-list"></ul>
+    </nav>
     <div class="modal-header" id="modal-header">
       <div class="modal-header-left" id="modal-header-content"></div>
-      <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
+      <div class="modal-header-actions">
+        <button class="modal-fs glass-el" id="modal-fs-btn" onclick="toggleModalFullscreen()" aria-label="放大為滿版" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
+      </div>
     </div>
     <div class="modal-body" id="modal-content"></div>
   </div>
@@ -1169,6 +1228,45 @@ function applySectionVisibility(rows) {
   updateNav();
 }
 
+
+// ── Quill 2 清單 → 標準 HTML ──
+// Quill 2 把編號與點點清單都存成 <ol><li data-list="...">，縮排用 ql-indent-N；
+// 這裡轉成正確的 <ol>/<ul> 巢狀結構，並移除編輯器用的 .ql-ui 標記
+function fixRichLists(html) {
+  if (!html || html.indexOf('data-list') === -1) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  root.querySelectorAll('span.ql-ui').forEach(s => s.remove());
+  root.querySelectorAll('ol').forEach(ol => {
+    const lis = Array.from(ol.children).filter(li => li.tagName === 'LI');
+    if (!lis.some(li => li.hasAttribute('data-list'))) return;
+    const frag = document.createDocumentFragment();
+    const stack = [];
+    lis.forEach(li => {
+      const type = li.getAttribute('data-list') === 'ordered' ? 'OL' : 'UL';
+      const m = (li.className || '').match(/ql-indent-(\d+)/);
+      const indent = m ? +m[1] : 0;
+      li.removeAttribute('data-list');
+      li.className = (li.className || '').replace(/\bql-indent-\d+\b/g, '').trim();
+      if (!li.className) li.removeAttribute('class');
+      while (stack.length) {
+        const top = stack[stack.length - 1];
+        if (top.indent > indent || (top.indent === indent && top.type !== type)) stack.pop(); else break;
+      }
+      let top = stack[stack.length - 1];
+      if (!top || top.indent < indent) {
+        const list = document.createElement(type);
+        if (top) (top.el.lastElementChild || top.el).appendChild(list); else frag.appendChild(list);
+        top = { el: list, type, indent };
+        stack.push(top);
+      }
+      top.el.appendChild(li);
+    });
+    ol.replaceWith(frag);
+  });
+  return root.innerHTML;
+}
+
 // ── renderNav ──
 function renderNav(items) {
   const navEl = document.getElementById('nav-links');
@@ -1229,7 +1327,7 @@ function renderProfile(p) {
         .join('');
       descEl.textContent = text;
     } else {
-      descEl.innerHTML = p.description || '';
+      descEl.innerHTML = fixRichLists(p.description || '');
       bindContentLightbox(descEl);
     }
   }
@@ -1332,14 +1430,14 @@ function openNote(id) {
   const n = allNotes.find(x => x.id === id);
   if (!n) return;
   const contentHtml = n.content
-    ? `<div class="note-content">${n.content}</div>`
+    ? `<div class="note-content">${fixRichLists(n.content)}</div>`
     : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
   document.getElementById('modal-header-content').innerHTML =
     '<h2 class="modal-title">' + n.title + '</h2>' +
     '<div class="modal-collapsible" id="modal-collapsible">' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
       (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
-      (n.note_type ? '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+      (n.note_type ? '<div class="chip-row">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
     '</div>' +
     '</div>';
   document.getElementById('modal-content').innerHTML = contentHtml;
@@ -1364,8 +1462,8 @@ function openModal(id) {
     '<div class="modal-collapsible" id="modal-collapsible">' +
     '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
       (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
-      (membersHtml ? '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + membersHtml + '</div>' : '') +
-      '<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">' + tagsHtml + '</div>' +
+      (membersHtml ? '<div class="chip-row">' + membersHtml + '</div>' : '') +
+      '<div class="chip-row">' + tagsHtml + '</div>' +
     '</div>';
 
   // Body: cover → description → sections → rest images
@@ -1408,7 +1506,7 @@ function openModal(id) {
     const desc = document.createElement('div');
     desc.className = 'modal-desc';
     desc.style.marginTop = '20px';
-    desc.innerHTML = p.content;
+    desc.innerHTML = fixRichLists(p.content);
     bindContentLightbox(desc);
     body.appendChild(desc);
   }
@@ -1435,6 +1533,7 @@ function openModal(id) {
             collapsible.classList.remove('collapsed');
           }
         }
+        updateTocActive();
         ticking = false;
       });
       ticking = true;
@@ -1457,7 +1556,111 @@ function bindContentLightbox(container) {
   });
 }
 
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+// ── 滿版彈窗 + 左側目錄（scroll-spy） ──
+let tocItems = [];  // [{el, link}]
+const FS_ICON_EXPAND = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+const FS_ICON_RESTORE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
+
+function isTocViewport() { return window.matchMedia('(min-width:1280px)').matches; }
+
+function toggleModalFullscreen() {
+  const box = document.getElementById('modal-box');
+  const btn = document.getElementById('modal-fs-btn');
+  const on = box.classList.toggle('fullscreen');
+  btn.innerHTML = on ? FS_ICON_RESTORE : FS_ICON_EXPAND;
+  btn.setAttribute('aria-label', on ? '還原視窗' : '放大為滿版');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (on) { buildModalToc(); }
+  else { hideModalToc(); }
+}
+
+function hideModalToc() {
+  const toc = document.getElementById('modal-toc');
+  toc.hidden = true;
+  toc.classList.remove('collapsed');
+  document.getElementById('modal-toc-list').innerHTML = '';
+  tocItems = [];
+}
+
+function buildModalToc() {
+  const toc = document.getElementById('modal-toc');
+  const list = document.getElementById('modal-toc-list');
+  const body = document.getElementById('modal-content');
+  list.innerHTML = '';
+  tocItems = [];
+
+  // 只在桌機顯示；非桌機就算滿版也不建目錄
+  if (!isTocViewport()) { toc.hidden = true; return; }
+
+  // 從富文字容器抓標題（專案 .modal-desc／隨筆 .note-content）
+  const scope = body.querySelector('.modal-desc, .note-content') || body;
+  const heads = Array.from(scope.querySelectorAll('h1, h2, h3'))
+    .filter(h => h.textContent.trim());
+
+  if (!heads.length) { hideModalToc(); return; }
+
+  heads.forEach((h, i) => {
+    if (!h.id) h.id = 'toc-h-' + i;
+    const lvl = Number(h.tagName.slice(1));
+    const a = document.createElement('a');
+    a.className = 'lvl-' + lvl;
+    a.textContent = h.textContent.trim();
+    a.title = a.textContent;
+    a.href = '#' + h.id;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const top = headTopInBody(h, body) - 20;
+      body.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+    list.appendChild(a);
+    tocItems.push({ el: h, link: a });
+  });
+
+  toc.hidden = false;
+  // 目錄頂端對齊內容（封面）頂端：header 高度 + body 上內距
+  const headerH = (document.getElementById('modal-header').offsetHeight) || 80;
+  const bodyPadTop = parseFloat(getComputedStyle(body).paddingTop) || 48;
+  const topPx = headerH + bodyPadTop;
+  toc.style.top = topPx + 'px';
+  toc.style.maxHeight = 'calc(100% - ' + (topPx + 40) + 'px)';
+  updateTocActive();
+}
+
+function headTopInBody(h, body) {
+  return h.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+}
+
+function updateTocActive() {
+  if (!tocItems.length) return;
+  const body = document.getElementById('modal-content');
+  const pos = body.scrollTop + 28;  // 目前視窗頂部對應的內容位置
+  let activeIdx = 0;
+  for (let i = 0; i < tocItems.length; i++) {
+    if (headTopInBody(tocItems[i].el, body) <= pos) activeIdx = i; else break;
+  }
+  tocItems.forEach((it, i) => it.link.classList.toggle('active', i === activeIdx));
+}
+
+window.addEventListener('resize', () => {
+  const box = document.getElementById('modal-box');
+  if (box && box.classList.contains('fullscreen')) buildModalToc();
+});
+
+function closeModal() {
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  // 還原滿版與目錄狀態
+  const box = document.getElementById('modal-box');
+  if (box.classList.contains('fullscreen')) {
+    box.classList.remove('fullscreen');
+    const btn = document.getElementById('modal-fs-btn');
+    btn.innerHTML = FS_ICON_EXPAND;
+    btn.setAttribute('aria-label', '放大為滿版');
+    btn.setAttribute('aria-pressed', 'false');
+  }
+  hideModalToc();
+}
 function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 

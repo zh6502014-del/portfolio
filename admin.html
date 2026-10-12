@@ -256,6 +256,8 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 /* ── Quill 2 override ── */
 .ql-container { font-family: 'Noto Sans TC', sans-serif; font-size: 14px; border-radius: 0 0 var(--radius-md) var(--radius-md) !important; border-color: var(--border) !important; }
 .ql-toolbar { border-radius: var(--radius-md) var(--radius-md) 0 0 !important; border-color: var(--border) !important; background: var(--bg-secondary); flex-wrap: wrap; }
+/* 工具列捲動時黏在畫面頂端 */
+.ql-toolbar.ql-snow { position: sticky; top: 0; z-index: 30; }
 .ql-editor { min-height: 280px; color: var(--text); line-height: 1.8; }
 .ql-editor.ql-blank::before { color: var(--text-tertiary); font-style: normal; }
 .ql-editor h1 { font-size: 22px; font-weight: 600; margin: 16px 0 8px; }
@@ -290,7 +292,7 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ql-toolbar .ql-picker { position: relative; }
 .ql-tooltip-tip {
   position: absolute;
-  bottom: calc(100% + 7px);
+  top: calc(100% + 7px);
   left: 50%;
   transform: translateX(-50%);
   background: var(--text);
@@ -308,14 +310,69 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .ql-tooltip-tip::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 4px solid transparent;
-  border-top-color: var(--text);
+  border-bottom-color: var(--text);
 }
 .ql-toolbar button:hover > .ql-tooltip-tip,
 .ql-toolbar .ql-picker:hover > .ql-tooltip-tip { opacity: 1; }
+
+/* ── Notion 式編輯增強：浮動工具列 / 斜線選單 / ＋按鈕 ── */
+.ql-editor hr { border: 0; border-top: 1px solid var(--border-strong); margin: 20px 0; }
+.qx-wrap { position: relative; }
+.qx-plus {
+  position: absolute; left: -28px; width: 22px; height: 22px; z-index: 5;
+  display: none; align-items: center; justify-content: center;
+  border: none; border-radius: var(--radius-sm); background: none;
+  color: var(--text-tertiary); font-size: 17px; line-height: 1; cursor: pointer; padding: 0;
+  transition: background .1s, color .1s;
+}
+.qx-plus.show { display: inline-flex; }
+.qx-plus:hover { background: var(--bg-tertiary); color: var(--text); }
+.qx-hint {
+  position: absolute; z-index: 1; display: none; pointer-events: none; white-space: nowrap;
+  font-size: 14px; line-height: 1.8; color: var(--text-tertiary);
+}
+.qx-hint.show { display: block; }
+.qx-bubble, .qx-slash {
+  position: fixed; z-index: 10001; display: none;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0,0,0,.16), 0 1px 3px rgba(0,0,0,.08);
+  font-family: 'Noto Sans TC', system-ui, sans-serif;
+}
+.qx-bubble { padding: 4px; gap: 2px; align-items: center; }
+.qx-bubble.show { display: flex; }
+.qx-bubble button {
+  min-width: 28px; height: 28px; padding: 0 6px; border: none; border-radius: var(--radius-sm);
+  background: none; color: var(--text-secondary); font-size: 13px; font-family: inherit;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.qx-bubble button:hover { background: var(--bg-tertiary); color: var(--text); }
+.qx-bubble button.on { color: var(--text); background: var(--bg-tertiary); }
+.qx-bubble .sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
+.qx-bubble input {
+  width: 240px; height: 28px; border: none; outline: none; background: none;
+  color: var(--text); font-size: 13px; font-family: inherit; padding: 0 8px;
+}
+.qx-slash { width: 248px; max-height: 320px; overflow-y: auto; padding: 6px; }
+.qx-slash.show { display: block; }
+.qx-slash-group { font-size: 11px; color: var(--text-tertiary); padding: 6px 8px 4px; letter-spacing: .04em; }
+.qx-slash-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px;
+  border: none; background: none; border-radius: var(--radius-sm); cursor: pointer;
+  color: var(--text); font-size: 13px; font-family: inherit; text-align: left;
+}
+.qx-slash-item.active { background: var(--bg-tertiary); }
+.qx-slash-icon {
+  width: 30px; height: 30px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--bg);
+}
+.qx-slash-desc { display: block; font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+.qx-slash-empty { padding: 10px 8px; font-size: 13px; color: var(--text-tertiary); }
 /* ── 插入表格 Modal ── */
 .ins-table-modal {
   position: fixed; inset: 0; z-index: 9999;
@@ -742,7 +799,7 @@ CREATE POLICY "auth write" ON section_settings FOR ALL USING (auth.role() = 'aut
       </div>
       <div class="nav-section">
         <div class="nav-section-label">內容管理</div>
-        <div class="nav-section-hint">右側開關：關閉後，前台會隱藏該區塊</div>
+        <div class="nav-section-hint">開關控制前台是否顯示</div>
         <div class="nav-row" data-section="profile">
           <button class="nav-item active" onclick="showPage('profile',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1444,7 +1501,7 @@ function parseImgArr(val) {
 // ── Image processing: crop to 16:9 + compress ──
 async function processImage(file) {
   // GIF 動畫無法用 canvas 處理（toBlob 只輸出單一影格、JPEG 也不支援動畫），原檔上傳以保留動畫
-  if (file.type === 'image/gif') return file;
+  if (file.type === 'image/gif' || /\.gif$/i.test(file.name)) return file;
   return new Promise((resolve) => {
     const img = new Image();
     const reader = new FileReader();
@@ -1508,7 +1565,8 @@ async function uploadImage(file, bucket = 'portfolio-images') {
   // Process image before upload (crop 16:9 + compress；GIF 維持原檔)
   const processed = await processImage(file);
   const ext = ((processed.name.match(/\.([^.]+)$/) || [, 'jpg'])[1]).toLowerCase();
-  const contentType = processed.type || 'image/jpeg';
+  const MIME = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' };
+  const contentType = processed.type || MIME[ext] || 'image/jpeg';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase_client.storage.from(bucket).upload(path, processed, { contentType });
   if (error) throw error;
@@ -1540,7 +1598,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
     bar.id = containerId + '-bar';
     bar.innerHTML = '<div class="fill" id="' + containerId + '-fill"></div>';
 
-    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP、GIF，單檔上限 5MB</div>';
+    uploadArea.innerHTML = '<div class="img-upload-icon">📁</div><div class="img-upload-text">點擊或拖拉上傳圖片</div><div class="img-upload-hint">支援 JPG、PNG、WebP（上限 5MB）、GIF（上限 15MB，保留動畫）</div>';
     uploadArea.appendChild(fileInput);
     container.appendChild(uploadArea);
     container.appendChild(bar);
@@ -1553,7 +1611,7 @@ function makeImageUploader(containerId, existingUrls = [], onChangeCallback) {
       for (let i = 0; i < files.length; i++) {
         if (fillEl) fillEl.style.width = ((i / files.length) * 100) + '%';
         const file = files[i];
-        if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超過 5MB，已略過'); continue; }
+        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast(file.name + ' 超過 ' + lim + 'MB，已略過'); continue; } }
         try {
           const url = await uploadImage(file);
           urls.push(url);
@@ -1788,6 +1846,405 @@ function showPage(name, btn) {
 // ── Quill 2 編輯器 ──
 let quillInstances = {};
 
+// ═════════════════════════════════════════════
+// Notion 式編輯增強
+//  1. 工具列 sticky（CSS）
+//  2. 選取文字 → 浮動工具列
+//  3. 「/」「／」或空白行左側「＋」→ 區塊選單
+//  4. Markdown 快捷：# ## ### > ``` 加空白、--- 加 Enter
+// ═════════════════════════════════════════════
+
+// 分隔線 blot（<hr>）
+(function registerDivider() {
+  try {
+    const BlockEmbed = Quill.import('blots/block/embed');
+    class DividerBlot extends BlockEmbed {}
+    DividerBlot.blotName = 'divider';
+    DividerBlot.tagName = 'hr';
+    Quill.register(DividerBlot, true);
+  } catch (e) { console.warn('divider blot 註冊失敗', e); }
+})();
+
+function qxInCode(fmt) { return !!(fmt && (fmt['code-block'] || fmt.table)); }
+
+// Markdown 快捷鍵（追加在 Quill 預設 bindings 之外）
+const QX_MD_BINDINGS = {
+  qxMdBlock: {
+    key: ' ',
+    collapsed: true,
+    prefix: /^([#＃]{1,3}|[>＞]|```)$/,
+    handler(range, ctx) {
+      if (qxInCode(ctx.format) || ctx.format.list) return true;
+      const p = ctx.prefix, len = p.length, start = range.index - len;
+      let formats;
+      if (/^[#＃]+$/.test(p)) formats = { header: len };
+      else if (p === '>' || p === '＞') formats = { blockquote: true };
+      else formats = { 'code-block': true };
+      this.quill.deleteText(start, len, 'user');
+      this.quill.formatLine(start, 1, formats, 'user');
+      this.quill.setSelection(start, 0, 'silent');
+      return false;
+    }
+  },
+  qxMdDivider: {
+    key: 'Enter',
+    collapsed: true,
+    prefix: /^(---|－－－|———|—)$/,
+    suffix: /^$/,
+    handler(range, ctx) {
+      if (qxInCode(ctx.format) || ctx.format.list) return true;
+      const len = ctx.prefix.length, start = range.index - len;
+      this.quill.deleteText(start, len, 'user');
+      this.quill.formatLine(start, 1, { header: false, blockquote: false }, 'user');
+      this.quill.insertEmbed(start, 'divider', true, 'user');
+      this.quill.setSelection(start + 1, 0, 'user');
+      return false;
+    }
+  }
+};
+
+// ── 斜線選單項目 ──
+const QX_LINE_RESET = { header: false, list: false, blockquote: false, 'code-block': false };
+const QX_COMMANDS = [
+  { group: '基本區塊', icon: 'T',  label: '內文',     desc: '一般段落文字', kw: 'text p paragraph 內文 段落 文字',
+    run: (q, i) => q.formatLine(i, 1, QX_LINE_RESET, 'user') },
+  { group: '基本區塊', icon: 'H1', label: '標題 1',   desc: '大標題', kw: 'h1 heading title 標題 大標',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, header: 1 }, 'user') },
+  { group: '基本區塊', icon: 'H2', label: '標題 2',   desc: '中標題', kw: 'h2 heading 標題 中標',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, header: 2 }, 'user') },
+  { group: '基本區塊', icon: 'H3', label: '標題 3',   desc: '小標題', kw: 'h3 heading 標題 小標',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, header: 3 }, 'user') },
+  { group: '基本區塊', icon: '•',  label: '項目清單', desc: '無序清單', kw: 'ul bullet list 清單 項目',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, list: 'bullet' }, 'user') },
+  { group: '基本區塊', icon: '1.', label: '編號清單', desc: '有序清單', kw: 'ol number ordered list 清單 編號',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, list: 'ordered' }, 'user') },
+  { group: '基本區塊', icon: '❝',  label: '引用',     desc: '引言區塊', kw: 'quote blockquote 引用 引言',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, blockquote: true }, 'user') },
+  { group: '基本區塊', icon: '</>', label: '程式碼',  desc: '程式碼區塊', kw: 'code 程式 代碼',
+    run: (q, i) => q.formatLine(i, 1, { ...QX_LINE_RESET, 'code-block': true }, 'user') },
+  { group: '基本區塊', icon: '—',  label: '分隔線',   desc: '水平分隔線', kw: 'hr divider line 分隔 分割 線',
+    run: (q, i) => { q.insertEmbed(i, 'divider', true, 'user'); q.setSelection(i + 1, 0, 'user'); } },
+  { group: '媒體', icon: '▣', label: '圖片', desc: '上傳圖片', kw: 'image img picture photo 圖片 照片 上傳',
+    run: (q) => { const tb = q.getModule('toolbar'); if (tb && tb.handlers.image) tb.handlers.image.call(tb); } },
+  { group: '媒體', icon: '▶', label: '影片', desc: '嵌入 YouTube / Vimeo', kw: 'video youtube vimeo 影片 視頻 嵌入',
+    run: (q, i, id) => openVideoModal(id) },
+  { group: '媒體', icon: '▦', label: '表格', desc: '插入表格', kw: 'table 表格',
+    run: (q, i, id) => openInsertTableModal(id) },
+];
+const QX_SLASH_CHARS = ['/', '／', '、'];
+
+// ── 共用浮層 ──
+const qx = { bubble: null, slash: null, q: null, id: null, slashIdx: null, items: [], active: 0, linkRange: null };
+
+function qxEl(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+
+function qxEnsureFloating() {
+  if (qx.bubble) return;
+  qx.bubble = qxEl('div', 'qx-bubble');
+  qx.slash  = qxEl('div', 'qx-slash');
+  // 點浮層時不讓編輯器失去選取
+  qx.bubble.addEventListener('mousedown', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+  qx.slash.addEventListener('mousedown', e => e.preventDefault());
+  document.body.appendChild(qx.bubble);
+  document.body.appendChild(qx.slash);
+  document.addEventListener('scroll', qxReposition, true);
+  window.addEventListener('resize', qxReposition);
+  document.addEventListener('mousedown', e => {
+    if (qx.slash.contains(e.target) || qx.bubble.contains(e.target)) return;
+    if (qx.slashIdx != null) qxCloseSlash();
+    if (qx.linkRange) qxHideBubble();
+  });
+}
+
+function qxHideAll() {
+  if (!qx.bubble) return;
+  qxHideBubble(); qxCloseSlash();
+  document.querySelectorAll('.qx-plus.show, .qx-hint.show').forEach(e => e.classList.remove('show'));
+}
+
+function qxReposition() {
+  if (qx.slashIdx != null) qxPlaceSlash();
+  if (qx.bubble && qx.bubble.classList.contains('show')) qxPlaceBubble();
+}
+
+// fixed 座標放置浮層；碰到黏住的工具列就改放下方
+function qxPlaceFloating(el, q, index, length, preferBelow) {
+  const rect = q.container.getBoundingClientRect();
+  const b = q.getBounds(index, length);
+  if (!b) return;
+  const tb = q.container.parentElement && q.container.parentElement.querySelector('.ql-toolbar');
+  const minTop = tb ? Math.max(8, tb.getBoundingClientRect().bottom + 6) : 8;
+  const h = el.offsetHeight, w = el.offsetWidth;
+  let top = preferBelow ? rect.top + b.bottom + 6 : rect.top + b.top - h - 8;
+  if (!preferBelow && top < minTop) top = rect.top + b.bottom + 8;
+  if (preferBelow && top + h > window.innerHeight - 8) top = Math.max(minTop, rect.top + b.top - h - 6);
+  let left = preferBelow ? rect.left + b.left : rect.left + b.left + b.width / 2 - w / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+  el.style.top = top + 'px';
+  el.style.left = left + 'px';
+}
+
+// ── 浮動工具列 ──
+const QX_BUBBLE_BTNS = [
+  { k: 'bold',      html: '<b>B</b>', tip: '粗體' },
+  { k: 'italic',    html: '<i style="font-family:Georgia,serif">I</i>', tip: '斜體' },
+  { k: 'underline', html: '<u>U</u>', tip: '底線' },
+  { k: 'strike',    html: '<s>S</s>', tip: '刪除線' },
+  { k: 'link',      html: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', tip: '連結' },
+  { sep: true },
+  { k: 'h1', html: 'H1', tip: '標題 1' },
+  { k: 'h2', html: 'H2', tip: '標題 2' },
+  { k: 'h3', html: 'H3', tip: '標題 3' },
+  { k: 'blockquote', html: '❝', tip: '引用' },
+  { k: 'bullet', html: '•', tip: '項目清單' },
+  { sep: true },
+  { k: 'clean', html: '<span style="font-size:12px">清除</span>', tip: '清除格式' },
+];
+
+function qxShowBubble(q, id, range) {
+  qxEnsureFloating();
+  qx.q = q; qx.id = id; qx.linkRange = null;
+  const fmt = q.getFormat(range);
+  qx.bubble.innerHTML = '';
+  QX_BUBBLE_BTNS.forEach(cfg => {
+    if (cfg.sep) { qx.bubble.appendChild(qxEl('span', 'sep')); return; }
+    const btn = qxEl('button', '', cfg.html);
+    btn.type = 'button'; btn.title = cfg.tip; btn.setAttribute('aria-label', cfg.tip);
+    const special = { h1: fmt.header === 1, h2: fmt.header === 2, h3: fmt.header === 3,
+                      bullet: fmt.list === 'bullet', link: !!fmt.link };
+    const on = (cfg.k in special) ? special[cfg.k] : !!fmt[cfg.k];
+    if (on) btn.classList.add('on');
+    btn.onclick = () => qxBubbleAction(cfg.k, fmt);
+    qx.bubble.appendChild(btn);
+  });
+  qx.bubble.classList.add('show');
+  qxPlaceBubble();
+}
+
+function qxPlaceBubble() {
+  const q = qx.q; if (!q) return;
+  const r = qx.linkRange || q.getSelection();
+  if (!r) return;
+  qxPlaceFloating(qx.bubble, q, r.index, r.length, false);
+}
+
+function qxHideBubble() {
+  if (!qx.bubble) return;
+  qx.bubble.classList.remove('show');
+  qx.linkRange = null;
+}
+
+function qxBubbleAction(k, fmt) {
+  const q = qx.q; const r = q.getSelection(true); if (!r) return;
+  const toggleLine = (name, val) => q.formatLine(r.index, r.length, name, fmt[name] === val ? false : val, 'user');
+  switch (k) {
+    case 'bold': case 'italic': case 'underline': case 'strike':
+      q.format(k, !fmt[k], 'user'); break;
+    case 'h1': toggleLine('header', 1); break;
+    case 'h2': toggleLine('header', 2); break;
+    case 'h3': toggleLine('header', 3); break;
+    case 'blockquote': toggleLine('blockquote', true); break;
+    case 'bullet': toggleLine('list', 'bullet'); break;
+    case 'clean': q.removeFormat(r.index, r.length, 'user'); break;
+    case 'link':
+      if (fmt.link) { q.format('link', false, 'user'); break; }
+      return qxLinkMode(q, r);
+  }
+  const nr = q.getSelection();
+  if (nr && nr.length) qxShowBubble(q, qx.id, nr); else qxHideBubble();
+}
+
+function qxLinkMode(q, range) {
+  qx.linkRange = { index: range.index, length: range.length };
+  qx.bubble.innerHTML = '';
+  const input = qxEl('input');
+  input.placeholder = '貼上或輸入網址，按 Enter';
+  const ok = qxEl('button', '', '套用'); ok.type = 'button';
+  const apply = () => {
+    let url = input.value.trim();
+    const r = qx.linkRange;
+    if (url && r) {
+      if (!/^(https?:|mailto:|tel:|#|\/)/i.test(url)) url = 'https://' + url;
+      q.formatText(r.index, r.length, 'link', url, 'user');
+      q.setSelection(r.index + r.length, 0, 'user');
+    }
+    qxHideBubble();
+  };
+  input.addEventListener('keydown', e => {
+    if (e.isComposing) return;
+    if (e.key === 'Enter') { e.preventDefault(); apply(); }
+    if (e.key === 'Escape') { e.preventDefault(); const r = qx.linkRange; qxHideBubble(); if (r) q.setSelection(r.index, r.length, 'user'); }
+  });
+  ok.onclick = apply;
+  qx.bubble.appendChild(input);
+  qx.bubble.appendChild(ok);
+  qxPlaceBubble();
+  input.focus();
+}
+
+// ── 斜線選單 ──
+function qxOpenSlash(q, id, idx) {
+  qxEnsureFloating();
+  qxHideBubble();
+  qx.q = q; qx.id = id; qx.slashIdx = idx; qx.active = 0;
+  qxFilterSlash('');
+}
+
+function qxCloseSlash() {
+  qx.slashIdx = null;
+  if (qx.slash) qx.slash.classList.remove('show');
+}
+
+function qxPlaceSlash() {
+  if (qx.slashIdx == null || !qx.q) return;
+  qxPlaceFloating(qx.slash, qx.q, qx.slashIdx, 1, true);
+}
+
+function qxFilterSlash(query) {
+  const qs = query.trim().toLowerCase();
+  qx.items = QX_COMMANDS.filter(c => !qs || (c.label + ' ' + c.kw).toLowerCase().includes(qs));
+  if (qx.active >= qx.items.length) qx.active = 0;
+  qx.slash.innerHTML = '';
+  if (!qx.items.length) {
+    qx.slash.appendChild(qxEl('div', 'qx-slash-empty', '沒有符合的項目'));
+  } else {
+    let lastGroup = null;
+    qx.items.forEach((c, i) => {
+      if (c.group !== lastGroup) { qx.slash.appendChild(qxEl('div', 'qx-slash-group', c.group)); lastGroup = c.group; }
+      const it = qxEl('button', 'qx-slash-item' + (i === qx.active ? ' active' : ''));
+      it.type = 'button';
+      it.innerHTML = '<span class="qx-slash-icon"></span><span><span class="qx-l"></span><span class="qx-slash-desc"></span></span>';
+      it.querySelector('.qx-slash-icon').textContent = c.icon;
+      it.querySelector('.qx-l').textContent = c.label;
+      it.querySelector('.qx-slash-desc').textContent = c.desc;
+      it.onmouseenter = () => qxSetActive(i);
+      it.onclick = () => qxRunSlash(i);
+      qx.slash.appendChild(it);
+    });
+  }
+  qx.slash.classList.add('show');
+  qxPlaceSlash();
+}
+
+function qxSetActive(i) {
+  qx.active = i;
+  const els = qx.slash.querySelectorAll('.qx-slash-item');
+  els.forEach((el, j) => el.classList.toggle('active', j === i));
+  if (els[i]) els[i].scrollIntoView({ block: 'nearest' });
+}
+
+function qxRunSlash(i) {
+  const cmd = qx.items[i]; const q = qx.q; const idx = qx.slashIdx;
+  if (!cmd || !q || idx == null) return;
+  const sel = q.getSelection(true);
+  const end = sel ? Math.max(sel.index, idx + 1) : idx + 1;
+  qxCloseSlash();
+  q.deleteText(idx, end - idx, 'user');
+  q.setSelection(idx, 0, 'user');
+  cmd.run(q, idx, qx.id);
+}
+
+function qxUpdateSlash() {
+  const q = qx.q; const idx = qx.slashIdx;
+  if (idx == null || !q) return;
+  const sel = q.getSelection();
+  if (!sel || sel.length || sel.index <= idx || !QX_SLASH_CHARS.includes(q.getText(idx, 1))) return qxCloseSlash();
+  const query = q.getText(idx + 1, sel.index - idx - 1);
+  if (/\n/.test(query) || query.length > 20 || / {2}$/.test(query)) return qxCloseSlash();
+  qxFilterSlash(query);
+}
+
+// ── 掛載到每個富文字編輯器 ──
+function qxEnhance(q, id, wrap, richMode) {
+  if (!richMode) return;
+  qxEnsureFloating();
+
+  const plus = qxEl('button', 'qx-plus', '+');
+  plus.type = 'button';
+  plus.title = '插入區塊';
+  plus.setAttribute('aria-label', '插入區塊');
+  const hint = qxEl('div', 'qx-hint', '輸入「/」或點左側 + 插入區塊');
+  wrap.appendChild(plus);
+  wrap.appendChild(hint);
+  plus.addEventListener('mousedown', e => e.preventDefault());
+  plus.addEventListener('click', () => {
+    const r = q.getSelection(true); if (!r) return;
+    q.insertText(r.index, '/', 'api');
+    q.setSelection(r.index + 1, 0, 'silent');
+    qxOpenSlash(q, id, r.index);
+    plus.classList.remove('show'); hint.classList.remove('show');
+  });
+
+  // 游標停在空白行：顯示 ＋ 與提示文字
+  const updateGutter = () => {
+    plus.classList.remove('show'); hint.classList.remove('show');
+    const r = q.getSelection();
+    if (!r || r.length || (qx.slashIdx != null && qx.q === q)) return;
+    const [line, offset] = q.getLine(r.index);
+    if (!line || line.length() !== 1) return;
+    const fmt = q.getFormat(r.index);
+    if (qxInCode(fmt) || fmt.list) return;
+    const b = q.getBounds(r.index - offset);
+    if (!b) return;
+    const top = q.container.offsetTop + b.top;
+    plus.style.top = (top + (b.height - 22) / 2) + 'px';
+    plus.classList.add('show');
+    if (q.getLength() > 1 && !fmt.header && !fmt.blockquote) {
+      hint.style.top = (top + (b.height - 25) / 2) + 'px';
+      hint.style.left = (q.container.offsetLeft + b.left) + 'px';
+      hint.classList.add('show');
+    }
+  };
+
+  q.on('selection-change', (range) => {
+    if (qx.slashIdx != null && qx.q === q) setTimeout(qxUpdateSlash, 0);
+    if (range && range.length > 0) {
+      if (qx.slashIdx == null) qxShowBubble(q, id, range);
+    } else if (!qx.linkRange && qx.q === q) {
+      qxHideBubble();
+    }
+    updateGutter();
+  });
+
+  q.on('text-change', (delta, old, source) => {
+    setTimeout(updateGutter, 0);
+    if (source !== 'user') return;
+    if (qx.slashIdx != null && qx.q === q) { setTimeout(qxUpdateSlash, 0); return; }
+    // 偵測剛輸入的斜線（行首，或前一字是空白）
+    let pos = 0, cand = null;
+    (delta.ops || []).forEach(op => {
+      if (op.retain != null) pos += typeof op.retain === 'number' ? op.retain : 1;
+      else if (typeof op.insert === 'string') {
+        if (op.insert.length === 1 && QX_SLASH_CHARS.includes(op.insert)) cand = pos;
+        pos += op.insert.length;
+      } else if (op.insert) pos += 1;
+    });
+    if (cand == null) return;
+    const ch = q.getText(cand, 1);
+    const prev = cand > 0 ? q.getText(cand - 1, 1) : '\n';
+    const atLineStart = prev === '\n';
+    // 「、」是常用標點，只在行首觸發
+    if (!(atLineStart || (ch !== '、' && /\s/.test(prev)))) return;
+    if (qxInCode(q.getFormat(cand, 1))) return;
+    setTimeout(() => {
+      const sel = q.getSelection();
+      if (!sel || sel.index < cand + 1 || /\n/.test(q.getText(cand, sel.index - cand))) return;
+      qxOpenSlash(q, id, cand);
+      qxUpdateSlash();  // 打字很快時，斜線後已有字 → 直接套用篩選
+    }, 0);
+  });
+
+  // 選單開啟時攔截方向鍵 / Enter / Tab / Esc（capture 階段，先於 Quill）
+  wrap.addEventListener('keydown', e => {
+    if (qx.slashIdx == null || qx.q !== q || e.isComposing || e.keyCode === 229) return;
+    const n = qx.items.length;
+    if (e.key === 'ArrowDown' && n) { e.preventDefault(); e.stopPropagation(); qxSetActive((qx.active + 1) % n); }
+    else if (e.key === 'ArrowUp' && n) { e.preventDefault(); e.stopPropagation(); qxSetActive((qx.active - 1 + n) % n); }
+    else if ((e.key === 'Enter' || e.key === 'Tab') && n) { e.preventDefault(); e.stopPropagation(); qxRunSlash(qx.active); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); qxCloseSlash(); updateGutter(); }
+  }, true);
+}
+
 function makeQuill(id, placeholder, richMode) {
   if (quillInstances[id]) {
     try {
@@ -1799,10 +2256,12 @@ function makeQuill(id, placeholder, richMode) {
   const container = document.getElementById(id);
   if (!container) return null;
   container.innerHTML = '';
+  qxHideAll();
 
   // 建立 wrapper
   const wrap = document.createElement('div');
   wrap.id = 'quill-wrap-' + id;
+  wrap.className = 'qx-wrap';
   const editorDiv = document.createElement('div');
   editorDiv.id = 'quill-editor-' + id;
   wrap.appendChild(editorDiv);
@@ -1828,7 +2287,8 @@ function makeQuill(id, placeholder, richMode) {
     placeholder: placeholder || '在這裡輸入內容...',
     modules: {
       toolbar: { container: toolbarOptions },
-      table: richMode  // Quill 2 內建 table module
+      table: richMode,  // Quill 2 內建 table module
+      keyboard: { bindings: QX_MD_BINDINGS }
     }
   });
 
@@ -1839,7 +2299,7 @@ function makeQuill(id, placeholder, richMode) {
       input.type = 'file'; input.accept = 'image/*';
       input.onchange = async () => {
         const file = input.files[0]; if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { toast('圖片超過 5MB 上限'); return; }
+        { const lim = file.type === 'image/gif' ? 15 : 5; if (file.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB 上限'); return; } }
         toast('圖片上傳中...');
         try {
           const url = await uploadImage(file);
@@ -1890,6 +2350,7 @@ function makeQuill(id, placeholder, richMode) {
 
   quillInstances[id] = q;
   setTimeout(() => attachQuillTooltips(id), 80);
+  qxEnhance(q, id, wrap, richMode);
   return q;
 }
 
@@ -1975,6 +2436,30 @@ function normalizeQuillHtml(html) {
     if (!root) return html;
     root.querySelectorAll('iframe').forEach(f => {
       if (!f.classList.contains('ql-video')) f.classList.add('ql-video');
+    });
+    // 舊格式清單（<ul>、沒有 data-list 的 <ol>、巢狀清單）→ Quill 2 格式，
+    // 否則直接塞進編輯器時，編號 / 點點格式會遺失，<ul> 內容甚至會消失
+    const tops = Array.from(root.querySelectorAll('ol, ul')).filter(l => !l.parentElement.closest('ol, ul'));
+    tops.forEach(list => {
+      const lis = Array.from(list.children).filter(c => c.tagName === 'LI');
+      if (list.tagName === 'OL' && lis.length && lis.every(li => li.hasAttribute('data-list'))) return;
+      const out = doc.createElement('ol');
+      const walk = (l, depth) => {
+        const type = l.tagName === 'OL' ? 'ordered' : 'bullet';
+        Array.from(l.children).forEach(li => {
+          if (li.tagName !== 'LI') return;
+          const nested = Array.from(li.children).filter(c => c.tagName === 'OL' || c.tagName === 'UL');
+          nested.forEach(n => n.remove());
+          const ps = Array.from(li.children).filter(c => c.tagName === 'P');
+          ps.forEach((p, i) => { if (i < ps.length - 1) p.after(doc.createElement('br')); p.replaceWith(...Array.from(p.childNodes)); });
+          if (!li.hasAttribute('data-list')) li.setAttribute('data-list', type);
+          if (depth) li.classList.add('ql-indent-' + Math.min(depth, 8));
+          out.appendChild(li);
+          nested.forEach(n => walk(n, depth + 1));
+        });
+      };
+      walk(list, 0);
+      list.replaceWith(out);
     });
     return root.innerHTML;
   } catch(e) { return html; }
@@ -2945,7 +3430,7 @@ function renderProjectImageArea() {
     replaceInput.style.display = 'none';
     replaceInput.onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
+      { const lim = f.type === 'image/gif' ? 15 : 5; if (f.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB'); return; } }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
@@ -2973,7 +3458,7 @@ function renderProjectImageArea() {
     fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
     fileInput.onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      if (f.size > 5 * 1024 * 1024) { toast('圖片超過 5MB'); return; }
+      { const lim = f.type === 'image/gif' ? 15 : 5; if (f.size > lim * 1024 * 1024) { toast('圖片超過 ' + lim + 'MB'); return; } }
       try {
         toast('上傳中...');
         const url = await uploadImage(f);
