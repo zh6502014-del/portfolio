@@ -1194,7 +1194,6 @@
     <div class="modal-header" id="modal-header">
       <div class="modal-header-left" id="modal-header-content"></div>
       <div class="modal-header-actions">
-        <button class="modal-fs glass-el" id="modal-link-btn" onclick="copyModalLink()" aria-label="複製這篇的連結" title="複製這篇的連結"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         <button class="modal-fs glass-el" id="modal-fs-btn" onclick="toggleModalFullscreen()" aria-label="放大為滿版" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
       </div>
@@ -1685,9 +1684,6 @@ let _routePushed = false;  // 這次網址是我們 push 進去的（關閉時�
 let _openRoute = null;
 
 function routeHash(kind, id) { return '#' + kind + '-' + id; }
-function modalLinkUrl() {
-  return _openRoute ? location.origin + location.pathname + location.search + routeHash(_openRoute.kind, _openRoute.id) : location.href;
-}
 function setModalRoute(kind, id, title) {
   _openRoute = { kind, id };
   const plain = stripHtml(title || '');
@@ -1716,25 +1712,6 @@ function applyRoute() {
   try { kind === 'project' ? openModal(id) : openNote(id); } finally { _routing = false; }
 }
 window.addEventListener('popstate', applyRoute);
-
-function copyModalLink() {
-  const url = modalLinkUrl();
-  const btn = document.getElementById('modal-link-btn');
-  const done = () => {
-    if (!btn) return;
-    const old = btn.innerHTML;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-    btn.setAttribute('aria-label', '已複製連結'); btn.title = '已複製連結';
-    setTimeout(() => { btn.innerHTML = old; btn.setAttribute('aria-label', '複製這篇的連結'); btn.title = '複製這篇的連結'; }, 1600);
-  };
-  const fallback = () => {
-    const ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) { window.prompt('複製這篇的連結', url); }
-    ta.remove();
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, fallback); else fallback();
-}
 
 // ── Modal collapsible header on scroll ──
 (function() {
