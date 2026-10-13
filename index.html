@@ -1194,6 +1194,7 @@
     <div class="modal-header" id="modal-header">
       <div class="modal-header-left" id="modal-header-content"></div>
       <div class="modal-header-actions">
+        <button class="modal-fs glass-el" id="modal-link-btn" onclick="copyModalLink()" aria-label="複製這篇的連結" title="複製這篇的連結"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         <button class="modal-fs glass-el" id="modal-fs-btn" onclick="toggleModalFullscreen()" aria-label="放大為滿版" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
       </div>
@@ -1303,6 +1304,7 @@ async function loadData(promise = _dataPromise) {
     renderAllData(data);
     saveDataCache(data);
     hideOfflineBanner();
+    applyRoute();
   } catch (e) {
     const cache = readDataCache();
     if (cache) {
@@ -1313,6 +1315,7 @@ async function loadData(promise = _dataPromise) {
       renderFallback();
       showOfflineBanner('顯示預設內容');
     }
+    applyRoute();
   }
 }
 // 網路恢復時自動重新載入
@@ -1601,6 +1604,7 @@ function openNote(id) {
   bindContentLightbox(document.getElementById('modal-content'));
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  setModalRoute('note', n.id, n.title);
 }
 
 function openModal(id) {
@@ -1670,7 +1674,68 @@ function openModal(id) {
 
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  setModalRoute('project', p.id, p.title);
 }
+
+// ── 每篇專案 / 隨筆各自的網址（#project-3、#note-5）──
+// 開啟時把網址改成該篇的連結；用網址進來會自動打開；瀏覽器上一頁 = 關閉彈窗
+const BASE_TITLE = document.title;
+let _routing = false;      // 正在由網址觸發開啟，不要再寫一次網址
+let _routePushed = false;  // 這次網址是我們 push 進去的（關閉時可用 history.back 退回）
+let _openRoute = null;
+
+function routeHash(kind, id) { return '#' + kind + '-' + id; }
+function modalLinkUrl() {
+  return _openRoute ? location.origin + location.pathname + location.search + routeHash(_openRoute.kind, _openRoute.id) : location.href;
+}
+function setModalRoute(kind, id, title) {
+  _openRoute = { kind, id };
+  const plain = stripHtml(title || '');
+  if (plain) document.title = plain + ' — ' + BASE_TITLE;
+  if (_routing) return;
+  const h = routeHash(kind, id);
+  if (location.hash === h) return;
+  try { history.pushState(null, '', location.pathname + location.search + h); _routePushed = true; } catch (e) {}
+}
+function clearModalRoute() {
+  document.title = BASE_TITLE;
+  const open = _openRoute; _openRoute = null;
+  if (!open || location.hash !== routeHash(open.kind, open.id)) return;
+  try {
+    if (_routePushed) { _routePushed = false; history.back(); }
+    else history.replaceState(null, '', location.pathname + location.search);
+  } catch (e) {}
+}
+function applyRoute() {
+  const m = /^#(project|note)-(\d+)$/.exec(location.hash);
+  const overlay = document.getElementById('modal-overlay');
+  if (!m) { if (overlay.classList.contains('open')) closeModal(); return; }
+  const kind = m[1], id = Number(m[2]);
+  if (overlay.classList.contains('open') && _openRoute && _openRoute.kind === kind && _openRoute.id === id) return;
+  _routing = true;
+  try { kind === 'project' ? openModal(id) : openNote(id); } finally { _routing = false; }
+}
+window.addEventListener('popstate', applyRoute);
+
+function copyModalLink() {
+  const url = modalLinkUrl();
+  const btn = document.getElementById('modal-link-btn');
+  const done = () => {
+    if (!btn) return;
+    const old = btn.innerHTML;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    btn.setAttribute('aria-label', '已複製連結'); btn.title = '已複製連結';
+    setTimeout(() => { btn.innerHTML = old; btn.setAttribute('aria-label', '複製這篇的連結'); btn.title = '複製這篇的連結'; }, 1600);
+  };
+  const fallback = () => {
+    const ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { window.prompt('複製這篇的連結', url); }
+    ta.remove();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, fallback); else fallback();
+}
+
 // ── Modal collapsible header on scroll ──
 (function() {
   const body = document.getElementById('modal-content');
@@ -1805,7 +1870,9 @@ window.addEventListener('resize', () => {
 
 function closeModal() {
   const overlay = document.getElementById('modal-overlay');
+  const wasOpen = overlay.classList.contains('open');
   overlay.classList.remove('open');
+  if (wasOpen) clearModalRoute();
   document.body.style.overflow = '';
   // 還原滿版與目錄狀態
   const box = document.getElementById('modal-box');
