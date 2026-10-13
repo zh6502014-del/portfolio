@@ -437,6 +437,32 @@
     white-space: nowrap;
   }
   .section-hidden { display: none !important; }
+  /* 離線提示列 */
+  #offline-banner {
+    position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 16px); z-index: 9000;
+    display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px);
+    padding: 10px 10px 10px 12px; border-radius: 16px;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    box-shadow: 0 10px 30px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.06);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  }
+  #offline-banner.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #offline-banner .offline-icon {
+    flex: none; width: 32px; height: 32px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-tertiary); color: var(--text-secondary);
+  }
+  #offline-banner .offline-msg { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.35; }
+  #offline-banner .offline-title { font-size: 13px; font-weight: 600; }
+  #offline-banner .offline-sub { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #offline-banner .offline-retry {
+    flex: none; border: 1px solid var(--border); border-radius: 10px; padding: 0 12px; height: 32px; cursor: pointer;
+    background: none; color: var(--text); font: inherit; font-size: 12px; transition: background .15s;
+  }
+  #offline-banner .offline-retry:hover { background: var(--bg-tertiary); }
+  #offline-banner .offline-retry:disabled { opacity: .6; cursor: default; }
+  @media (max-width: 480px) { #offline-banner { left: 16px; right: 16px; bottom: 16px; width: auto; transform: translateY(16px); } #offline-banner.show { transform: none; } #offline-banner .offline-msg { flex: 1; } }
+
   .modal-body hr { border: 0; border-top: 1px solid var(--border); margin: 28px 0; }
   .rich-figure { display:block; margin:10px 0; box-sizing:border-box; }
   .rich-figure > img { display:block; width:100%; max-width:100%; margin:0 !important; }
@@ -1184,9 +1210,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // 原生 fetch 直接打 Supabase REST API，完全不使用 SDK
 // 避免 @supabase/supabase-js 的 BroadcastChannel / postMessage 觸發 DataCloneError
 function sbFetch(table, params = '') {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000); // 10 秒沒回應視為失敗
   return fetch(
     `${SUPABASE_URL}/rest/v1/${table}?${params}`,
     {
+      signal: ctrl.signal,
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -1194,33 +1223,100 @@ function sbFetch(table, params = '') {
         'Accept': 'application/json',
       }
     }
-  ).then(r => r.json());
+  ).then(r => {
+    if (!r.ok) throw new Error(table + ' HTTP ' + r.status);   // 401 / 500 等也算失敗
+    return r.json();
+  }).finally(() => clearTimeout(timer));
 }
 
 // 連線預熱完成後，盡早把 6 個查詢一起送出（不等下方數百行 render 函式解析完才開始），
 // 讓資料在網路上往返的同時，瀏覽器繼續解析 JS，縮短可見資料出現的時間。
-const _dataPromise = Promise.all([
-  sbFetch('profile', 'limit=1'),
-  sbFetch('skills', 'order=sort_order'),
-  sbFetch('tools',  'order=sort_order'),
-  sbFetch('projects', 'published=eq.true&order=sort_order'),
-  sbFetch('notes',    'published=eq.true&order=sort_order'),
-  sbFetch('nav_items', 'order=sort_order'),
-  sbFetch('section_settings', 'select=key,visible').catch(() => []),
-]);
-
-async function loadData() {
-  try {
-    const [profile, skills, tools, projects, notes, navItems, sectionSettings] = await _dataPromise;
-    if (profile?.[0])   renderProfile(profile[0]);
-    if (skills?.length)  renderSkills(skills);
-    if (tools?.length)   renderTools(tools);
-    if (projects?.length) renderProjects(projects);
-    if (notes?.length)   renderNotes(notes);
-    if (navItems?.length) renderNav(navItems);
-    applySectionVisibility(sectionSettings);
-  } catch (e) { renderFallback(); }
+function fetchAll() {
+  return Promise.all([
+    sbFetch('profile', 'limit=1'),
+    sbFetch('skills', 'order=sort_order'),
+    sbFetch('tools',  'order=sort_order'),
+    sbFetch('projects', 'published=eq.true&order=sort_order'),
+    sbFetch('notes',    'published=eq.true&order=sort_order'),
+    sbFetch('nav_items', 'order=sort_order'),
+    sbFetch('section_settings', 'select=key,visible').catch(() => []),
+  ]);
 }
+const _dataPromise = fetchAll();
+
+// ── 離線快取：載入成功就存一份，之後連不上時先顯示上次的內容 ──
+const DATA_CACHE_KEY = 'portfolio-data-v1';
+function saveDataCache(data) {
+  try { localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({ t: Date.now(), data })); } catch (e) {}
+}
+function readDataCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(DATA_CACHE_KEY) || 'null');
+    return c && Array.isArray(c.data) ? c : null;
+  } catch (e) { return null; }
+}
+function renderAllData(data) {
+  const [profile, skills, tools, projects, notes, navItems, sectionSettings] = data;
+  if (profile?.[0])   renderProfile(profile[0]);
+  if (skills?.length)  renderSkills(skills);
+  if (tools?.length)   renderTools(tools);
+  if (projects?.length) renderProjects(projects);
+  if (notes?.length)   renderNotes(notes);
+  if (navItems?.length) renderNav(navItems);
+  applySectionVisibility(sectionSettings);
+}
+
+// 離線提示列
+function showOfflineBanner(sub) {
+  const title = navigator.onLine === false ? '目前離線' : '連線不穩';
+  let bar = document.getElementById('offline-banner');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'offline-banner';
+    bar.setAttribute('role', 'status');
+    bar.innerHTML = '<span class="offline-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8a15 15 0 0 0-9.4-3.7"/><path d="M5 12.9a10 10 0 0 1 3.6-2.1M19 12.9a10 10 0 0 0-3.5-2.1"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="m2 2 20 20"/></svg></span><span class="offline-msg"><b class="offline-title"></b><span class="offline-sub"></span></span><button type="button" class="offline-retry">重新載入</button>';
+    bar.querySelector('.offline-retry').addEventListener('click', retryLoad);
+    document.body.appendChild(bar);
+  }
+  bar.querySelector('.offline-title').textContent = title;
+  bar.querySelector('.offline-sub').textContent = sub;
+  bar.classList.add('show');
+}
+function hideOfflineBanner() {
+  const bar = document.getElementById('offline-banner');
+  if (bar) bar.classList.remove('show');
+}
+
+let _retrying = false;
+async function retryLoad() {
+  if (_retrying) return;
+  _retrying = true;
+  const btn = document.querySelector('#offline-banner .offline-retry');
+  if (btn) { btn.disabled = true; btn.textContent = '載入中…'; }
+  try { await loadData(fetchAll()); }
+  finally { _retrying = false; if (btn) { btn.disabled = false; btn.textContent = '重新載入'; } }
+}
+
+async function loadData(promise = _dataPromise) {
+  try {
+    const data = await promise;
+    renderAllData(data);
+    saveDataCache(data);
+    hideOfflineBanner();
+  } catch (e) {
+    const cache = readDataCache();
+    if (cache) {
+      try { renderAllData(cache.data); } catch (err) { renderFallback(); }
+      const d = new Date(cache.t);
+      showOfflineBanner(`顯示 ${d.getMonth() + 1}/${d.getDate()} 的內容`);
+    } else {
+      renderFallback();
+      showOfflineBanner('顯示預設內容');
+    }
+  }
+}
+// 網路恢復時自動重新載入
+window.addEventListener('online', () => { if (document.getElementById('offline-banner')?.classList.contains('show')) retryLoad(); });
 
 
 // ── 區塊顯示開關（後台 section_settings）──
@@ -1738,27 +1834,25 @@ function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerH
 function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${y}.${m}.${day}`; }
 
 function renderFallback() {
+  // 沒有快取、又連不上資料庫時顯示的趣味預設內容
   const fallbackProjects = [
-    { id:1, title:'永豐數位銀行 UI/UX 專案', time_range:'2022/02 — 開發中', tags:['Design Component','Mobile UI','Web UI'], description:'加入永豐新網銀專案，接手廠商設計稿並建立設計系統。', goals:['提升 APP 使用體驗','定義 Design guideline','建構 Design system'], challenges:['初次執行大型專案','跨單位合作'], methods:['啟發式評估','逆向流程分析'], work_items:['網路銀行 / 行動銀行 UI 設計','頁面資訊結構整理'], products:['新網銀','大咖繳費 APP','無障礙網路銀行'], insight:'啟發式評估：藉由 UI 視覺分析與可用性分析接手廠商設計稿。', role:'UI / UX 設計', members:'業務單位 PM · 設計 林艾奭', images:[] },
-    { id:2, title:'大咖繳費 APP UI 改版', time_range:'2022/12 上線', tags:['Design System','Mobile UI'], description:'收斂舊有設計元素，重新建造設計系統，探索輕盈視覺風格。', goals:['定義 UI Guideline','元件歸納整理'], challenges:['從混亂設計文件熟悉元件'], methods:['減法設計思維'], work_items:['介面視覺風格探索','Lottie 動畫設計'], products:['大咖繳費 APP 2.0（已上線）'], insight:'元件層級：Segment control → Tab bar → Chips Filter。', role:'UI 設計', members:'UX設計 侑達 · 設計 林艾奭', images:[] },
-    { id:3, title:'上學院留學中心 UI 專案', time_range:'2021/04 — 2022/01', tags:['Mobile UI','Web UI','RWD'], description:'優化留學中心網站，負責 RWD 頁面設計與視覺規範建立。', goals:['提升網頁使用體驗'], challenges:['初次執行網站介面設計'], methods:['易用性原則','競品觀察'], work_items:['RWD 頁面設計','資訊結構整理'], products:['首頁優化','學生心得頁面'], insight:'加入熱門科系篩選，幫助學生聚焦到理想學校，減少選擇負擔。', role:'Web UI 設計', members:'專案管理 Bobo · 設計 林艾奭', images:[] },
-    { id:4, title:'自助家遊學網 UI 專案', time_range:'2021/04 — 2022/01', tags:['Mobile UI','Web UI','RWD'], description:'第一份網頁 UI 工作，疫情期間優化網站，運用 UI 設計準則系統性檢視改進點。', goals:['提升網頁使用體驗'], challenges:['初次執行網站介面設計'], methods:['易用性原則'], work_items:['RWD 頁面設計','資訊圖表化'], products:['首頁優化','學校介紹頁'], insight:'捨去影響網站速度且點擊率不高的區域，從品牌顏色延伸減少中性灰階。', role:'Web UI 設計', members:'前端 Bobo · 設計 林艾奭', images:[] }
+    { id:1, title:'網路好像去喝咖啡了 ☕', time_range:'剛剛 — 還沒回來', tags:['Offline','等一下下'], description:'作品集正在和網路鬧小脾氣，資料還在路上。先看看這幾張備用卡片，等它回來就會換成真正的作品。', goals:['讓你等待時不無聊'], challenges:['沒有網路'], methods:['深呼吸','按一下重新載入'], work_items:['假裝一切都很正常'], products:['這張備用卡片'], insight:'好的設計連離線時也要有禮貌。', role:'備用設計師', members:'', images:[] },
+    { id:2, title:'訊號正在爬山 ⛰️', time_range:'預計很快抵達', tags:['Loading','加油'], description:'資料正在翻山越嶺，路上可能有點喘。', goals:['平安抵達畫面'], challenges:['山上收訊不太好'], methods:['慢慢來'], work_items:['攜帶一份專案清單'], products:['一點點耐心'], insight:'重新整理之前，先喝口水。', role:'登山客', members:'', images:[] },
+    { id:3, title:'伺服器在午睡 😴', time_range:'請勿打擾（但可以按重新載入）', tags:['Zzz','等它醒來'], description:'它睡得很沉，輕輕敲門也許就會醒。', goals:['睡飽'], challenges:['鬧鐘壞了'], methods:['輕輕按下重新載入'], work_items:['夢見 100% 上線率'], products:['一顆枕頭'], insight:'休息是為了走更長的路。', role:'午睡專家', members:'', images:[] }
   ];
   const fallbackNotes = [
-    { title:'【自我反思】如果我不做設計，我還能做什麼？', note_date:'2026-04-25', note_type:'自我反思' },
-    { title:'【讀書心得】瘦瘦針革命', note_date:'2026-02-10', note_type:'讀書心得' },
-    { title:'【讀書心得】透過藝術品提升觀察力', note_date:'2025-12-28', note_type:'讀書心得' },
-    { title:'【無障礙工作坊】暫時告別視覺慣性，我們能看見什麼？', note_date:'2025-12-21', note_type:'無障礙設計' },
-    { title:'【教育訓練課程】M365 Copilot AI 工作新型態應用', note_date:'2025-11-19', note_type:'教育訓練' }
+    { id:1, title:'【離線小語】沒有網路的時候，剛好可以看看窗外', note_date:'2026-01-01', note_type:'碎碎念' },
+    { id:2, title:'【離線小語】重新整理是一種溫柔的重新開始', note_date:'2026-01-01', note_type:'碎碎念' },
+    { id:3, title:'【離線小語】作品很快回來，先給你一個擁抱', note_date:'2026-01-01', note_type:'碎碎念' }
   ];
   renderProjects(fallbackProjects);
   renderNotes(fallbackNotes);
   document.getElementById('skills-grid').innerHTML = `
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title">UI / UX Design</div><div class="skill-tag-list"><span class="tag">Wireframe</span><span class="tag">UI Mockup</span><span class="tag">UI Flow</span><span class="tag">易用性測試</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title">Visual Design</div><div class="skill-tag-list"><span class="tag">字型學</span><span class="tag">色彩學</span><span class="tag">版面構成</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">📐</div><div class="skill-card-title">平台設計</div><div class="skill-tag-list"><span class="tag">Web UI（RWD）</span><span class="tag">Mobile UI</span><span class="tag">Design System</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🫖</div><div class="skill-card-title">耐心等待</div><div class="skill-tag-list"><span class="tag">深呼吸</span><span class="tag">喝口茶</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🔌</div><div class="skill-card-title">檢查插頭</div><div class="skill-tag-list"><span class="tag">Wi-Fi</span><span class="tag">飛航模式</span></div></div>
+    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🔄</div><div class="skill-card-title">重新載入</div><div class="skill-tag-list"><span class="tag">再試一次</span><span class="tag">Cmd + R</span></div></div>
   `;
-  document.getElementById('tools-grid').innerHTML = ['Figma','Adobe XD','Photoshop','Illustrator'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
+  document.getElementById('tools-grid').innerHTML = ['🧋 珍珠奶茶','🎧 耳機','🪴 小盆栽','📚 一本書'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
 }
 
 // ── Theme toggle ──
