@@ -1363,6 +1363,17 @@ function applySectionVisibility(rows) {
 }
 
 
+function mergeDescParagraphs(root) {
+  const isEmpty = el => el.tagName === 'P' && !el.textContent.trim() && !el.querySelector('img');
+  let group = null;
+  for (const el of Array.from(root.children)) {
+    if (el.tagName !== 'P' || isEmpty(el)) { group = null; continue; }
+    if (!group) { group = el; continue; }
+    group.append(...el.childNodes);
+    el.remove();
+  }
+}
+
 // ── Quill 2 清單 → 標準 HTML ──
 // Quill 2 把編號與點點清單都存成 <ol><li data-list="...">，縮排用 ql-indent-N；
 // 這裡轉成正確的 <ol>/<ul> 巢狀結構，並移除編輯器用的 .ql-ui 標記
@@ -1489,19 +1500,11 @@ function renderProfile(p) {
   // footer-name 為靜態文字，不由後台控制
   const descEl = document.getElementById('hero-desc');
   if (descEl) {
-    // 小網（≤560px）：把多個 <p> 合成一段，移除手動換行
-    if (window.innerWidth <= 560) {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = p.description || '';
-      const text = Array.from(tmp.querySelectorAll('p'))
-        .map(el => el.textContent.trim())
-        .filter(Boolean)
-        .join('');
-      descEl.textContent = text;
-    } else {
-      descEl.innerHTML = prepRichHtml(p.description || '');
-      bindContentLightbox(descEl);
-    }
+    descEl.innerHTML = prepRichHtml(p.description || '');
+    // 小網（≤560px）：大網用來斷句的連續段落合併成一段；
+    // 空白行仍視為分段，清單、圖片等其他區塊原樣保留
+    if (window.innerWidth <= 560) mergeDescParagraphs(descEl);
+    bindContentLightbox(descEl);
   }
   const contacts = document.getElementById('hero-contacts');
   contacts.innerHTML = '';

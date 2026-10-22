@@ -1077,6 +1077,15 @@ body {overflow-x:clip}
 .hero-text {max-width:none;width:100%;padding:0;margin:0}
 .hero-title {font-size:clamp(36px,4vw,46px);line-height:1.3;margin-bottom:22px}
 .hero-desc {max-width:760px;font-size:18px;line-height:1.9;margin-bottom:24px}
+/* Rich-text lists from the admin editor: markers sit inside the text column. */
+.hero-desc ul,.hero-desc ol {margin:.2em 0 .6em;padding-left:1.3em}
+.hero-desc ul {list-style:disc}
+.hero-desc ol {list-style:decimal}
+.hero-desc li {margin:.1em 0;padding-left:.2em}
+.hero-desc li::marker {color:var(--text-tertiary)}
+.hero-desc li > ul,.hero-desc li > ol {margin:.1em 0}
+/* A blank editor line separates groups; keep it shorter than a full text line. */
+.hero-desc p:empty,.hero-desc p:has(> br:only-child) {height:.9em}
 .hero-contacts {margin:0 0 22px;gap:10px}
 .hero-contacts .contact-item {font-size:14px;padding:9px 14px;max-width:100%;overflow-wrap:anywhere}
 .hero-contacts .contact-item svg {flex-shrink:0}
@@ -1488,6 +1497,17 @@ function applySectionVisibility(rows) {
 }
 
 
+function mergeDescParagraphs(root) {
+  const isEmpty = el => el.tagName === 'P' && !el.textContent.trim() && !el.querySelector('img');
+  let group = null;
+  for (const el of Array.from(root.children)) {
+    if (el.tagName !== 'P' || isEmpty(el)) { group = null; continue; }
+    if (!group) { group = el; continue; }
+    group.append(...el.childNodes);
+    el.remove();
+  }
+}
+
 // ── Quill 2 清單 → 標準 HTML ──
 // Quill 2 把編號與點點清單都存成 <ol><li data-list="...">，縮排用 ql-indent-N；
 // 這裡轉成正確的 <ol>/<ul> 巢狀結構，並移除編輯器用的 .ql-ui 標記
@@ -1614,19 +1634,11 @@ function renderProfile(p) {
   // footer-name 為靜態文字，不由後台控制
   const descEl = document.getElementById('hero-desc');
   if (descEl) {
-    // 小網（≤560px）：把多個 <p> 合成一段，移除手動換行
-    if (window.innerWidth <= 560) {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = p.description || '';
-      const text = Array.from(tmp.querySelectorAll('p'))
-        .map(el => el.textContent.trim())
-        .filter(Boolean)
-        .join('');
-      descEl.textContent = text;
-    } else {
-      descEl.innerHTML = prepRichHtml(p.description || '');
-      bindContentLightbox(descEl);
-    }
+    descEl.innerHTML = prepRichHtml(p.description || '');
+    // 小網（≤560px）：大網用來斷句的連續段落合併成一段；
+    // 空白行仍視為分段，清單、圖片等其他區塊原樣保留
+    if (window.innerWidth <= 560) mergeDescParagraphs(descEl);
+    bindContentLightbox(descEl);
   }
   const contacts = document.getElementById('hero-contacts');
   contacts.innerHTML = '';

@@ -45,6 +45,15 @@ body {overflow-x:clip}
 .hero-text {max-width:none;width:100%;padding:0;margin:0}
 .hero-title {font-size:clamp(36px,4vw,46px);line-height:1.3;margin-bottom:22px}
 .hero-desc {max-width:760px;font-size:18px;line-height:1.9;margin-bottom:24px}
+/* Rich-text lists from the admin editor: markers sit inside the text column. */
+.hero-desc ul,.hero-desc ol {margin:.2em 0 .6em;padding-left:1.3em}
+.hero-desc ul {list-style:disc}
+.hero-desc ol {list-style:decimal}
+.hero-desc li {margin:.1em 0;padding-left:.2em}
+.hero-desc li::marker {color:var(--text-tertiary)}
+.hero-desc li > ul,.hero-desc li > ol {margin:.1em 0}
+/* A blank editor line separates groups; keep it shorter than a full text line. */
+.hero-desc p:empty,.hero-desc p:has(> br:only-child) {height:.9em}
 .hero-contacts {margin:0 0 22px;gap:10px}
 .hero-contacts .contact-item {font-size:14px;padding:9px 14px;max-width:100%;overflow-wrap:anywhere}
 .hero-contacts .contact-item svg {flex-shrink:0}
