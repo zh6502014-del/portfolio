@@ -58,14 +58,16 @@ button:focus-visible, a:focus-visible {outline:2px solid var(--ring);outline-off
 @media (max-height:760px) and (min-width:761px) {.orbit-sticky{--orbit-top:84px;--orbit-bottom:128px;min-height:550px}.orbit-bottom{bottom:16px;gap:6px}}
 @media (max-width:760px) {
  :root{--site-gutter:24px}
- .orbit-sticky{--orbit-bottom:155px;min-height:590px;max-height:900px}
+ /* Phones are width-bound: the ring scales with the screen width, so a full-height
+    stage left large empty bands above and below it. Size the stage to the scene. */
+ .orbit-sticky{--orbit-top:20px;--orbit-bottom:140px;height:calc(var(--orbit-top) + var(--orbit-bottom) + 78vw);min-height:0;max-height:calc(100svh - 60px)}
  .orbit-bottom{left:18px;right:18px;bottom:28px;gap:10px}
  .orbit-active{min-width:0;max-width:260px;font-size:13px;gap:8px;flex-wrap:wrap;line-height:1.6}
  .orbit-count{flex-basis:100%;font-size:10px}
  .orbit-controls{gap:12px;width:100%;justify-content:space-between;max-width:430px}
  .orbit-arrow{width:40px;height:40px}
  .orbit-hint{font-size:10px}.orbit-pointer{display:none}
- .profile-overview{grid-template-columns:minmax(0,1fr);gap:40px;margin:56px auto 24px}
+ .profile-overview{grid-template-columns:minmax(0,1fr);gap:40px;margin:24px auto 24px}
  .hero{padding:0}.hero-text{max-width:100%}.hero-title{font-size:clamp(30px,7.5vw,38px)}.hero-desc{font-size:17px}
  .profile-overview #about{border-top:1px solid var(--border);padding-top:32px}
  .profile-overview .skill-card{padding:18px}.profile-overview .skill-grid{margin-bottom:24px}

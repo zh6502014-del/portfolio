@@ -1,5 +1,5 @@
 from pathlib import Path
-import argparse,re,json,base64,os
+import argparse,re,json,base64,os,gzip,hashlib
 parser=argparse.ArgumentParser(description='Build the portfolio V2 preview and optional production homepage.')
 parser.add_argument('--production',action='store_true',help='Also write the V2 production index.html.')
 args=parser.parse_args()
@@ -57,6 +57,8 @@ environment_module=Path('orbit-assets/model-viewer-environment.js').read_text()
 environment_module=re.sub(r"import (\{[^;]+\}) from './three.module.min.js';", r'const \1 = THREE;', environment_module)
 environment_module=environment_module.replace('export default class EnvironmentScene', 'class EnvironmentScene')
 module=module.replace("import EnvironmentScene from './model-viewer-environment.js';", environment_module)
+# Production keeps Three.js and the mesh as separate, cacheable files.
+module_external=module
 mesh_uri='data:application/octet-stream;base64,'+base64.b64encode(Path('orbit-assets/david-mesh.bin').read_bytes()).decode()
 module=module.replace('./three.module.min.js',three_uri).replace('./orbit-assets/david-mesh.bin',mesh_uri)
 p=p.replace('</body>', '<!-- Independent orbit prototype. Original David mesh: 1d_inc, CC BY 4.0. Three.js r169: MIT. See orbit-assets/ATTRIBUTION.txt. -->\n<script>window.orbitFallback = '+json.dumps(fallback,ensure_ascii=False)+';</script>\n<script type="module">'+module+'</script>\n</body>')
@@ -67,5 +69,39 @@ if args.production:
         '<title>林艾奭 — UI/UX Designer</title>\n<meta name="portfolio-version" content="2">')
     production=production.replace('Independent orbit prototype.', 'Portfolio V2.')
     production=re.sub(r'  <!-- model-viewer 函式庫不在 <head>.*?-->\n', '', production, count=1, flags=re.S)
+    # The V2 homepage no longer loads anything from jsDelivr; skip the idle handshake.
+    production=production.replace('  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n','',1)
+    # Load Three.js and the David mesh as separate files instead of ~2 MB of base64
+    # in the page: the HTML parses quickly, and repeat visits reuse cached assets.
+    # ?v= hashes bust browser and service-worker caches when an asset changes.
+    def version(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()[:10]
+    mesh=Path('orbit-assets/david-mesh.bin').read_bytes()
+    Path('orbit-assets/david-mesh.bin.gz').write_bytes(gzip.compress(mesh,9,mtime=0))
+    three_url='./orbit-assets/three.module.min.js?v='+version('orbit-assets/three.module.min.js')
+    mesh_v=version('orbit-assets/david-mesh.bin')
+    mesh_url='./orbit-assets/david-mesh.bin?v='+mesh_v
+    mesh_gz_url='./orbit-assets/david-mesh.bin.gz?v='+mesh_v
+    external=(module_external.replace("'./three.module.min.js'","'"+three_url+"'")
+        .replace("const HEAD_MESH_URL = './orbit-assets/david-mesh.bin';","const HEAD_MESH_URL = '"+mesh_url+"';")
+        .replace("const HEAD_MESH_GZIP_URL = null;","const HEAD_MESH_GZIP_URL = typeof DecompressionStream === 'function' ? '"+mesh_gz_url+"' : null;"))
+    assert three_url in external and mesh_gz_url in external
+    production=production.replace('<script type="module">'+module+'</script>','<script type="module">'+external+'</script>',1)
+    assert three_url in production
+    production=production.replace('</head>',
+        '<link rel="modulepreload" href="'+three_url+'">\n'
+        '<link rel="preload" href="'+mesh_gz_url+'" as="fetch" crossorigin>\n</head>',1)
+    # Offline support: cache the page shell, 3D assets, fonts and viewed covers.
+    production=production.replace('</body>','''<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>''',1)
+    Path('index.html').write_text(production)
+    shell=['index.html',three_url[2:],mesh_gz_url[2:]]
+    sw=Path('orbit-assets/sw-template.js').read_text()
+    sw=sw.replace('__VERSION__',hashlib.sha256(production.encode()).hexdigest()[:10]).replace('__PRECACHE__',json.dumps(shell))
+    Path('sw.js').write_text(sw)
+    print('Wrote sw.js: offline cache')
     Path('index.html').write_text(production)
     print('Wrote index.html: production portfolio V2')
