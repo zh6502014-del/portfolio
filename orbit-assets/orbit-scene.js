@@ -22,7 +22,11 @@ let headPointerBounds = null, headReturn = null;
 let headViewBounds = null;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-const RADIUS = 3.95 * 1.1;
+// Desktop places the panels 10% further from the sculpture; panel size is unchanged
+// (each panel keeps its arc length). Phones keep the tighter ring.
+const WIDE_LAYOUT = matchMedia('(min-width: 761px)');
+const ringRadius = () => 3.95 * 1.1 * (WIDE_LAYOUT.matches ? 1.1 : 1);
+let RADIUS = ringRadius();
 // Enlarge each cover and its glass surface by 10%, keeping the orbit radius.
 const CARD_HEIGHT = (2.7 + .15) * 1.1;
 const SCENE_SCALE = 1.2;
@@ -610,6 +614,13 @@ async function init() {
   } catch(error) { console.error('Orbit preview:',error);fail('作品展間暫時無法顯示，請使用下方作品列表。'); }
 }
 window.addEventListener('orbit-projects',e=>{if(ring)buildProjects(e.detail);});
+WIDE_LAYOUT.addEventListener('change',()=>{
+  RADIUS=ringRadius();
+  if(!ring || !cards.length)return;
+  // Rebuild the panels on the new ring, keeping the selected work in front.
+  sceneProjectsKey=null;
+  buildProjects(projects).then(resize);
+});
 
 // Page scrolling moves the whole hero normally; it never rotates the scene.
 window.addEventListener('scroll',()=>{
