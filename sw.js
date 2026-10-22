@@ -58,7 +58,9 @@ self.addEventListener('fetch', event => {
 
 async function page(request) {
   const cache = await caches.open(SHELL);
-  const network = fetch(request).then(response => {
+  // Revalidate with the server (a cheap 304 when unchanged) instead of reusing
+  // GitHub Pages' 10-minute HTTP cache, so a deploy shows on the next visit.
+  const network = fetch(request, { cache: 'no-cache' }).then(response => {
     if (response.ok) cache.put('index.html', response.clone());
     return response;
   });
