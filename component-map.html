@@ -818,7 +818,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">registerAndLogin()</td><td>Auth</td><td>設定按鈕</td><td>首次設定時 signUp + signIn</td></tr>
     <tr><td class="m">showApp() / showPage(name, btn)</td><td>路由</td><td>checkAuth()</td><td>隱藏 login，顯示 #app，切換 .page[data-page] 與 nav-item.active</td></tr>
     <tr><td class="m">toast(msg, duration)</td><td>通知</td><td>CRUD 操作後</td><td>右下角 toast，createElement，2.2s 後自動消失</td></tr>
-    <tr><td class="m">renderProfilePage() / saveProfile()</td><td>Profile</td><td>showPage()</td><td>載入並 upsert profile 表（nav_name/name/description/email/phone/note/footer_text/footer_link_label）；Email、電話前台顯示開關存 section_settings（contact_email / contact_phone）</td></tr>
+    <tr><td class="m">renderProfilePage() / saveProfile()</td><td>Profile</td><td>showPage()</td><td>載入並 upsert profile 表（nav_name/name/description/note/footer_text）；footer_text 存頁尾項目 JSON [{text, link}]，前台 renderFooter() 靠左逐行渲染；Email、電話欄位已移除（email 欄位資料保留，供頁尾 Email 連結使用）</td></tr>
     <tr><td class="m">renderSkillsPage() / loadSkills() / addSkill() / editSkill(id) / renderSkillForm(skill) / saveSkill(id) / deleteSkill(id)</td><td>Skills CRUD</td><td>showPage()</td><td>icon / title / tags[] / sort_order</td></tr>
     <tr><td class="m">renderToolsPage() / loadTools() / editTool(id) / renderToolForm(tool) / saveTool(id) / deleteTool(id)</td><td>Tools CRUD</td><td>showPage()</td><td>name / description / sort_order</td></tr>
     <tr><td class="m">renderProjectsPage() / loadProjects() / editProject(id) / renderProjectForm(proj) / saveProject(id) / deleteProject(id)</td><td>Projects CRUD</td><td>showPage()</td><td>含 Quill content / sections JSONB / images[] / tags / time_range / members / published</td></tr>
@@ -1034,7 +1034,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">showApp() / showPage(name, btn)</td><td>路由</td><td>隱藏 login，顯示 #app，切換 .page[data-page] 與 nav-item.active</td></tr>
     <tr><td class="m">toast(msg, duration)</td><td>通知</td><td>右下角 toast，createElement，2.2s 後自動消失</td></tr>
     <tr><td class="m">renderNavigationPage() / saveNavigation() / navigationRowHTML() / addNavigationItem() / removeNavigationItem()</td><td>Navigation CRUD</td><td>動態讀寫 nav_items 表；支援新增/刪除項目；navigationEscape() 防 XSS；saveNavigation 批次 upsert（INSERT ... ON CONFLICT）</td></tr>
-    <tr><td class="m">renderProfilePage() / saveProfile()</td><td>Profile</td><td>載入並 upsert profile 表（nav_name/name/description/email/phone/note/footer_text/footer_link_label）；Email、電話前台顯示開關存 section_settings（contact_email / contact_phone）</td></tr>
+    <tr><td class="m">renderProfilePage() / saveProfile()</td><td>Profile</td><td>載入並 upsert profile 表（nav_name/name/description/note/footer_text）；footer_text 存頁尾項目 JSON [{text, link}]，前台 renderFooter() 靠左逐行渲染；Email、電話欄位已移除（email 欄位資料保留，供頁尾 Email 連結使用）</td></tr>
     <tr><td class="m">renderSkillsPage() / loadSkills() / addSkill() / editSkill(id) / renderSkillForm(skill) / saveSkill(id) / deleteSkill(id)</td><td>Skills CRUD</td><td>icon / title / tags[] / sort_order</td></tr>
     <tr><td class="m">renderToolsPage() / loadTools() / editTool(id) / renderToolForm(tool) / saveTool(id) / deleteTool(id)</td><td>Tools CRUD</td><td>name / description / sort_order</td></tr>
     <tr><td class="m">renderProjectsPage() / loadProjects() / editProject(id) / renderProjectForm(proj) / saveProject(id) / deleteProject(id)</td><td>Projects CRUD</td><td>含 Quill content / sections JSONB / images[] / tags / time_range / members / published</td></tr>

@@ -49,6 +49,10 @@ scene='''
 '''
 scene=scene.replace('</section>\n','</section>\n<script>'+Path('orbit-assets/wordmark.js').read_text()+'</script>\n',1)
 p=p.replace('<main>','<main>\n'+scene,1)
+# Offline first visit (no cached data): profile, timeline and footer come from this snapshot.
+profile_fallback=json.loads(Path('orbit-assets/profile-snapshot.json').read_text())
+# Must exist before the page's data loader runs (it renders offline fallback synchronously).
+p=p.replace('</head>', '<script>window.profileFallback = '+json.dumps(profile_fallback,ensure_ascii=False).replace('</','<\\/')+';</script>\n</head>',1)
 p=p.replace('</head>', '<style id="orbit-layout">'+Path('orbit-assets/layout.css').read_text()+'</style>\n</head>')
 fallback=json.loads(Path('orbit-assets/projects-snapshot.json').read_text())
 module=Path('orbit-assets/orbit-scene.js').read_text()

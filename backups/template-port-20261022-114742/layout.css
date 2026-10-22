@@ -1,0 +1,86 @@
+/* Layout experiment only. All palette, typeface and glass tokens above are unchanged. */
+html {scroll-padding-top:76px}
+body {overflow-x:clip}
+:root {--site-width:1120px;--site-gutter:40px}
+.nav-inner,.wrapper,.profile-overview {max-width:var(--site-width);padding-left:var(--site-gutter);padding-right:var(--site-gutter)}
+.nav-logo {white-space:nowrap}
+.orbit-section {padding:0;z-index:2}
+.orbit-sticky {--orbit-top:88px;--orbit-bottom:140px;position:relative;height:calc(100svh - 60px);min-height:600px;max-height:1080px;isolation:isolate;overflow:visible}
+.orbit-wordmark,.orbit-stage {position:absolute;inset:var(--orbit-top) 0 var(--orbit-bottom)}
+.orbit-wordmark {overflow:clip;inset:calc(var(--orbit-top) - 10%) 0 calc(var(--orbit-bottom) + 10%);z-index:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:35.8435vw;font-weight:800;line-height:1;letter-spacing:-.005em;white-space:nowrap;color:var(--text);opacity:.06;mask-image:linear-gradient(to bottom,transparent,#000 25%,#000 70%,transparent);pointer-events:none;user-select:none;-webkit-user-select:none}
+.orbit-wordmark-text {display:block;flex:none;transform:translateX(var(--wordmark-offset,0px))}
+.orbit-wordmark {transition:opacity .45s ease}
+.orbit-wordmark:not(.is-fitted) {opacity:0}
+.orbit-stage {--outset-top:80px;--outset-bottom:40px;inset:calc(var(--orbit-top) - var(--outset-top)) 0 calc(var(--orbit-bottom) - var(--outset-bottom));z-index:1;touch-action:pan-y;cursor:grab;outline:none;user-select:none;-webkit-user-select:none}
+.orbit-stage.is-dragging {cursor:grabbing}
+.orbit-stage.is-hovering:not(.is-dragging) {cursor:pointer}
+.orbit-stage canvas {width:100%;height:100%;display:block;opacity:0;transition:opacity .8s}
+.orbit-ready .orbit-stage canvas {opacity:1}
+.orbit-loading {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:14px;color:var(--text-secondary);text-align:center;pointer-events:none}
+.orbit-loading span {display:block;width:100px;height:2px;background:var(--glass-border-strong);margin:16px auto}
+.orbit-ready .orbit-loading {display:none}
+.orbit-pointer {position:absolute;left:0;top:0;padding:10px 16px;border-radius:100px;pointer-events:none;z-index:4;font-size:12px;opacity:0;transition:opacity .15s;white-space:nowrap;transform:translate(14px,-46px)}
+.orbit-stage.is-hovering:not(.is-dragging) .orbit-pointer {opacity:1}
+.orbit-bottom {position:absolute;bottom:22px;left:28px;right:28px;display:flex;align-items:center;flex-direction:column;gap:10px;z-index:3}
+.orbit-controls {display:flex;align-items:center;justify-content:center;gap:24px}
+.orbit-arrow {width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text);cursor:pointer;flex-shrink:0;padding:0}
+.orbit-active {font-family:inherit;background:none;border:0;color:var(--text);font-size:16px;display:flex;align-items:center;justify-content:center;gap:14px;min-width:360px;cursor:pointer;padding:10px 0;text-align:center}
+.orbit-active:hover #orbit-title {text-decoration:underline;text-underline-offset:5px}
+.orbit-count {font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.orbit-dots {display:flex;align-items:center;gap:2px;height:20px}
+.orbit-dot {display:grid;place-items:center;width:28px;height:24px;border:0;background:none;cursor:pointer;border-radius:20px}
+.orbit-dot::after {content:'';width:5px;height:5px;background:var(--text);opacity:.2;border-radius:20px;transition:width .3s,opacity .3s}
+.orbit-dot[aria-current="true"]::after {width:22px;opacity:.65}
+.orbit-hint {font-size:11px;letter-spacing:.06em;color:var(--text-tertiary)}
+.sr-only {position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+.orbit-fallback {display:none;padding-top:90px;padding-bottom:90px}
+.orbit-failed {height:auto;min-height:0}
+.orbit-failed .orbit-sticky {display:none}
+.orbit-failed .orbit-fallback {display:block}
+.orbit-section:not(.orbit-ready):not(.orbit-failed) .orbit-controls {opacity:.4;pointer-events:none}
+.profile-overview {margin:80px auto 40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start}
+.profile-overview:has(> .section-hidden) {grid-template-columns:minmax(0,1fr)}
+.profile-overview:has(> .hero.section-hidden):has(> #about.section-hidden) {display:none}
+.hero {max-width:none;min-height:unset;min-width:0;width:100%;padding:0;margin:0;display:block;text-align:left}
+.hero-text {max-width:none;width:100%;padding:0;margin:0}
+.hero-title {font-size:clamp(36px,4vw,46px);line-height:1.3;margin-bottom:22px}
+.hero-desc {max-width:760px;font-size:18px;line-height:1.9;margin-bottom:24px}
+/* Rich-text lists from the admin editor: markers sit inside the text column. */
+.hero-desc ul,.hero-desc ol {margin:.2em 0 .6em;padding-left:1.3em}
+.hero-desc ul {list-style:disc}
+.hero-desc ol {list-style:decimal}
+.hero-desc li {margin:.1em 0;padding-left:.2em}
+.hero-desc li::marker {color:var(--text-tertiary)}
+.hero-desc li > ul,.hero-desc li > ol {margin:.1em 0}
+/* A blank editor line separates groups; keep it shorter than a full text line. */
+.hero-desc p:empty,.hero-desc p:has(> br:only-child) {height:.9em}
+.hero-contacts {margin:0 0 22px;gap:10px}
+.hero-contacts .contact-item {font-size:14px;padding:9px 14px;max-width:100%;overflow-wrap:anywhere}
+.hero-contacts .contact-item svg {flex-shrink:0}
+.profile-overview .sec-label {margin-bottom:24px}
+.profile-overview #about {padding:0;min-width:0}
+.profile-overview .skill-grid {grid-template-columns:minmax(0,1fr);gap:14px;margin-bottom:28px}
+.profile-overview .skill-card {display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;column-gap:12px;row-gap:14px;padding:20px}
+.profile-overview .skill-card-icon,.profile-overview .skill-card-title {margin:0}
+.profile-overview .skill-tag-list {grid-column:1/-1;gap:8px}
+.profile-overview .skill-tag-list .tag {font-size:14px}
+button:focus-visible, a:focus-visible {outline:2px solid var(--ring);outline-offset:5px}
+@media (min-width:1500px) {.orbit-stage {max-width:1500px;margin:auto}.orbit-sticky{max-height:1200px}}
+@media (max-height:760px) and (min-width:761px) {.orbit-sticky{--orbit-top:84px;--orbit-bottom:128px;min-height:550px}.orbit-bottom{bottom:16px;gap:6px}}
+@media (max-width:760px) {
+ :root{--site-gutter:24px}
+ /* Phones are width-bound: the ring scales with the screen width, so a full-height
+    stage left large empty bands above and below it. Size the stage to the scene. */
+ .orbit-sticky{--orbit-top:20px;--orbit-bottom:140px;height:calc(var(--orbit-top) + var(--orbit-bottom) + 78vw);min-height:0;max-height:calc(100svh - 60px)}
+ .orbit-bottom{left:18px;right:18px;bottom:28px;gap:10px}
+ .orbit-active{min-width:0;max-width:260px;font-size:13px;gap:8px;flex-wrap:wrap;line-height:1.6}
+ .orbit-count{flex-basis:100%;font-size:10px}
+ .orbit-controls{gap:12px;width:100%;justify-content:space-between;max-width:430px}
+ .orbit-arrow{width:40px;height:40px}
+ .orbit-hint{font-size:10px}.orbit-pointer{display:none}
+ .profile-overview{grid-template-columns:minmax(0,1fr);gap:40px;margin:24px auto 24px}
+ .hero{padding:0}.hero-text{max-width:100%}.hero-title{font-size:clamp(30px,7.5vw,38px)}.hero-desc{font-size:17px}
+ .profile-overview #about{border-top:1px solid var(--border);padding-top:32px}
+ .profile-overview .skill-card{padding:18px}.profile-overview .skill-grid{margin-bottom:24px}
+}
+@media (prefers-reduced-motion:reduce) {html{scroll-behavior:auto}.orbit-stage canvas,.orbit-dot::after{transition:none}}

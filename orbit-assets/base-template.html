@@ -484,6 +484,28 @@
   .rich-table-wrap td[data-bg="purple"] { background:color-mix(in oklab, #a855f7 18%, transparent); }
   .rich-table-wrap p { margin:0; }
   .rich-caption { display:block; margin-top:8px; font-size:13px; line-height:1.6; color:var(--text-tertiary); text-align:center; }
+  /* ── 歷程時間軸（.rich-timeline，後台 TimelineBlot 產生；admin / index 共用同一份樣式）── */
+  .rich-timeline { container-type: inline-size; margin: 24px 0; }
+  .rich-timeline:first-child { margin-top: 0; }
+  .rich-timeline:last-child { margin-bottom: 0; }   /* 結尾由外層容器的 margin 決定間距 */
+  .rich-timeline .rt-list { display: flex; flex-direction: column; }
+  .rich-timeline .rt-item { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 16px; padding-bottom: 24px; }
+  .rich-timeline .rt-item:last-child { padding-bottom: 0; }
+  .rich-timeline .rt-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 24px; bottom: 6px; width: 1px; transform: translateX(-50%); background: var(--border-strong); }
+  .rich-timeline .rt-dot { width: 11px; height: 11px; margin-top: 6px; justify-self: center; border-radius: 50%; background: var(--text); }
+  .rich-timeline .rt-body { min-width: 0; }
+  .rich-timeline .rt-date { font-size: 13px; line-height: 1.6; letter-spacing: .04em; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }   /* = 圖說 / meta */
+  .rich-timeline .rt-title { font-size: 19px; font-weight: 600; line-height: 1.5; color: var(--text); }   /* = H3 */
+  .rich-timeline .rt-desc { margin-top: 4px; font-size: 18px; line-height: 1.85; color: var(--text-secondary); white-space: pre-line; overflow-wrap: anywhere; }   /* = 內文 */
+  /* 水平：只在容器夠寬時套用，窄版面（手機、窄 modal）自動回到垂直 */
+  @container (min-width: 521px) {
+    .rich-timeline[data-orientation="horizontal"] .rt-list { flex-direction: row; overflow-x: auto; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item { flex: 1 1 0; min-width: 120px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 11px auto; row-gap: 14px; padding: 0 16px 0 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item:last-child { padding-right: 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item:not(:last-child)::before { left: 17px; right: 6px; top: 5px; bottom: auto; width: auto; height: 1px; transform: none; }
+    .rich-timeline[data-orientation="horizontal"] .rt-dot { justify-self: start; margin-top: 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-desc { font-size: 15px; line-height: 1.6; }   /* 欄寬窄 → 表格級密集字級 */
+  }
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--text); font-weight: 500; }
 
@@ -878,11 +900,13 @@
   .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:18px; color:var(--text); }
 
-  footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
-  .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
-  .footer-links { display:flex; gap:20px; }
-  .footer-link { font-size:15px; color:var(--text-tertiary); text-decoration:none; }
-  .footer-link:hover { color:var(--text); }
+  footer { border-top:1px solid var(--border); padding:56px 0 48px; margin-top:24px; }
+  footer[hidden] { display:none; }
+  /* 頁尾項目：後台「個人資料 → 頁尾」可自由新增 / 刪除，一律靠左、一行一項 */
+  .footer-items { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+  .footer-item { font-family:var(--font-sans); font-size:15px; line-height:1.7; color:var(--text-secondary); text-decoration:none; overflow-wrap:anywhere; }
+  a.footer-item { color:var(--text-tertiary); transition:color .15s; }
+  a.footer-item:hover { color:var(--text); }
   .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
@@ -1079,16 +1103,6 @@
   <div class="hero-text">
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
-    <div class="hero-contacts" id="hero-contacts">
-      <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        zh6502014@gmail.com
-      </a>
-      <span class="contact-item glass-el">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        0911-585-420
-      </span>
-    </div>
   </div>
 </section>
 
@@ -1154,10 +1168,10 @@
       </div>
   </section>
 
-  <footer>
-    <span class="footer-name" id="footer-name">林艾奭・UI/UX Designer</span>
-    <div class="footer-links">
-      <a href="mailto:zh6502014@gmail.com" class="footer-link" id="footer-email">Email</a>
+  <footer id="site-footer">
+    <div class="footer-items" id="footer-items">
+      <span class="footer-item">林艾奭・UI/UX Designer</span>
+      <a href="mailto:zh6502014@gmail.com" class="footer-item">Email</a>
     </div>
   </footer>
 
@@ -1445,7 +1459,20 @@ function wrapRichTables(html) {
   });
   return root.innerHTML;
 }
-function prepRichHtml(html) { return wrapRichTables(wrapRichCaptions(fixRichLists(html))); }
+// Quill 在區塊（時間軸、表格、影片）後面一定會留一行空白 <p><br></p>，
+// 前台顯示時移除內容結尾的空白行，避免和下一個區塊之間多出空間
+function trimRichTrailing(html) {
+  if (!html || !/<p>\s*(<br\s*\/?>)?\s*<\/p>\s*$/i.test(html)) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  let last = root.lastChild;
+  while (last && (last.nodeType === 3 ? !last.textContent.trim()
+      : last.tagName === 'P' && !last.textContent.trim() && !last.querySelector('img, iframe, video'))) {
+    last.remove(); last = root.lastChild;
+  }
+  return root.innerHTML;
+}
+function prepRichHtml(html) { return wrapRichTables(wrapRichCaptions(fixRichLists(trimRichTrailing(html)))); }
 
 // ── renderNav ──
 function renderNav(items) {
@@ -1489,12 +1516,55 @@ function renderNav(items) {
   });
 }
 
+// ── 頁尾項目（profile.footer_text 存 JSON 陣列 [{text, link}]；admin / 前台共用解析）──
+//  舊資料（純文字 + footer_link_label）自動轉成兩個項目，不需要改資料表
+function parseFooterItems(p) {
+  const raw = String((p && p.footer_text) || '').trim();
+  if (raw.charAt(0) === '[') {
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr
+        .map(i => ({ text: String((i && i.text) || '').trim(), link: String((i && i.link) || '').trim() }))
+        .filter(i => i.text);
+    } catch (e) {}
+  }
+  const items = [{ text: raw || '林艾奭・UI/UX Designer', link: '' }];
+  if (p && p.email) items.push({ text: String(p.footer_link_label || '').trim() || 'Email', link: p.email });
+  return items;
+}
+// 連結：網址、mailto:/tel:、站內 # 或 / 開頭；只填 Email 自動加 mailto:，只填網域自動加 https://
+function footerHref(link) {
+  const l = String(link || '').trim();
+  if (!l) return '';
+  if (/^(https?:|mailto:|tel:)/i.test(l) || /^[#/]/.test(l)) return l;
+  if (/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(l)) return 'mailto:' + l;
+  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(l)) return 'https://' + l;
+  return '';
+}
+function renderFooter(p) {
+  const wrap = document.getElementById('footer-items');
+  if (!wrap) return;
+  const items = parseFooterItems(p);
+  wrap.innerHTML = '';
+  items.forEach(it => {
+    const href = footerHref(it.link);
+    const el = document.createElement(href ? 'a' : 'span');
+    el.className = 'footer-item';
+    el.textContent = it.text;
+    if (href) {
+      el.href = href;
+      if (/^https?:/i.test(href)) { el.target = '_blank'; el.rel = 'noopener'; }
+    }
+    wrap.appendChild(el);
+  });
+  document.getElementById('site-footer').hidden = !items.length;
+}
+
 function renderProfile(p) {
   const heroTitle = (p.name || '您好，我是林艾奭').trim();
   const navName = (p.nav_name && p.nav_name.trim()) || '林艾奭';
   document.getElementById('hero-title').textContent = heroTitle;
   document.getElementById('nav-name').textContent = navName;
-  // footer-name 為靜態文字，不由後台控制
   const descEl = document.getElementById('hero-desc');
   if (descEl) {
     descEl.innerHTML = prepRichHtml(p.description || '');
@@ -1503,11 +1573,7 @@ function renderProfile(p) {
     if (window.innerWidth <= 560) mergeDescParagraphs(descEl);
     bindContentLightbox(descEl);
   }
-  const contacts = document.getElementById('hero-contacts');
-  contacts.innerHTML = '';
-  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
-  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
-  document.getElementById('footer-email').href = 'mailto:' + (p.email || '');
+  renderFooter(p);
 }
 
 function renderSkills(data) {
@@ -1892,6 +1958,8 @@ function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); retu
 function renderFallback() {
   // 讓 3D 展間區分「連不上」與「真的沒有作品」
   window.orbitEmptyReason = 'offline';
+  // 第一次就離線（沒有 localStorage 快取）：個人資料改用 build 時寫入的快照（orbit-assets/profile-snapshot.json）
+  if (window.profileFallback) renderProfile(window.profileFallback);
   renderProjects([]);
   renderNotes([]);
   renderSkills([]);

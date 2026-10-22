@@ -2,7 +2,7 @@
 // Pages: network first (4 s), so a deploy shows up on the next visit; offline falls
 // back to the last saved copy. Versioned 3D assets, fonts and viewed covers are
 // cache first. Supabase REST data is not touched: the page keeps its own copy.
-const VERSION = '9f4a6e5891';
+const VERSION = '9fafb78f8f';
 const SHELL = 'portfolio-shell-' + VERSION;
 const STATIC = 'portfolio-static-v1';
 const IMAGES = 'portfolio-images-v1';

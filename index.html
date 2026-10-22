@@ -898,11 +898,13 @@
   .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
   .note-title { font-size:18px; color:var(--text); }
 
-  footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
-  .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
-  .footer-links { display:flex; gap:20px; }
-  .footer-link { font-size:15px; color:var(--text-tertiary); text-decoration:none; }
-  .footer-link:hover { color:var(--text); }
+  footer { border-top:1px solid var(--border); padding:56px 0 48px; margin-top:24px; }
+  footer[hidden] { display:none; }
+  /* 頁尾項目：後台「個人資料 → 頁尾」可自由新增 / 刪除，一律靠左、一行一項 */
+  .footer-items { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+  .footer-item { font-family:var(--font-sans); font-size:15px; line-height:1.7; color:var(--text-secondary); text-decoration:none; overflow-wrap:anywhere; }
+  a.footer-item { color:var(--text-tertiary); transition:color .15s; }
+  a.footer-item:hover { color:var(--text); }
   .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
@@ -1049,6 +1051,7 @@
   }
 
 </style>
+<script>window.profileFallback = {"name": "您好，我是林艾奭", "nav_name": "UI/UX 作品集", "description": "<p>目前任職永豐銀行，累積約 8 年設計經驗，其中 4 年以上專注金融產品 UI/UX。我擅長將業務流程轉化為資訊清楚、狀態完整的 APP 與網頁介面，並運用設計規範維護介面一致性。<\/p><div class=\"rich-timeline\" contenteditable=\"false\" data-orientation=\"vertical\" data-items=\"[{&quot;date&quot;:&quot;永豐商業銀行&quot;,&quot;title&quot;:&quot;數位設計專員 UI/UX&quot;,&quot;desc&quot;:&quot;2022/2~仍在職\\n參與網路銀行 (Web)、行動銀行 (APP) 的 UI/UX 設計專案&quot;},{&quot;date&quot;:&quot;自助家遊學網&quot;,&quot;title&quot;:&quot;網頁 UI 設計&quot;,&quot;desc&quot;:&quot;2021/4~2022/1\\n網站視覺優化、活動頁視覺設計以及其他平面相關設計&quot;}]\"><div class=\"rt-list\"><div class=\"rt-item\"><span class=\"rt-dot\"><\/span><div class=\"rt-body\"><div class=\"rt-date\">永豐商業銀行<\/div><div class=\"rt-title\">數位設計專員 UI/UX<\/div><div class=\"rt-desc\">2022/2~仍在職\n參與網路銀行 (Web)、行動銀行 (APP) 的 UI/UX 設計專案<\/div><\/div><\/div><div class=\"rt-item\"><span class=\"rt-dot\"><\/span><div class=\"rt-body\"><div class=\"rt-date\">自助家遊學網<\/div><div class=\"rt-title\">網頁 UI 設計<\/div><div class=\"rt-desc\">2021/4~2022/1\n網站視覺優化、活動頁視覺設計以及其他平面相關設計<\/div><\/div><\/div><\/div><\/div><p><br><\/p>", "email": "zh6502014@gmail.com", "footer_text": "© 2026 林艾奭｜本作品集由生成式人工智慧製作，相關品牌、商標與素材之權利歸原權利人所有。", "footer_link_label": "zh6502014@gmail.com"};</script>
 <style id="orbit-layout">/* Layout experiment only. All palette, typeface and glass tokens above are unchanged. */
 html {scroll-padding-top:76px}
 body {overflow-x:clip}
@@ -1106,7 +1109,6 @@ body {overflow-x:clip}
 /* A blank editor line separates groups; keep it shorter than a full text line. */
 .hero-desc p:empty,.hero-desc p:has(> br:only-child) {height:.9em}
 .hero-contacts {margin:0 0 22px;gap:10px}
-.hero-contacts:not(:has(> .contact-item:not(.section-hidden))) {display:none} /* Email、電話都沒有或都隱藏時，不留空白 */
 .hero-contacts .contact-item {font-size:14px;padding:9px 14px;max-width:100%;overflow-wrap:anywhere}
 .hero-contacts .contact-item svg {flex-shrink:0}
 .profile-overview .sec-label {margin-bottom:24px}
@@ -1269,16 +1271,6 @@ alignWordmark();
     <p class="sec-label">關於我</p>
     <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
     <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
-    <div class="hero-contacts" id="hero-contacts">
-      <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        zh6502014@gmail.com
-      </a>
-      <span class="contact-item glass-el">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        0911-585-420
-      </span>
-    </div>
   </div>
 </section>
   <section id="about" style="position:relative">
@@ -1310,10 +1302,10 @@ alignWordmark();
       </div>
   </section>
 
-  <footer>
-    <span class="footer-name" id="footer-name">林艾奭・UI/UX Designer</span>
-    <div class="footer-links">
-      <a href="mailto:zh6502014@gmail.com" class="footer-link" id="footer-email">Email</a>
+  <footer id="site-footer">
+    <div class="footer-items" id="footer-items">
+      <span class="footer-item">林艾奭・UI/UX Designer</span>
+      <a href="mailto:zh6502014@gmail.com" class="footer-item">Email</a>
     </div>
   </footer>
 
@@ -1501,9 +1493,6 @@ function applySectionVisibility(rows) {
     projects:   () => [$('projects')],
     notes:      () => [$('notes')],
     navigation: () => [$('nav-links')],
-    // 個人資料頁的 Email / 電話開關；Email 隱藏時頁尾的 Email 連結一起隱藏
-    contact_email: () => [document.querySelector('#hero-contacts [data-contact="email"]'), $('footer-email')],
-    contact_phone: () => [document.querySelector('#hero-contacts [data-contact="phone"]')],
   };
   Object.keys(targets).forEach(key => {
     targets[key]().forEach(el => el && el.classList.toggle('section-hidden', off.has(key)));
@@ -1662,6 +1651,50 @@ function renderNav(items) {
   });
 }
 
+// ── 頁尾項目（profile.footer_text 存 JSON 陣列 [{text, link}]；admin / 前台共用解析）──
+//  舊資料（純文字 + footer_link_label）自動轉成兩個項目，不需要改資料表
+function parseFooterItems(p) {
+  const raw = String((p && p.footer_text) || '').trim();
+  if (raw.charAt(0) === '[') {
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr
+        .map(i => ({ text: String((i && i.text) || '').trim(), link: String((i && i.link) || '').trim() }))
+        .filter(i => i.text);
+    } catch (e) {}
+  }
+  const items = [{ text: raw || '林艾奭・UI/UX Designer', link: '' }];
+  if (p && p.email) items.push({ text: String(p.footer_link_label || '').trim() || 'Email', link: p.email });
+  return items;
+}
+// 連結：網址、mailto:/tel:、站內 # 或 / 開頭；只填 Email 自動加 mailto:，只填網域自動加 https://
+function footerHref(link) {
+  const l = String(link || '').trim();
+  if (!l) return '';
+  if (/^(https?:|mailto:|tel:)/i.test(l) || /^[#/]/.test(l)) return l;
+  if (/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(l)) return 'mailto:' + l;
+  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(l)) return 'https://' + l;
+  return '';
+}
+function renderFooter(p) {
+  const wrap = document.getElementById('footer-items');
+  if (!wrap) return;
+  const items = parseFooterItems(p);
+  wrap.innerHTML = '';
+  items.forEach(it => {
+    const href = footerHref(it.link);
+    const el = document.createElement(href ? 'a' : 'span');
+    el.className = 'footer-item';
+    el.textContent = it.text;
+    if (href) {
+      el.href = href;
+      if (/^https?:/i.test(href)) { el.target = '_blank'; el.rel = 'noopener'; }
+    }
+    wrap.appendChild(el);
+  });
+  document.getElementById('site-footer').hidden = !items.length;
+}
+
 function renderProfile(p) {
   const heroTitle = (p.name || '您好，我是林艾奭').trim();
   const navName = ((p.nav_name && p.nav_name.trim()) || 'UI/UX Portfolio').replace(/作品集/g, 'Portfolio');
@@ -1675,16 +1708,7 @@ function renderProfile(p) {
     if (window.innerWidth <= 560) mergeDescParagraphs(descEl);
     bindContentLightbox(descEl);
   }
-  const contacts = document.getElementById('hero-contacts');
-  contacts.innerHTML = '';
-  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el" data-contact="email"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
-  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el" data-contact="phone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
-  // 頁尾：後台「個人資料 → 頁尾」可編輯，留白用預設文字；沒有 Email 時不顯示連結
-  document.getElementById('footer-name').textContent = (p.footer_text || '').trim() || '林艾奭・UI/UX Designer';
-  const footerEmail = document.getElementById('footer-email');
-  footerEmail.textContent = (p.footer_link_label || '').trim() || 'Email';
-  footerEmail.href = 'mailto:' + (p.email || '');
-  footerEmail.hidden = !p.email;
+  renderFooter(p);
 }
 
 function renderSkills(data) {
@@ -2071,6 +2095,8 @@ function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); retu
 function renderFallback() {
   // 讓 3D 展間區分「連不上」與「真的沒有作品」
   window.orbitEmptyReason = 'offline';
+  // 第一次就離線（沒有 localStorage 快取）：個人資料改用 build 時寫入的快照（orbit-assets/profile-snapshot.json）
+  if (window.profileFallback) renderProfile(window.profileFallback);
   renderProjects([]);
   renderNotes([]);
   renderSkills([]);
