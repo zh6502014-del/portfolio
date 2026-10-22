@@ -1041,6 +1041,8 @@ body {overflow-x:clip}
 .orbit-wordmark,.orbit-stage {position:absolute;inset:var(--orbit-top) 0 var(--orbit-bottom)}
 .orbit-wordmark {overflow:clip;inset:calc(var(--orbit-top) - 10%) 0 calc(var(--orbit-bottom) + 10%);z-index:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:35.8435vw;font-weight:800;line-height:1;letter-spacing:-.005em;white-space:nowrap;color:var(--text);opacity:.06;mask-image:linear-gradient(to bottom,transparent,#000 25%,#000 70%,transparent);pointer-events:none;user-select:none;-webkit-user-select:none}
 .orbit-wordmark-text {display:block;flex:none;transform:translateX(var(--wordmark-offset,0px))}
+.orbit-wordmark {transition:opacity .45s ease}
+.orbit-wordmark:not(.is-fitted) {opacity:0}
 .orbit-stage {--outset-top:80px;--outset-bottom:40px;inset:calc(var(--orbit-top) - var(--outset-top)) 0 calc(var(--orbit-bottom) - var(--outset-bottom));z-index:1;touch-action:pan-y;cursor:grab;outline:none;user-select:none;-webkit-user-select:none}
 .orbit-stage.is-dragging {cursor:grabbing}
 .orbit-stage.is-hovering:not(.is-dragging) {cursor:pointer}
@@ -1174,6 +1176,62 @@ button:focus-visible, a:focus-visible {outline:2px solid var(--ring);outline-off
   </div>
   <div class="orbit-fallback wrapper"><div class="glass-el glass-container"><div class="projects-grid" id="projects-grid"></div></div></div>
 </section>
+<script>// Fit the background "UI/UX" wordmark to the navigation's content width.
+// Inlined as a classic script right after the orbit markup by build-preview.py,
+// so it runs before first paint instead of after the Three.js module loads.
+(function () {
+function alignWordmark() {
+  const wordmark=document.querySelector('.orbit-wordmark');
+  const text=wordmark.querySelector('.orbit-wordmark-text');
+  const nav=document.querySelector('.nav-inner');
+  const context=document.createElement('canvas').getContext('2d');
+  if(!context||!nav)return;
+  function align() {
+    const navBounds=nav.getBoundingClientRect();
+    const navStyle=getComputedStyle(nav);
+    const left=navBounds.left+parseFloat(navStyle.paddingLeft);
+    const right=navBounds.right-parseFloat(navStyle.paddingRight);
+    const width=right-left;
+    if(width<=0)return;
+    let style=getComputedStyle(text);
+    const spacingRatio=(parseFloat(style.letterSpacing)||0)/parseFloat(style.fontSize);
+    context.textAlign='left';
+    // Fit the visible ink to the navigation's actual content gutters, including
+    // its max-width and responsive padding. Keep the type uniformly scaled.
+    context.font=`${style.fontWeight} 1000px ${style.fontFamily}`;
+    const sample=context.measureText(text.textContent);
+    const gaps=Array.from(text.textContent).length-1;
+    const inkWidth=sample.actualBoundingBoxLeft+sample.actualBoundingBoxRight+1000*spacingRatio*gaps;
+    wordmark.style.fontSize=`${1000*width/inkWidth}px`;
+    style=getComputedStyle(text);
+    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const spacing=parseFloat(style.letterSpacing)||0;
+    const metrics=context.measureText(text.textContent);
+    // U and X have different side bearings; center their ink, not the text box.
+    const inkCenter=(metrics.actualBoundingBoxRight+spacing*gaps-metrics.actualBoundingBoxLeft)/2;
+    const bounds=wordmark.getBoundingClientRect();
+    const offset=text.getBoundingClientRect().width/2-inkCenter+(left+right-bounds.left-bounds.right)/2;
+    text.style.setProperty('--wordmark-offset',`${offset}px`);
+  }
+  const observer=new ResizeObserver(align);
+  observer.observe(wordmark);
+  observer.observe(nav);
+  // Keep the wordmark hidden until it is sized with the final web font, so a
+  // reload never shows the oversized CSS fallback or the fallback-font metrics.
+  const reveal=()=>{align();wordmark.classList.add('is-fitted');};
+  // fonts.ready can resolve before layout has requested the 800 weight, so ask
+  // for that exact face. A slow font network still reveals after 1.5 s.
+  const face=getComputedStyle(text);
+  Promise.race([
+    document.fonts.load(`${face.fontWeight} 100px ${face.fontFamily}`,text.textContent),
+    new Promise(resolve=>setTimeout(resolve,1500))
+  ]).then(reveal,reveal);
+  document.fonts.addEventListener('loadingdone',align);
+  align();
+}
+alignWordmark();
+})();
+</script>
 
 
 <div class="profile-overview">
@@ -2569,47 +2627,6 @@ async function loadHeadGeometry() {
   return response.arrayBuffer();
 }
 
-function alignWordmark() {
-  const wordmark=document.querySelector('.orbit-wordmark');
-  const text=wordmark.querySelector('.orbit-wordmark-text');
-  const nav=document.querySelector('.nav-inner');
-  const context=document.createElement('canvas').getContext('2d');
-  if(!context||!nav)return;
-  function align() {
-    const navBounds=nav.getBoundingClientRect();
-    const navStyle=getComputedStyle(nav);
-    const left=navBounds.left+parseFloat(navStyle.paddingLeft);
-    const right=navBounds.right-parseFloat(navStyle.paddingRight);
-    const width=right-left;
-    if(width<=0)return;
-    let style=getComputedStyle(text);
-    const spacingRatio=(parseFloat(style.letterSpacing)||0)/parseFloat(style.fontSize);
-    context.textAlign='left';
-    // Fit the visible ink to the navigation's actual content gutters, including
-    // its max-width and responsive padding. Keep the type uniformly scaled.
-    context.font=`${style.fontWeight} 1000px ${style.fontFamily}`;
-    const sample=context.measureText(text.textContent);
-    const gaps=Array.from(text.textContent).length-1;
-    const inkWidth=sample.actualBoundingBoxLeft+sample.actualBoundingBoxRight+1000*spacingRatio*gaps;
-    wordmark.style.fontSize=`${1000*width/inkWidth}px`;
-    style=getComputedStyle(text);
-    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-    const spacing=parseFloat(style.letterSpacing)||0;
-    const metrics=context.measureText(text.textContent);
-    // U and X have different side bearings; center their ink, not the text box.
-    const inkCenter=(metrics.actualBoundingBoxRight+spacing*gaps-metrics.actualBoundingBoxLeft)/2;
-    const bounds=wordmark.getBoundingClientRect();
-    const offset=text.getBoundingClientRect().width/2-inkCenter+(left+right-bounds.left-bounds.right)/2;
-    text.style.setProperty('--wordmark-offset',`${offset}px`);
-  }
-  const observer=new ResizeObserver(align);
-  observer.observe(wordmark);
-  observer.observe(nav);
-  document.fonts.ready.then(align);
-  document.fonts.addEventListener('loadingdone',align);
-  align();
-}
-
 function invalidate() {
   dirty = true;
   if (!frame && visible && !document.hidden) frame = requestAnimationFrame(render);
@@ -3245,7 +3262,6 @@ stage.addEventListener('keydown',e=>{
 document.getElementById('orbit-prev').addEventListener('click',()=>goTo(active-1));
 document.getElementById('orbit-next').addEventListener('click',()=>goTo(active+1));
 document.getElementById('orbit-open').addEventListener('click',()=>openProject());
-alignWordmark();
 init();
 </script>
 <script>

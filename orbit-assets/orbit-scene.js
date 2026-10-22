@@ -76,47 +76,6 @@ async function loadHeadGeometry() {
   return response.arrayBuffer();
 }
 
-function alignWordmark() {
-  const wordmark=document.querySelector('.orbit-wordmark');
-  const text=wordmark.querySelector('.orbit-wordmark-text');
-  const nav=document.querySelector('.nav-inner');
-  const context=document.createElement('canvas').getContext('2d');
-  if(!context||!nav)return;
-  function align() {
-    const navBounds=nav.getBoundingClientRect();
-    const navStyle=getComputedStyle(nav);
-    const left=navBounds.left+parseFloat(navStyle.paddingLeft);
-    const right=navBounds.right-parseFloat(navStyle.paddingRight);
-    const width=right-left;
-    if(width<=0)return;
-    let style=getComputedStyle(text);
-    const spacingRatio=(parseFloat(style.letterSpacing)||0)/parseFloat(style.fontSize);
-    context.textAlign='left';
-    // Fit the visible ink to the navigation's actual content gutters, including
-    // its max-width and responsive padding. Keep the type uniformly scaled.
-    context.font=`${style.fontWeight} 1000px ${style.fontFamily}`;
-    const sample=context.measureText(text.textContent);
-    const gaps=Array.from(text.textContent).length-1;
-    const inkWidth=sample.actualBoundingBoxLeft+sample.actualBoundingBoxRight+1000*spacingRatio*gaps;
-    wordmark.style.fontSize=`${1000*width/inkWidth}px`;
-    style=getComputedStyle(text);
-    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-    const spacing=parseFloat(style.letterSpacing)||0;
-    const metrics=context.measureText(text.textContent);
-    // U and X have different side bearings; center their ink, not the text box.
-    const inkCenter=(metrics.actualBoundingBoxRight+spacing*gaps-metrics.actualBoundingBoxLeft)/2;
-    const bounds=wordmark.getBoundingClientRect();
-    const offset=text.getBoundingClientRect().width/2-inkCenter+(left+right-bounds.left-bounds.right)/2;
-    text.style.setProperty('--wordmark-offset',`${offset}px`);
-  }
-  const observer=new ResizeObserver(align);
-  observer.observe(wordmark);
-  observer.observe(nav);
-  document.fonts.ready.then(align);
-  document.fonts.addEventListener('loadingdone',align);
-  align();
-}
-
 function invalidate() {
   dirty = true;
   if (!frame && visible && !document.hidden) frame = requestAnimationFrame(render);
@@ -752,5 +711,4 @@ stage.addEventListener('keydown',e=>{
 document.getElementById('orbit-prev').addEventListener('click',()=>goTo(active-1));
 document.getElementById('orbit-next').addEventListener('click',()=>goTo(active+1));
 document.getElementById('orbit-open').addEventListener('click',()=>openProject());
-alignWordmark();
 init();

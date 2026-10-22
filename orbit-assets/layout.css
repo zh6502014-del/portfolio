@@ -9,6 +9,8 @@ body {overflow-x:clip}
 .orbit-wordmark,.orbit-stage {position:absolute;inset:var(--orbit-top) 0 var(--orbit-bottom)}
 .orbit-wordmark {overflow:clip;inset:calc(var(--orbit-top) - 10%) 0 calc(var(--orbit-bottom) + 10%);z-index:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:35.8435vw;font-weight:800;line-height:1;letter-spacing:-.005em;white-space:nowrap;color:var(--text);opacity:.06;mask-image:linear-gradient(to bottom,transparent,#000 25%,#000 70%,transparent);pointer-events:none;user-select:none;-webkit-user-select:none}
 .orbit-wordmark-text {display:block;flex:none;transform:translateX(var(--wordmark-offset,0px))}
+.orbit-wordmark {transition:opacity .45s ease}
+.orbit-wordmark:not(.is-fitted) {opacity:0}
 .orbit-stage {--outset-top:80px;--outset-bottom:40px;inset:calc(var(--orbit-top) - var(--outset-top)) 0 calc(var(--orbit-bottom) - var(--outset-bottom));z-index:1;touch-action:pan-y;cursor:grab;outline:none;user-select:none;-webkit-user-select:none}
 .orbit-stage.is-dragging {cursor:grabbing}
 .orbit-stage.is-hovering:not(.is-dragging) {cursor:pointer}

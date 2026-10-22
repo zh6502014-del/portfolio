@@ -47,6 +47,7 @@ scene='''
   <div class="orbit-fallback wrapper"><div class="glass-el glass-container"><div class="projects-grid" id="projects-grid"></div></div></div>
 </section>
 '''
+scene=scene.replace('</section>\n','</section>\n<script>'+Path('orbit-assets/wordmark.js').read_text()+'</script>\n',1)
 p=p.replace('<main>','<main>\n'+scene,1)
 p=p.replace('</head>', '<style id="orbit-layout">'+Path('orbit-assets/layout.css').read_text()+'</style>\n</head>')
 fallback=json.loads(Path('orbit-assets/projects-snapshot.json').read_text())
