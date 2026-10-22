@@ -1053,7 +1053,9 @@
   try {
     var ua = navigator.userAgent;
     var isSafari = /Safari/.test(ua) && !/Chrom|Edg|OPR/.test(ua);
-    if (!isSafari && window.CSS && CSS.supports('backdrop-filter', 'url(#glass-distort) blur(1px)')) {
+    // 觸控裝置不啟用：導覽列玻璃疊在 WebGL 展間上，每一幀都要重算 SVG 位移濾鏡，手機會明顯掉幀
+    var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    if (!isSafari && !coarse && window.CSS && CSS.supports('backdrop-filter', 'url(#glass-distort) blur(1px)')) {
       document.documentElement.classList.add('lg-refract');
     }
   } catch (e) {}
@@ -1282,14 +1284,23 @@ function offlineMessage(cache = readDataCache()) {
   const d = new Date(cache.t);
   return `顯示 ${d.getMonth() + 1}/${d.getDate()} 已儲存的內容；已下載的圖片可離線瀏覽`;
 }
+let _retryQueued = false;
 async function retryLoad() {
-  if (_retrying) return;
+  // Reconnecting during an in-flight retry queues one more attempt, so a
+  // request invalidated by an offline event is never the last one.
+  if (_retrying) { _retryQueued = true; return; }
   _retrying = true;
   const btn = document.querySelector('#offline-banner .offline-retry');
   if (btn) { btn.disabled = true; btn.textContent = '載入中…'; }
-  if (navigator.onLine !== false) showOfflineBanner('正在更新內容…', '重新連線中');
+  // Brief network blips refresh silently; only an already visible banner changes.
+  if (navigator.onLine !== false && document.getElementById('offline-banner')?.classList.contains('show'))
+    showOfflineBanner('正在更新內容…', '重新連線中');
   try { await loadData(); }
-  finally { _retrying = false; if (btn) { btn.disabled = false; btn.textContent = '重新載入'; } }
+  finally {
+    _retrying = false;
+    if (btn) { btn.disabled = false; btn.textContent = '重新載入'; }
+    if (_retryQueued) { _retryQueued = false; retryLoad(); }
+  }
 }
 async function loadData(promise = null) {
   const sequence = ++_loadSequence;
@@ -1303,6 +1314,7 @@ async function loadData(promise = null) {
   try {
     const data = await (promise || fetchAll());
     if (sequence !== _loadSequence) return false;
+    window.orbitEmptyReason = '';
     renderDataIfChanged(data);
     saveDataCache(data);
     hideOfflineBanner();
@@ -1878,6 +1890,8 @@ function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerH
 function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${y}.${m}.${day}`; }
 
 function renderFallback() {
+  // 讓 3D 展間區分「連不上」與「真的沒有作品」
+  window.orbitEmptyReason = 'offline';
   renderProjects([]);
   renderNotes([]);
   renderSkills([]);

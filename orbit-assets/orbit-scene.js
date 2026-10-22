@@ -38,6 +38,30 @@ const meshDisposables = new Set();
 const HEAD_MESH_URL = './orbit-assets/david-mesh.bin';
 const HEAD_MESH_GZIP_URL = null;
 let sceneProjectsKey = null;
+const COARSE_POINTER = matchMedia('(pointer:coarse)').matches;
+// Phones fill a tall, oversized canvas with layered transparent glass. Start at
+// a lower resolution there, and step down further only when frames measurably
+// miss their budget during continuous motion. Never step back up (no flicker).
+const PIXEL_RATIO_STEPS = COARSE_POINTER ? [1.5, 1.25, 1] : [1.75, 1.5, 1.25];
+const TEXTURE_LIMIT = COARSE_POINTER ? 1024 : 2048;
+let pixelRatioLevel = 0, frameSamples = 0, slowFrames = 0, measureAfter = Infinity;
+function currentPixelRatio() {
+  return Math.min(window.devicePixelRatio || 1, PIXEL_RATIO_STEPS[pixelRatioLevel]);
+}
+function trackFrameCost(interval, now) {
+  // Idle gaps between gestures are not slowness; skip start-up texture uploads.
+  if (interval > 100 || now < measureAfter || pixelRatioLevel >= PIXEL_RATIO_STEPS.length - 1) return;
+  frameSamples++;
+  if (interval > 24) slowFrames++;
+  if (frameSamples < 45) return;
+  const tooSlow = slowFrames > frameSamples * .35;
+  frameSamples = slowFrames = 0;
+  if (!tooSlow) return;
+  const next = Math.min(window.devicePixelRatio || 1, PIXEL_RATIO_STEPS[pixelRatioLevel + 1]);
+  if (next >= currentPixelRatio()) return;
+  pixelRatioLevel++;
+  resize();
+}
 
 async function loadHeadGeometry() {
   if (HEAD_MESH_GZIP_URL && typeof DecompressionStream === 'function') {
@@ -150,7 +174,7 @@ function resize() {
   camera.top = centerY + viewHeight / 2;
   camera.bottom = centerY - viewHeight / 2;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.setPixelRatio(currentPixelRatio());
   renderer.setSize(width, height);
   updateHeadPointerBounds(width, height);
   invalidate();
@@ -363,7 +387,7 @@ function openProject(index=active) {
 }
 async function buildProjects(data) {
   if(!Array.isArray(data))return;
-  const key=JSON.stringify(data.map(p=>[p.id,p.title,coverURL(p)]));
+  const key=JSON.stringify([window.orbitEmptyReason||'',data.map(p=>[p.id,p.title,coverURL(p)])]);
   if(key===sceneProjectsKey)return;
   sceneProjectsKey=key;
   const selectedId=projects[active]?.id;
@@ -379,8 +403,9 @@ async function buildProjects(data) {
   meshDisposables.clear();
   projects=data;cards=[];dots.replaceChildren();
   if(!projects.length) {
-    hint.textContent='目前沒有可顯示的作品';hint.hidden=false;
-    title.textContent='暫無作品';count.textContent='00 / 00';invalidate();return;
+    const unreachable=navigator.onLine===false || window.orbitEmptyReason==='offline';
+    hint.textContent=unreachable?'暫時無法載入作品，連線後會自動更新':'目前沒有可顯示的作品';hint.hidden=false;
+    title.textContent=unreachable?'等待連線':'暫無作品';count.textContent='00 / 00';invalidate();return;
   }
   const step=TAU/projects.length;
   const loader=new THREE.TextureLoader();
@@ -461,10 +486,22 @@ async function buildProjects(data) {
     const url=coverURL(p);
     if(url)loader.load(url,texture=>{
       if(version!==buildVersion){texture.dispose();return;}
-      texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+      texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),COARSE_POINTER?4:8);
       const image=texture.image;
       const width=image.naturalWidth || image.width;
       const height=image.naturalHeight || image.height;
+      // Panels never display more than this; oversized covers stall the GPU upload
+      // and mipmap generation on phones. Keep the original aspect ratio.
+      if(Math.max(width,height)>TEXTURE_LIMIT) {
+        const scale=TEXTURE_LIMIT/Math.max(width,height),canvas=document.createElement('canvas');
+        canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
+        const context=canvas.getContext('2d');
+        if(context) {
+          context.imageSmoothingQuality='high';
+          context.drawImage(image,0,0,canvas.width,canvas.height);
+          texture.image=canvas;texture.needsUpdate=true;
+        }
+      }
       setCardAspectRatio(card, width / height);
       frontMaterial.map=texture;backMaterial.map=texture;
       frontMaterial.needsUpdate=true;backMaterial.needsUpdate=true;placeholder.dispose();invalidate();
@@ -482,6 +519,7 @@ function render(now) {
   frame=0;
   if(!visible || document.hidden)return;
   const dt=Math.min((now-(lastFrameTime || now-16.67))/16.67,3);
+  if(lastFrameTime)trackFrameCost(now-lastFrameTime,now);
   lastFrameTime=now;
   const ease=reduced.matches ? 1 : 1-Math.pow(.83,dt);
   const headEase=reduced.matches?1:1-Math.exp(-dt*16.67/HEAD_TURN_RESPONSE_MS);
@@ -604,13 +642,15 @@ async function init() {
     occluders=[headPick,neckPick];occluders.forEach(o=>{o.userData.headOffset=o.position.clone().sub(bust.position);scene.add(o);o.updateMatrixWorld();});
     await buildProjects(window.orbitProjects ?? window.orbitFallback);
     section.classList.add('orbit-ready');invalidate();
+    measureAfter=performance.now()+1500;
   } catch(error) { console.error('Orbit preview:',error);fail('作品展間暫時無法顯示，請使用下方作品列表。'); }
 }
 window.addEventListener('orbit-projects',e=>{if(ring)buildProjects(e.detail);});
 
 // Page scrolling moves the whole hero normally; it never rotates the scene.
 window.addEventListener('scroll',()=>{
-  if(!ring)return;
+  // Touch scrolling leaves nothing to reset; skip a WebGL redraw per scroll event.
+  if(!ring || (hover===null && !pendingPointer && !lastPointer && !headReturn && !moveX && !moveY && !mouseX && !mouseY))return;
   hover=null;pendingPointer=lastPointer=null;returnHead();
   stage.classList.remove('is-hovering');invalidate();
 },{passive:true});
@@ -654,16 +694,20 @@ stage.addEventListener('wheel',e=>{
 stage.addEventListener('pointerdown',e=>{
   if(e.button!==0 || !cards.length)return;
   hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');invalidate();
-  drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,startAngle:targetAngle,moved:false,locked:false,velocity:0,lastTime:e.timeStamp};
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,startAngle:targetAngle,moved:false,locked:false,velocity:0,lastTime:e.timeStamp,rect:stage.getBoundingClientRect()};
   if(e.pointerType==='mouse')stage.setPointerCapture(e.pointerId);
 });
 stage.addEventListener('pointermove',e=>{
-  const rect=stage.getBoundingClientRect();
-  pointerLabel.style.left=`${e.clientX-rect.left}px`;pointerLabel.style.top=`${e.clientY-rect.top}px`;
+  // A drag reuses the rectangle measured on pointerdown: no layout read per move.
+  const rect=drag && e.pointerId===drag.id ? drag.rect : stage.getBoundingClientRect();
+  if(e.pointerType!=='touch'){pointerLabel.style.left=`${e.clientX-rect.left}px`;pointerLabel.style.top=`${e.clientY-rect.top}px`;}
   if(drag && e.pointerId===drag.id){
     const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
     if(!drag.locked && Math.abs(dy)>8 && Math.abs(dy)>Math.abs(dx)*1.2){drag=null;return;}
-    if(Math.abs(dx)>6){drag.moved=true;drag.locked=true;stage.classList.add('is-dragging');stage.setPointerCapture(e.pointerId);}
+    // Mouse is captured on pointerdown; touch and pen already have implicit capture.
+    // Explicitly capturing touch mid-swipe made the browser fire lostpointercapture,
+    // which ended the drag after its first frame and left the ring stuck.
+    if(!drag.locked && Math.abs(dx)>6){drag.moved=true;drag.locked=true;stage.classList.add('is-dragging');}
     if(drag.locked){targetAngle=drag.startAngle+dx/Math.max(rect.width,500)*TAU*.8;angle=targetAngle;renderedAngle=targetAngle;hover=null;stage.classList.remove('is-hovering');invalidate();}
     drag.velocity=(e.clientX-drag.lastX)/Math.max(8,e.timeStamp-drag.lastTime);
     drag.lastTime=e.timeStamp;drag.lastX=e.clientX;return;
@@ -691,7 +735,12 @@ function finishDrag(e,cancelled=false) {
 }
 stage.addEventListener('pointerup',e=>finishDrag(e));
 stage.addEventListener('pointercancel',e=>finishDrag(e,true));
-stage.addEventListener('lostpointercapture',()=>{drag=null;stage.classList.remove('is-dragging');});
+stage.addEventListener('lostpointercapture',e=>{
+  // pointerup/pointercancel finish a drag; only an unexpected loss mid-drag resets it.
+  if(!drag || e.pointerId!==drag.id)return;
+  const current=drag;drag=null;stage.classList.remove('is-dragging');
+  if(current.moved){updateActive(nearestProject(),true);invalidate();}
+});
 stage.addEventListener('pointerleave',()=>{pendingPointer=lastPointer=null;if(drag)return;hover=null;returnHead();stage.classList.remove('is-hovering');invalidate();});
 stage.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'){e.preventDefault();goTo(active+1);}
