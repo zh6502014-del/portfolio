@@ -1,0 +1,8 @@
+Three.js r169 — MIT License — https://github.com/mrdoob/three.js/blob/r169/LICENSE
+David Head by 1d_inc — CC BY 4.0 — https://sketchfab.com/3d-models/david-head-39a4d01bef37495cac8d8f0009728871
+Mesh decoded from the existing david_head.glb; coordinates centered and normalized for the orbit prototype.
+Project covers are the existing portfolio assets.
+
+Model-viewer 3.5.0 EnvironmentScene — Copyright 2021 Google LLC — Apache-2.0.
+Vendored from https://github.com/google/model-viewer/blob/v3.5.0/packages/model-viewer/src/three-components/EnvironmentScene.ts
+Modified import to use the local Three.js module. See MODEL-VIEWER-LICENSE.txt.

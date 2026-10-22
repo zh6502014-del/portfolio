@@ -99,7 +99,6 @@ tr:hover td{background:#f5f4f1}
 .ix .nitem:hover{opacity:.75}
 .ix .ndt{font-size:14px;color:var(--text3);white-space:nowrap}
 .ix .ntl{font-size:18px;color:var(--text)}
-.ix .hnote{font-size:14px;color:var(--text3);padding:10px 14px;border-left:2px solid var(--brd2);background:var(--bg2);border-radius:0 var(--rsm) var(--rsm) 0;max-width:420px}
 .ix .skel{background:var(--bg2);border-radius:var(--rsm);display:inline-block;animation:pulse 1.4s ease-in-out infinite}
 .ix .mblock{border-radius:var(--rmd);padding:16px}
 .ix .mblbl{font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
@@ -562,12 +561,11 @@ tr:hover td{background:#f5f4f1}
     </div>
   </div>
   <div class="demo">
-    <div class="demo-lbl">Live Demo — .note-item + .note-type + .hero-note + .skeleton</div>
+    <div class="demo-lbl">Live Demo — .note-item + .note-type + .skeleton</div>
     <div class="demo-bd">
       <div class="ix" style="background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,.09);padding:12px 14px">
         <div class="nitem"><span class="ndt">2026.04.25</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span class="ntl">如果我不做設計，我還能做什麼？</span><div style="display:flex;gap:5px"><span class="ntype">自我反思</span></div></div></div>
         <div class="nitem"><span class="ndt">2026.02.10</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span class="ntl">瘦瘦針革命</span><div style="display:flex;gap:5px"><span class="ntype">讀書心得</span></div></div></div>
-        <div style="margin-top:12px"><p class="hnote" style="max-width:340px">如果可以，請先以 104 站內信或 E-mail 聯繫，謝謝。</p></div>
         <div style="margin-top:12px;display:flex;gap:8px;align-items:center"><span class="skel" style="width:110px;height:13px"></span><span class="skel" style="width:70px;height:13px"></span><span style="font-size:10.5px;color:#88867f">← .skeleton pulse</span></div>
       </div>
     </div>
@@ -590,7 +588,6 @@ tr:hover td{background:#f5f4f1}
     <table><thead><tr><th>Class</th><th>glass-el?</th><th>用途</th><th>說明</th></tr></thead><tbody>
     <tr><td class="m">.hero-badge</td><td>✅</td><td>首屏狀態標籤</td><td>含 .hero-badge-dot 綠點，border-radius:100px</td></tr>
     <tr><td class="m">.contact-item</td><td>✅</td><td>Email/Phone 膠囊</td><td>border-radius:100px，含 SVG icon</td></tr>
-    <tr><td class="m">.hero-note</td><td>—</td><td>聯絡備注文字</td><td>border-left:2px solid + bg-secondary 底色</td></tr>
     <tr><td class="m">.skill-card</td><td>✅ + .glass-card</td><td>技能卡片</td><td>含 .skill-card-icon / -title / -tag-list，hover scale(1.04)</td></tr>
     <tr><td class="m">.skill-grid</td><td>—</td><td>技能 grid 容器</td><td>grid auto-fit minmax(200px,1fr), gap:14px</td></tr>
     
@@ -778,7 +775,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">sbFetch(table, params)</td><td>loadData() 內部</td><td>原生 fetch 直打 Supabase REST API（不使用 @supabase/supabase-js SDK），避免 BroadcastChannel DataCloneError</td></tr>
     <tr><td class="m">renderNav(items)</td><td>loadData()</td><td>從 nav_items 資料表動態建立 .nav-link；data-section 屬性決定 scroll 目標，不再寫死</td></tr>
     <tr><td class="m">bindContentLightbox(container)</td><td>openModal() / openNote() / renderProfile()</td><td>在 rich text 內容區塊內的圖片加上 lightbox 點擊放大行為</td></tr>
-    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）</td></tr>
+    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / contact-item（email+phone）</td></tr>
     <tr><td class="m">renderSkills(data)</td><td>loadData()</td><td>createElement 建 .skill-card grid（icon / title / tags[]）</td></tr>
     <tr><td class="m">renderTools(data)</td><td>loadData()</td><td>createElement 建 .tool-item（name / description）</td></tr>
     <tr><td class="m">renderProjects(data)</td><td>loadData()</td><td>createElement 建 .project-row，parseImgArr() 取封面，img.onerror → empty div</td></tr>
@@ -942,7 +939,7 @@ tr:hover td{background:#f5f4f1}
     <tr><td class="m">sbFetch(table, params)</td><td>loadData() 內部</td><td>原生 fetch 直打 Supabase REST API（不使用 @supabase/supabase-js SDK），避免 BroadcastChannel DataCloneError</td></tr>
     <tr><td class="m">renderNav(items)</td><td>loadData()</td><td>從 nav_items 資料表動態建立 .nav-link；data-section 屬性決定 scroll 目標，不再寫死</td></tr>
     <tr><td class="m">bindContentLightbox(container)</td><td>openModal() / openNote() / renderProfile()</td><td>在 rich text 內容區塊內的圖片加上 lightbox 點擊放大行為</td></tr>
-    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / hero-note / contact-item（email+phone）</td></tr>
+    <tr><td class="m">renderProfile(p)</td><td>loadData()</td><td>填入 hero-title / #nav-name / footer-name / description / contact-item（email+phone）</td></tr>
     <tr><td class="m">renderSkills(data)</td><td>loadData()</td><td>createElement 建 .skill-card grid（icon / title / tags[]）</td></tr>
     <tr><td class="m">renderTools(data)</td><td>loadData()</td><td>createElement 建 .tool-item（name / description）</td></tr>
     <tr><td class="m">renderProjects(data)</td><td>loadData()</td><td>createElement 建 .project-row，parseImgArr() 取封面，img.onerror → empty div</td></tr>
@@ -1105,7 +1102,7 @@ tr:hover td{background:#f5f4f1}
     <table><thead><tr><th>資料表</th><th>欄位</th><th>前台讀取</th><th>後台寫入</th><th>備注</th></tr></thead><tbody>
     <tr>
       <td class="m">profile</td>
-      <td>nav_name TEXT<br>name TEXT<br>description TEXT<br>email TEXT<br>phone TEXT<br>note TEXT<br>updated_at TIMESTAMPTZ</td>
+      <td>nav_name TEXT<br>name TEXT<br>description TEXT<br>email TEXT<br>phone TEXT<br>updated_at TIMESTAMPTZ</td>
       <td>renderProfile(p) · sbFetch() 原生 fetch</td>
       <td>saveProfile()</td>
       <td>.single() 唯一一筆；nav_name 已補欄位（schema_final.sql）</td>

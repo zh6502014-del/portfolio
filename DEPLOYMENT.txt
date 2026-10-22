@@ -1,0 +1,23 @@
+Portfolio V2
+
+Public site: https://zh6502014-del.github.io/portfolio/
+Production homepage: index.html
+Admin: admin.html
+
+Editable source:
+- orbit-assets/base-template.html: shared content, theme, data loading and project modals
+- orbit-assets/layout.css: V2 layout
+- orbit-assets/orbit-scene.js: sculpture and panel interaction
+
+Build production and local preview:
+  python3 orbit-assets/build-preview.py --production
+Preview only:
+  python3 orbit-assets/build-preview.py
+
+V1 backup tag: v1-backup-20261022
+V1 commit: c2efbf9645d6a7a4d0a372a4f6810399c215bc75
+The V1 ZIP and extracted files are also saved in the local workspace backups folder.
+The backup preserves site files; both versions use the existing Supabase content.
+
+Deploy by committing the generated homepage, admin and source changes to main,
+then pushing main to origin and checking the GitHub Pages deployment result.
