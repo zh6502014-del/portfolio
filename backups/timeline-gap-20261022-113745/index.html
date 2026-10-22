@@ -1,0 +1,3321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>林艾奭 — UI/UX Designer</title>
+<meta name="portfolio-version" content="2">
+  <!-- 連線預熱：DNS / TLS 在實際請求前先握手完成，縮短字型、資料、3D 模型的首次往返延遲 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://wlxlhyieypohktsvwuuc.supabase.co" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ══════════════════════════════════════════
+     shadcn/ui neutral theme tokens (light)
+     https://ui.shadcn.com/docs/theming
+     ══════════════════════════════════════════ */
+  :root {
+    /* ── shadcn 標準 token ── */
+    --radius: 0.625rem;
+    --background:          oklch(1 0 0);
+    --foreground:          oklch(0.145 0 0);
+    --card:                oklch(1 0 0);
+    --card-foreground:     oklch(0.145 0 0);
+    --popover:             oklch(1 0 0);
+    --popover-foreground:  oklch(0.145 0 0);
+    --primary:             oklch(0.205 0 0);
+    --primary-foreground:  oklch(0.985 0 0);
+    --secondary:           oklch(0.97 0 0);
+    --secondary-foreground:oklch(0.205 0 0);
+    --muted:               oklch(0.97 0 0);
+    --muted-foreground:    oklch(0.556 0 0);
+    --accent:              oklch(0.97 0 0);
+    --accent-foreground:   oklch(0.205 0 0);
+    --destructive:         oklch(0.577 0.245 27.325);
+    --border:              oklch(0.922 0 0);
+    --input:               oklch(0.922 0 0);
+    --ring:                oklch(0.708 0 0);
+
+    /* ── radius scale（shadcn 規範） ── */
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+
+    /* ── 相容舊變數（對應到 shadcn token） ── */
+    --bg:             var(--background);
+    --bg-secondary:   oklch(0.97 0 0);
+    --bg-tertiary:    oklch(0.946 0 0);
+    --text:           var(--foreground);
+    --text-secondary: oklch(0.369 0 0);
+    --text-tertiary:  var(--muted-foreground);
+    --border-strong:  oklch(0.708 0 0);
+    --accent-text:    var(--primary-foreground);
+
+    --font-sans: 'Noto Sans TC', system-ui, sans-serif;
+    --font-serif: 'Noto Sans TC', system-ui, sans-serif;
+
+    /* ── 自訂：Liquid Glass 材質參數 (Light) ── */
+    --lg-bright:         1.06;
+    --lg-sat:            180%;
+    --glass-sheen:       rgba(255,255,255,0.13);                      /* 背景透出時微微提亮（lensing 聚光感） */
+    --glass-rim:         rgba(255,255,255,0.7);     /* 全周折射細環 */
+    --glass-inner-shadow:rgba(0,0,0,0.07);          /* 內側底部折射暗緣 */
+
+    --nav-bg:            rgba(255,255,255,0.65);
+    --glass-bg:          rgba(255,255,255,0.55);
+    --glass-modal-bg:    rgba(255,255,255,0.78);
+    --glass-header-bg:   rgba(255,255,255,0.85);
+    --glass-tag-bg:      rgba(255,255,255,0.5);
+    --glass-border:      oklch(0.922 0 0 / 0.6);
+    --glass-border-strong: oklch(0.708 0 0 / 0.5);
+    --glass-shine:       rgba(255,255,255,0.9);
+    --glass-shadow:      rgba(0,0,0,0.08);
+    --overlay-bg:        rgba(0,0,0,0.3);
+    --orb-1:             rgba(99,179,237,0.45);
+    --orb-2:             rgba(154,230,180,0.4);
+    --orb-3:             rgba(165,170,240,0.32);
+    --orb-opacity:       1;
+    --grain-opacity:     0.028;
+
+    /* ── 自訂：Glass pill (Light) ── */
+    --glass-pill-bg:       rgba(0,0,0,0.06);
+    --glass-pill-border:   rgba(0,0,0,0.08);
+    --glass-indicator-bg:  rgba(255,255,255,0.72);
+    --glass-shine-top:     rgba(255,255,255,0.9);
+    --glass-shine-bottom:  rgba(255,255,255,0.5);
+    --glass-pill-shadow:   rgba(0,0,0,0.08);
+    --glass-el-bg:         rgba(255,255,255,0.34);
+    --glass-el-border:     rgba(255,255,255,0.5);
+    --glass-control-bf:     blur(16px) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+    --glass-control-bg:     linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 45%), var(--glass-el-bg);
+    --glass-control-shadow:
+      inset 0 0 0 1px var(--glass-rim),
+      inset 1.8px 3px 0 -2px var(--glass-shine-top),
+      inset -2px -2px 0 -2px var(--glass-shine-bottom),
+      inset 0 -8px 14px -10px var(--glass-inner-shadow),
+      0 1px 2px var(--glass-pill-shadow),
+      0 6px 18px -4px var(--glass-pill-shadow);
+    --glass-control-shadow-hover:
+      inset 0 0 0 1px var(--glass-rim),
+      inset 1.8px 3px 0 -2px var(--glass-shine-top),
+      inset -2px -2px 0 -2px var(--glass-shine-bottom),
+      inset 0 -8px 14px -10px var(--glass-inner-shadow),
+      0 2px 4px var(--glass-pill-shadow),
+      0 10px 28px -4px var(--glass-pill-shadow);
+  }
+
+  /* ══════════════════════════════════════════
+     shadcn/ui neutral theme tokens (dark)
+     ══════════════════════════════════════════ */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background:          oklch(0.145 0 0);
+      --foreground:          oklch(0.985 0 0);
+      --card:                oklch(0.205 0 0);
+      --card-foreground:     oklch(0.985 0 0);
+      --popover:             oklch(0.205 0 0);
+      --popover-foreground:  oklch(0.985 0 0);
+      --primary:             oklch(0.922 0 0);
+      --primary-foreground:  oklch(0.205 0 0);
+      --secondary:           oklch(0.269 0 0);
+      --secondary-foreground:oklch(0.985 0 0);
+      --muted:               oklch(0.269 0 0);
+      --muted-foreground:    oklch(0.708 0 0);
+      --accent:              oklch(0.269 0 0);
+      --accent-foreground:   oklch(0.985 0 0);
+      --destructive:         oklch(0.704 0.191 22.216);
+      --border:              oklch(1 0 0 / 10%);
+      --input:               oklch(1 0 0 / 15%);
+      --ring:                oklch(0.556 0 0);
+
+      --bg:             var(--background);
+      --bg-secondary:   oklch(0.205 0 0);
+      --bg-tertiary:    oklch(0.232 0 0);
+      --text:           var(--foreground);
+      --text-secondary: oklch(0.79 0 0);
+      --text-tertiary:  oklch(0.67 0 0);
+      --border-strong:  oklch(1 0 0 / 22%);
+      --accent-text:    oklch(0.205 0 0);
+
+      --lg-bright:         1.04;
+      --lg-sat:            135%;
+      --glass-sheen:       rgba(255,255,255,0.045);
+      --glass-rim:         rgba(255,255,255,0.18);
+      --glass-inner-shadow:rgba(0,0,0,0.45);
+      --nav-bg:            rgba(14,13,12,0.7);
+      --glass-bg:          rgba(28,26,24,0.6);
+      --glass-modal-bg:    rgba(20,18,16,0.82);
+      --glass-header-bg:   rgba(20,18,16,0.88);
+      --glass-tag-bg:      rgba(255,255,255,0.07);
+      --glass-border:      oklch(1 0 0 / 12%);
+      --glass-border-strong: oklch(1 0 0 / 22%);
+      --glass-shine:       rgba(255,255,255,0.06);
+      --glass-shadow:      rgba(0,0,0,0.4);
+      --overlay-bg:        rgba(0,0,0,0.6);
+      --orb-1:             rgba(90,140,230,0.18);
+      --orb-2:             rgba(64,165,150,0.13);
+      --orb-3:             rgba(120,115,215,0.12);
+      --grain-opacity:     0.06;
+
+      --glass-pill-bg:      rgba(255,255,255,0.06);
+      --glass-pill-border:  rgba(255,255,255,0.1);
+      --glass-indicator-bg: rgba(255,255,255,0.12);
+      --glass-shine-top:    rgba(255,255,255,0.18);
+      --glass-shine-bottom: rgba(255,255,255,0.06);
+      --glass-pill-shadow:  rgba(0,0,0,0.3);
+      --glass-el-bg:        rgba(22,22,26,0.34);
+      --glass-el-border:    rgba(255,255,255,0.12);
+    }
+  }
+  [data-theme="dark"] {
+    --background:          oklch(0.145 0 0);
+    --foreground:          oklch(0.985 0 0);
+    --card:                oklch(0.205 0 0);
+    --card-foreground:     oklch(0.985 0 0);
+    --popover:             oklch(0.205 0 0);
+    --popover-foreground:  oklch(0.985 0 0);
+    --primary:             oklch(0.922 0 0);
+    --primary-foreground:  oklch(0.205 0 0);
+    --secondary:           oklch(0.269 0 0);
+    --secondary-foreground:oklch(0.985 0 0);
+    --muted:               oklch(0.269 0 0);
+    --muted-foreground:    oklch(0.708 0 0);
+    --accent:              oklch(0.269 0 0);
+    --accent-foreground:   oklch(0.985 0 0);
+    --destructive:         oklch(0.704 0.191 22.216);
+    --border:              oklch(1 0 0 / 10%);
+    --input:               oklch(1 0 0 / 15%);
+    --ring:                oklch(0.556 0 0);
+
+    --bg:             var(--background);
+    --bg-secondary:   oklch(0.205 0 0);
+    --bg-tertiary:    oklch(0.232 0 0);
+    --text:           var(--foreground);
+    --text-secondary: oklch(0.79 0 0);
+    --text-tertiary:  oklch(0.67 0 0);
+    --border-strong:  oklch(1 0 0 / 22%);
+    --accent-text:    oklch(0.205 0 0);
+
+    --lg-bright:         1.04;
+    --lg-sat:            135%;
+    --glass-sheen:       rgba(255,255,255,0.045);
+    --glass-rim:         rgba(255,255,255,0.18);
+    --glass-inner-shadow:rgba(0,0,0,0.45);
+    --nav-bg:            rgba(14,13,12,0.7);
+    --glass-bg:          rgba(28,26,24,0.6);
+    --glass-modal-bg:    rgba(20,18,16,0.82);
+    --glass-header-bg:   rgba(20,18,16,0.88);
+    --glass-tag-bg:      rgba(255,255,255,0.07);
+    --glass-border:      oklch(1 0 0 / 12%);
+    --glass-border-strong: oklch(1 0 0 / 22%);
+    --glass-shine:       rgba(255,255,255,0.06);
+    --glass-shadow:      rgba(0,0,0,0.4);
+    --overlay-bg:        rgba(0,0,0,0.6);
+    --orb-1:             rgba(90,140,230,0.18);
+    --orb-2:             rgba(64,165,150,0.13);
+    --orb-3:             rgba(120,115,215,0.12);
+    --orb-opacity:       1;
+    --grain-opacity:     0.06;
+
+    --glass-pill-bg:      rgba(255,255,255,0.06);
+    --glass-pill-border:  rgba(255,255,255,0.1);
+    --glass-indicator-bg: rgba(255,255,255,0.12);
+    --glass-shine-top:    rgba(255,255,255,0.18);
+    --glass-shine-bottom: rgba(255,255,255,0.06);
+    --glass-pill-shadow:  rgba(0,0,0,0.3);
+    --glass-el-bg:        rgba(22,22,26,0.34);
+    --glass-el-border:    rgba(255,255,255,0.12);
+  }
+  [data-theme="light"] {
+    --background:          oklch(1 0 0);
+    --foreground:          oklch(0.145 0 0);
+    --primary:             oklch(0.205 0 0);
+    --primary-foreground:  oklch(0.985 0 0);
+    --secondary:           oklch(0.97 0 0);
+    --muted:               oklch(0.97 0 0);
+    --muted-foreground:    oklch(0.556 0 0);
+    --border:              oklch(0.922 0 0);
+    --input:               oklch(0.922 0 0);
+    --ring:                oklch(0.708 0 0);
+
+    --bg:             var(--background);
+    --bg-secondary:   oklch(0.97 0 0);
+    --bg-tertiary:    oklch(0.946 0 0);
+    --text:           var(--foreground);
+    --text-secondary: oklch(0.369 0 0);
+    --text-tertiary:  oklch(0.556 0 0);
+    --border-strong:  oklch(0.708 0 0);
+    --accent-text:    var(--primary-foreground);
+  }
+  /* Theme toggle button */
+  .theme-toggle {
+    --bf: var(--glass-control-bf);
+    width:36px; height:36px; border-radius:50%;
+    background:var(--glass-control-bg);
+    border:1px solid var(--glass-el-border);
+    backdrop-filter:var(--bf);
+    -webkit-backdrop-filter:var(--bf);
+    box-shadow:var(--glass-control-shadow);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:17px;
+    transition:transform .15s cubic-bezier(0.4,0,0.2,1), box-shadow .15s;
+    flex-shrink:0; position:relative;
+  }
+  .theme-toggle:hover {
+    animation: pillStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+    box-shadow:var(--glass-control-shadow-hover);
+  }
+  .theme-toggle:active { transform:scale(0.94); }
+  .theme-toggle::after {
+    content: attr(data-tip);
+    position:absolute; top:calc(100% + 10px); left:50%;
+    transform:translateX(-50%);
+    background:var(--text); color:var(--bg);
+    font-size:13px; white-space:nowrap;
+    padding:5px 10px; border-radius:6px;
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+    font-family:var(--font-sans);
+    z-index:9999;
+  }
+  .theme-toggle::before {
+    content:''; position:absolute; top:calc(100% + 3px); left:50%;
+    transform:translateX(-50%);
+    border:5px solid transparent;
+    border-bottom-color:var(--text);
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+    z-index:9999;
+  }
+  .theme-toggle:hover::after,
+  .theme-toggle:hover::before { opacity:1; }
+  html { scroll-behavior: smooth; }
+  body::before { opacity: 1; }
+  body::after  { opacity: 1; }
+  /* 主題切換：以 View Transition 對整頁快照做一次交叉淡化。
+     舊做法是讓所有元素的顏色各自過渡 0.5 秒，每一幀都要重算樣式與玻璃的 backdrop-filter，
+     而漸層、陰影、3D 雕塑又無法過渡，會先跳一下 ── 兩者都造成切換卡頓 */
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration:.42s; animation-timing-function:cubic-bezier(.4,0,.2,1); }
+  body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:20px; min-height:100vh; position:relative; }
+  /* ── Background orbs for glass effect ──
+     效能關鍵：orbs 必須保持靜態。fixed 元素若持續動畫，
+     所有玻璃元素的 backdrop 每幀都在變、backdrop-filter 結果無法快取，
+     會與 model-viewer 的 WebGL 重繪搶 GPU 造成捲動卡頓 ── */
+  body::before, body::after {
+    content:''; position:fixed; pointer-events:none; z-index:0; border-radius:50%;
+    filter:blur(80px); opacity:1; transition:opacity 0.5s;
+  }
+  body::before {
+    width:600px; height:600px; top:-100px; right:-100px;
+    background:radial-gradient(circle, var(--orb-1) 0%, transparent 70%);
+  }
+  body::after {
+    width:500px; height:500px; bottom:10%; left:-80px;
+    background:radial-gradient(circle, var(--orb-2) 0%, transparent 70%);
+  }
+  /* 第三顆光球：頁面中段，讓捲動到下方的玻璃卡片也有色彩可折射 */
+  .bg-orb-3 {
+    position:fixed; pointer-events:none; z-index:0; border-radius:50%;
+    width:460px; height:460px; top:45%; right:-140px;
+    background:radial-gradient(circle, var(--orb-3) 0%, transparent 72%);
+    filter:blur(100px); opacity:1;
+  }
+  /* 漸進增強：支援 color-mix 的瀏覽器改用多停駐點漸層直接畫柔邊，
+     移除 filter:blur 這一次額外的 8-bit 量化（色帶的來源之一） */
+  @supports (color: color-mix(in srgb, red, blue)) {
+    body::before, body::after, .bg-orb-3 { filter:none; }
+    body::before {
+      background:radial-gradient(circle,
+        var(--orb-1) 0%,
+        color-mix(in srgb, var(--orb-1), transparent 3.8%) 9.5%,
+        color-mix(in srgb, var(--orb-1), transparent 14.6%) 19%,
+        color-mix(in srgb, var(--orb-1), transparent 30.9%) 28.5%,
+        color-mix(in srgb, var(--orb-1), transparent 50%) 38%,
+        color-mix(in srgb, var(--orb-1), transparent 69.1%) 47.5%,
+        color-mix(in srgb, var(--orb-1), transparent 85.4%) 57%,
+        color-mix(in srgb, var(--orb-1), transparent 96.2%) 66.5%,
+        transparent 76%);
+    }
+    body::after {
+      background:radial-gradient(circle,
+        var(--orb-2) 0%,
+        color-mix(in srgb, var(--orb-2), transparent 3.8%) 9.5%,
+        color-mix(in srgb, var(--orb-2), transparent 14.6%) 19%,
+        color-mix(in srgb, var(--orb-2), transparent 30.9%) 28.5%,
+        color-mix(in srgb, var(--orb-2), transparent 50%) 38%,
+        color-mix(in srgb, var(--orb-2), transparent 69.1%) 47.5%,
+        color-mix(in srgb, var(--orb-2), transparent 85.4%) 57%,
+        color-mix(in srgb, var(--orb-2), transparent 96.2%) 66.5%,
+        transparent 76%);
+    }
+    .bg-orb-3 {
+      background:radial-gradient(circle,
+        var(--orb-3) 0%,
+        color-mix(in srgb, var(--orb-3), transparent 3.8%) 9.5%,
+        color-mix(in srgb, var(--orb-3), transparent 14.6%) 19%,
+        color-mix(in srgb, var(--orb-3), transparent 30.9%) 28.5%,
+        color-mix(in srgb, var(--orb-3), transparent 50%) 38%,
+        color-mix(in srgb, var(--orb-3), transparent 69.1%) 47.5%,
+        color-mix(in srgb, var(--orb-3), transparent 85.4%) 57%,
+        color-mix(in srgb, var(--orb-3), transparent 96.2%) 66.5%,
+        transparent 76%);
+    }
+  }
+  /* ── 全頁噪點層：以極低不透明度 dither 掉深色漸層的色帶（banding）。
+     必須疊在內容之上（z-index 高於 modal、低於 lightbox），
+     若放在玻璃下方會被 backdrop-filter 的 blur 抹掉而失效 ── */
+  .bg-grain {
+    position:fixed; inset:0; z-index:9000;
+    pointer-events:none;
+    opacity:var(--grain-opacity, 0.03);
+    /* 不用 mix-blend-mode：混合模式會強迫整頁（含 WebGL canvas）逐幀重新合成。
+       普通 alpha 疊加的 dithering 已足夠，translateZ(0) 提升為可快取的獨立圖層 */
+    transform:translateZ(0);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:160px 160px, 97px 97px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glass-el:hover, .tag:hover, .note-type:hover,
+    .glass-card:hover, .theme-toggle:hover,
+    .nav-links.hover-slide::after { animation:none; }
+  }
+  .wrapper, .nav-inner, footer { position:relative; z-index:1; }
+  section { position:relative; z-index:1; }
+
+  .nav { --bf: blur(28px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:fixed; top:0; left:0; right:0; z-index:100; background:var(--nav-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); overflow:visible; box-shadow:0 1px 0 var(--glass-border), inset 0 1px 0 var(--glass-shine); }
+  main { padding-top:60px; }
+  .nav-inner { max-width:860px; margin:0 auto; padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:60px; overflow:visible; }
+  .nav-logo { font-size:18px; font-weight:500; color:var(--text); text-decoration:none; }
+  .nav-actions { display:flex; align-items:center; gap:8px; }
+  /* ── Glass Nav ── */
+  .nav-links {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 4px 4px;
+    border-radius: 99em;
+  }
+  .nav-links::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: var(--pill-w, 52px);
+    height: calc(100% - 8px);
+    border-radius: 99em;
+    --bf: var(--glass-control-bf);
+    background:var(--glass-control-bg);
+    backdrop-filter: var(--bf);
+    -webkit-backdrop-filter: var(--bf);
+    box-shadow:var(--glass-control-shadow);
+    z-index: 0;
+    translate: var(--pill-x, 0px) 0;
+    transition:
+      translate 400ms cubic-bezier(1, 0.0, 0.4, 1),
+      width 400ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
+  .nav-links.hover-slide::after { animation: pillStretch 360ms cubic-bezier(1, 0.0, 0.4, 1); }
+  @keyframes pillStretch { 0%,100%{scale:1 1} 45%{scale:1.2 1} }
+  .nav-link {
+    position: relative; z-index: 1;
+    font-size: 16px; color: var(--text-secondary);
+    text-decoration: none; padding: 6px 14px;
+    border-radius: 99em; border: none;
+    transition: color 200ms;
+    white-space: nowrap;
+  }
+  .section-hidden { display: none !important; }
+  /* 離線提示列 */
+  #offline-banner {
+    position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 16px); z-index: 9000;
+    display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px);
+    padding: 10px 10px 10px 12px; border-radius: 16px;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    box-shadow: 0 10px 30px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.06);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  }
+  #offline-banner.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #offline-banner .offline-icon {
+    flex: none; width: 32px; height: 32px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-tertiary); color: var(--text-secondary);
+  }
+  #offline-banner .offline-msg { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.35; }
+  #offline-banner .offline-title { font-size: 13px; font-weight: 600; }
+  #offline-banner .offline-sub { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #offline-banner .offline-retry {
+    flex: none; border: 1px solid var(--border); border-radius: 10px; padding: 0 12px; height: 32px; cursor: pointer;
+    background: none; color: var(--text); font: inherit; font-size: 12px; transition: background .15s;
+  }
+  #offline-banner .offline-retry:hover { background: var(--bg-tertiary); }
+  #offline-banner .offline-retry:disabled { opacity: .6; cursor: default; }
+  @media (max-width: 480px) { #offline-banner { left: 16px; right: 16px; bottom: 16px; width: auto; transform: translateY(16px); } #offline-banner.show { transform: none; } #offline-banner .offline-msg { flex: 1; } }
+
+  .modal-body hr { border: 0; border-top: 1px solid var(--border); margin: 28px 0; }
+  .rich-figure { display:block; margin:10px 0; box-sizing:border-box; }
+  .rich-figure > img { display:block; width:100%; max-width:100%; margin:0 !important; }
+  .rich-figure[data-image-layout="half"],
+  .rich-figure[data-image-layout="third"] { display:inline-block; vertical-align:top; margin:10px 6px 10px 0; }
+  .rich-figure[data-image-layout="half"] { width:calc(50% - 8px); max-width:calc(50% - 8px); }
+  .rich-figure[data-image-layout="third"] { width:calc(33.333% - 8px); max-width:calc(33.333% - 8px); }
+  .rich-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:18px 0; }
+  .rich-table-wrap table { border-collapse:collapse; width:100%; font-size:15px; line-height:1.6; }
+  .rich-table-wrap table[data-cols="equal"] { table-layout:fixed; }
+  .rich-table-wrap td, .rich-table-wrap th { border:1px solid color-mix(in oklab, var(--text) 16%, transparent); padding:10px 12px; vertical-align:top; text-align:left; min-width:7.5em; }
+  .rich-table-wrap th,
+  .rich-table-wrap table[data-header="1"] tr:first-child td { font-weight:600; background:color-mix(in oklab, var(--text) 6%, transparent); }
+  .rich-table-wrap td[data-align="center"] { text-align:center; }
+  .rich-table-wrap td[data-align="right"] { text-align:right; }
+  .rich-table-wrap td[data-bg="gray"]   { background:color-mix(in oklab, #9ca3af 22%, transparent); }
+  .rich-table-wrap td[data-bg="red"]    { background:color-mix(in oklab, #ef4444 18%, transparent); }
+  .rich-table-wrap td[data-bg="orange"] { background:color-mix(in oklab, #f97316 18%, transparent); }
+  .rich-table-wrap td[data-bg="yellow"] { background:color-mix(in oklab, #eab308 22%, transparent); }
+  .rich-table-wrap td[data-bg="green"]  { background:color-mix(in oklab, #22c55e 18%, transparent); }
+  .rich-table-wrap td[data-bg="blue"]   { background:color-mix(in oklab, #3b82f6 18%, transparent); }
+  .rich-table-wrap td[data-bg="purple"] { background:color-mix(in oklab, #a855f7 18%, transparent); }
+  .rich-table-wrap p { margin:0; }
+  .rich-caption { display:block; margin-top:8px; font-size:13px; line-height:1.6; color:var(--text-tertiary); text-align:center; }
+  /* ── 歷程時間軸（.rich-timeline，後台 TimelineBlot 產生；admin / index 共用同一份樣式）── */
+  .rich-timeline { container-type: inline-size; margin: 24px 0; }
+  .rich-timeline .rt-list { display: flex; flex-direction: column; }
+  .rich-timeline .rt-item { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 16px; padding-bottom: 24px; }
+  .rich-timeline .rt-item:last-child { padding-bottom: 0; }
+  .rich-timeline .rt-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 24px; bottom: 6px; width: 1px; transform: translateX(-50%); background: var(--border-strong); }
+  .rich-timeline .rt-dot { width: 11px; height: 11px; margin-top: 6px; justify-self: center; border-radius: 50%; background: var(--text); }
+  .rich-timeline .rt-body { min-width: 0; }
+  .rich-timeline .rt-date { font-size: 13px; line-height: 1.6; letter-spacing: .04em; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }   /* = 圖說 / meta */
+  .rich-timeline .rt-title { font-size: 19px; font-weight: 600; line-height: 1.5; color: var(--text); }   /* = H3 */
+  .rich-timeline .rt-desc { margin-top: 4px; font-size: 18px; line-height: 1.85; color: var(--text-secondary); white-space: pre-line; overflow-wrap: anywhere; }   /* = 內文 */
+  /* 水平：只在容器夠寬時套用，窄版面（手機、窄 modal）自動回到垂直 */
+  @container (min-width: 521px) {
+    .rich-timeline[data-orientation="horizontal"] .rt-list { flex-direction: row; overflow-x: auto; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item { flex: 1 1 0; min-width: 120px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 11px auto; row-gap: 14px; padding: 0 16px 0 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item:last-child { padding-right: 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item:not(:last-child)::before { left: 17px; right: 6px; top: 5px; bottom: auto; width: auto; height: 1px; transform: none; }
+    .rich-timeline[data-orientation="horizontal"] .rt-dot { justify-self: start; margin-top: 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-desc { font-size: 15px; line-height: 1.6; }   /* 欄寬窄 → 表格級密集字級 */
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--text); font-weight: 500; }
+
+  .wrapper { max-width:860px; margin:0 auto; padding:0 40px; }
+  section { padding:80px 0; }
+
+  /* hero：左右距離與 wrapper 一致，position:relative 作為 hero-3d 的定位基準 */
+  .hero {
+    padding-top:96px;
+    padding-bottom:88px;
+    max-width:860px;
+    margin:0 auto;
+    padding-left:40px;
+    padding-right:40px;
+    position:relative;
+    z-index:10;
+  }
+  /* hero-text：只佔左半部，留出右側空間給 absolute 的模型 */
+  .hero-text {
+    position:relative;
+    z-index:2;
+  }
+  /* hero-3d：fixed 定位於視窗右上，滾動時以 rAF 節流旋轉 */
+  .hero-3d {
+    position:fixed;
+    top:100px;
+    right:100px;
+    width:400px;
+    height:460px;
+    overflow:visible;
+    z-index:0;
+    pointer-events:none;
+    contain:layout paint;
+  }
+
+  /* ── 3D 模型載入 overlay（shadcn Progress 風格） ── */
+  .model-loader {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:12px; z-index:10;
+    pointer-events:none;
+  }
+  .model-loader.hidden { display:none; }
+  .model-loader-text {
+    font-size:13px;
+    color:var(--muted-foreground);
+    font-family:var(--font-sans);
+    letter-spacing:0.01em;
+  }
+  /* shadcn Progress：外層 track */
+  .model-progress-track {
+    --bf: blur(8px) saturate(var(--lg-sat));
+    width:120px; height:8px;
+    background:var(--glass-el-bg);
+    border:1px solid var(--glass-el-border);
+    backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf);
+    box-shadow:
+      inset 0 1px 2px var(--glass-inner-shadow),
+      0 1px 0 var(--glass-shine-bottom);
+    border-radius:9999px;
+    overflow:hidden;
+  }
+  /* shadcn Progress：內層 indicator */
+  .model-progress-indicator {
+    height:100%;
+    background:var(--primary);
+    border-radius:9999px;
+    width:0%;
+    transition:width 0.2s ease;
+  }
+  .hero-3d model-viewer {
+    display:block;
+    width:100%;
+    height:100%;
+    background:transparent;
+    contain:strict;
+    --poster-color:transparent;
+    --progress-bar-color:transparent;
+    --progress-bar-height:0px;
+  }
+  @media (max-width:760px) {
+    /* hero-3d：手機版改回靜態定位，在 hero 內容上方置中 */
+    .hero-3d {
+      position:relative;
+      top:auto;
+      right:auto;
+      width:260px;
+      height:260px;
+      margin:0 auto 32px;
+      display:block;
+      z-index:1;
+    }
+    /* hero 加上 flex 讓模型排在文字上方 */
+    .hero {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .hero-text {
+      width:100%;
+    }
+  }
+
+  /* ── Liquid Glass element mixin ──
+     架構：各元素以 --bf 宣告自己的 backdrop-filter 鏈，
+     html.lg-refract 時統一在鏈前加上 url(#glass-distort) 邊緣折射 */
+  .glass-el {
+    --bf: var(--glass-control-bf);
+    background:var(--glass-control-bg);
+    border: 1px solid var(--glass-el-border);
+    backdrop-filter: var(--bf);
+    -webkit-backdrop-filter: var(--bf);
+    box-shadow:var(--glass-control-shadow);
+    transition: box-shadow .2s;
+  }
+  .glass-el:hover {
+    animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+    box-shadow:var(--glass-control-shadow-hover);
+  }
+  /* 邊緣折射：僅 Chromium（html.lg-refract）啟用。
+     重要：只套用在「小型膠囊控制項」上——
+     objectBoundingBox 的噪聲會隨元素尺寸縮放，
+     套在大面積卡片/容器上會變成元素等寬的巨型位移斑塊（看起來像色階破圖），
+     這也符合 Apple 只在控制元件上做 lensing 的原則 */
+  html.lg-refract .tag,
+  html.lg-refract .note-type,
+  html.lg-refract .theme-toggle,
+  html.lg-refract .nav-links::after,
+  html.lg-refract .lb-btn,
+  html.lg-refract .contact-item,
+  html.lg-refract .tool-item,
+  html.lg-refract .modal-close,
+  html.lg-refract .hero-badge {
+    backdrop-filter: url(#glass-distort) var(--bf);
+    -webkit-backdrop-filter: url(#glass-distort) var(--bf);
+  }
+  @keyframes glassStretch {
+    0%, 100% { scale: 1 1; }
+    45%      { scale: 1.08 1; }
+  }
+  /* Card uses a slightly gentler stretch */
+  .glass-container {
+    border-radius:var(--radius-lg);
+    padding:0 24px;
+    overflow:hidden;
+  }
+  .glass-card:hover {
+    animation: glassStretchCard 360ms cubic-bezier(1, 0.0, 0.4, 1);
+  }
+  @keyframes glassStretchCard {
+    0%, 100% { scale: 1 1; }
+    45%      { scale: 1.04 1; }
+  }
+  .hero-badge {
+    --bf: var(--glass-control-bf);
+    display:inline-flex; align-items:center; gap:6px; font-size:14px;
+    color:var(--text-tertiary); border-radius:100px; padding:5px 14px;
+    margin-bottom:28px; white-space:nowrap;
+    background:var(--glass-control-bg);
+    border:1px solid var(--glass-el-border);
+    backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf);
+    box-shadow:var(--glass-control-shadow);
+  }
+  .hero-badge-dot { width:6px; height:6px; min-width:6px; background:#22c55e; border-radius:50%; display:inline-block; }
+  .hero-title { font-size:clamp(44px,6vw,68px); font-weight:700; line-height:1.15; letter-spacing:-.02em; margin-bottom:24px; }
+  .hero-title em { font-style:normal; color:var(--text); }
+  .hero-desc { font-size:22px; color:var(--text-secondary); line-height:1.9; margin-bottom:44px; }
+  .hero-contacts { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:32px; }
+  .contact-item { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--text-secondary); border-radius:100px; padding:8px 18px; text-decoration:none; }
+  .contact-item:hover { color:var(--text); }
+
+  .sec-label { font-size:13px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:32px; }
+  .skill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:56px; }
+  .skill-card { border-radius:var(--radius-lg); padding:20px; }
+  .skill-card-icon {
+    width:36px; height:36px;
+    background:
+      linear-gradient(135deg, var(--glass-sheen), rgba(255,255,255,0) 60%),
+      var(--glass-el-bg);
+    border:1px solid var(--glass-el-border);
+    box-shadow:
+      inset 0 0 0 1px var(--glass-rim),
+      inset 1px 1.5px 0 -1px var(--glass-shine-top),
+      0 1px 4px var(--glass-pill-shadow);
+    border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px; font-size:18px;
+  }
+  .skill-card-title { font-size:16px; font-weight:500; margin-bottom:10px; }
+  .skill-tag-list { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
+  .tools-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .tool-item { display:flex; align-items:center; gap:8px; font-size:16px; padding:14px 18px; border-radius:var(--radius-md); color:var(--text-secondary); }
+  .tool-name { font-weight:500; color:var(--text); font-size:16px; }
+  .tool-desc { font-size:13px; color:var(--text-tertiary); }
+
+  .projects-grid { display:flex; flex-direction:column; }
+  .project-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:16px; padding:32px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .project-row:last-child { border-bottom:none; }
+  .project-cover { width:240px; height:135px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); flex-shrink:0; display:block; }
+  .project-cover-empty {
+    --bf: blur(10px) saturate(var(--lg-sat));
+    width:240px; height:135px; border-radius:var(--radius-md);
+    border:1px dashed var(--glass-border-strong); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--glass-el-bg);
+    backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf);
+    box-shadow:inset 0 0 0 1px var(--glass-rim);
+  }
+  .project-cover-empty-icon { font-size:20px; opacity:0.25; }
+  .modal-cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border); margin-bottom:0; cursor:zoom-in; }
+  .modal-cover-wrap { margin:0 0 20px; overflow:hidden; border-radius:var(--radius-md); }
+  .modal-cover-wrap img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .projects-grid { border-top:none; }
+  .project-row:hover .project-row-title { color:var(--text); }
+  .project-row-num { font-size:13px; color:var(--text-tertiary); font-family:var(--font-sans); margin-bottom:6px; }
+  .project-row-title { font-size:22px; font-weight:600; margin-bottom:8px; color:var(--text); transition:color .15s; }
+  .project-row-desc { font-size:16px; color:var(--text-secondary); line-height:1.7; max-width:520px; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .project-tags { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
+  .tag, .note-type {
+    --bf: var(--glass-control-bf);
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:16px; line-height:1.5; padding:8px 18px;
+    border-radius:100px; color:var(--text-secondary);
+    background:var(--glass-control-bg);
+    border: 1px solid var(--glass-el-border);
+    backdrop-filter: var(--bf);
+    -webkit-backdrop-filter: var(--bf);
+    box-shadow:var(--glass-control-shadow);
+    transition: box-shadow .2s;
+    white-space:nowrap;
+  }
+  .tag:hover, .note-type:hover {
+    animation: glassStretch 360ms cubic-bezier(1, 0.0, 0.4, 1);
+    box-shadow:var(--glass-control-shadow-hover);
+  }
+  .project-row-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:22px; }
+  .project-time { font-size:14px; color:var(--text-tertiary); white-space:nowrap; }
+
+  .modal-overlay { position:fixed; inset:0; z-index:200; background:var(--overlay-bg); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; backdrop-filter:blur(6px) saturate(140%); -webkit-backdrop-filter:blur(6px) saturate(140%); }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal { position:relative; --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-radius:var(--radius-lg) var(--radius-lg) 0 0; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(32px); transition:transform .25s cubic-bezier(.16,1,.3,1); border:1px solid var(--glass-border); border-bottom:none; box-shadow:0 -4px 40px var(--glass-pill-shadow), inset 0 1px 0 var(--glass-shine-top); }
+  .modal-overlay.open .modal { transform:translateY(0); }
+
+  /* ── 彈窗滿版 + 左側目錄（scroll-spy） ── */
+  .modal-header-actions { display:flex; align-items:flex-start; gap:8px; flex-shrink:0; }
+  .modal-fs { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
+  .modal-fs svg { display:block; width:16px; height:16px; }
+  .modal-fs:hover { transform:scale(1.08); }
+  .modal.fullscreen { max-width:100%; width:100%; height:100%; max-height:100%; border-radius:0; border:none; transform:none !important; }
+  .modal.fullscreen .modal-header { border-radius:0; }
+  .modal-toc { display:none; }
+  @media (min-width:1024px) {
+    /* 內容置中於整個視窗 */
+    .modal.fullscreen .modal-body { padding:48px 24px 96px; }
+    .modal.fullscreen .modal-body > * { max-width:760px; margin-left:auto; margin-right:auto; }
+  }
+  @media (min-width:1280px) {
+    /* 目錄貼齊置中內容欄的左側、保持固定間距，避免與內容重疊 */
+    .modal.fullscreen .modal-toc:not([hidden]) {
+      display:block; position:absolute; right:calc(50vw - 612px); top:88px; width:200px;
+      max-height:calc(100% - 128px); overflow-y:auto; z-index:20; padding:14px 12px;
+      background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-lg);
+      backdrop-filter:blur(20px) saturate(var(--lg-sat)); -webkit-backdrop-filter:blur(20px) saturate(var(--lg-sat));
+      box-shadow:0 4px 24px var(--glass-shadow);
+    }
+    .modal-toc-head { padding:2px 6px 10px; color:var(--text); }
+    .modal-toc-title { font-size:15px; font-weight:600; }
+    .modal-toc-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+    .modal-toc-list a { display:block; font-size:13.5px; line-height:1.5; color:var(--text-tertiary); text-decoration:none; padding:5px 8px; border-radius:var(--radius-sm); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .15s; cursor:pointer; }
+    .modal-toc-list a:hover { color:var(--text); }
+    .modal-toc-list a.active { color:var(--text); font-weight:600; }
+  }
+
+  .modal-header { --bf: blur(44px) saturate(var(--lg-sat)) brightness(var(--lg-bright)); position:sticky; top:0; z-index:10; background:var(--glass-modal-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--glass-border); padding:20px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-shrink:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; overflow:visible; }
+  .modal-header-left { flex:1; min-width:0; overflow:visible; }
+  /* 彈窗 tag 群組統一規則：桌機換行；小網單行、超出水平捲動 */
+  .chip-row { display:flex; flex-wrap:wrap; gap:10px; overflow:visible; }
+  @media (max-width:720px) {
+    .chip-row {
+      flex-wrap:nowrap; min-width:0; max-width:none;
+      width:calc(100vw - 2px);
+      /* 上右下左：左/上/下保留陰影緩衝；右側為 0 讓 chips 貼齊螢幕邊緣 */
+      margin:-10px 0 -22px -16px;
+      padding:10px 0 22px 16px;
+      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .chip-row::-webkit-scrollbar { display:none; }
+    .chip-row > * { flex-shrink:0; }
+    /* 結尾緩衝：滑到底時最後一個 chip 離邊緣 16px（平常不影響右側貼齊） */
+    .chip-row::after { content:''; flex:0 0 16px; align-self:stretch; }
+  }
+  .modal-close { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-secondary); transition:transform .15s, box-shadow .15s; flex-shrink:0; margin-top:2px; }
+  .modal-close:hover { transform:scale(1.08); }
+  .modal-body { overflow-y:auto; padding:28px 28px 56px; flex:1; }
+  .modal-title { font-family:var(--font-sans); font-size:24px; font-weight:600; margin-bottom:8px; line-height:1.3; }
+  .modal-meta { display:flex; flex-wrap:wrap; align-items:center; gap:10px; overflow:visible; }
+  /* collapsible meta：scroll 向下時縮起，滾回頂部展開 */
+  .modal-collapsible {
+    overflow:visible;
+    max-height:240px;
+    opacity:1;
+    padding:2px 0 18px;
+    transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, margin 0.3s ease, padding 0.3s ease;
+    margin-top:6px;
+  }
+  .modal-collapsible.collapsed {
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    margin-top:0;
+    padding:0;
+  }
+  .modal-time { font-size:14px; color:var(--text-tertiary); margin-right:4px; }
+  .modal-desc { font-size:18px; color:var(--text-secondary); line-height:1.85; margin-bottom:28px; }
+  .modal-desc h1 { font-size:26px; font-weight:600; margin:16px 0 8px; color:var(--text); }
+  .modal-desc h2 { font-size:22px; font-weight:600; margin:14px 0 6px; color:var(--text); }
+  .modal-desc h3 { font-size:19px; font-weight:600; margin:12px 0 4px; color:var(--text); }
+  .modal-desc p { margin:5px 0; }
+  .modal-desc strong { font-weight:600; color:var(--text); }
+  /* Quill output styles */
+  .modal-desc p, .note-content p { margin:0 0 0.75em; }
+  .modal-desc p:last-child, .note-content p:last-child { margin-bottom:0; }
+  .ql-align-center { text-align:center; }
+  .ql-align-right { text-align:right; }
+  .ql-align-justify { text-align:justify; }
+  .ql-indent-1 { padding-left:2em; }
+  .ql-indent-2 { padding-left:4em; }
+  .ql-indent-3 { padding-left:6em; }
+  .modal-desc ol, .modal-desc ul,
+  .note-content ol, .note-content ul { padding-left:1.5em; margin:0.5em 0; }
+  .modal-desc li, .note-content li { margin:0.25em 0; }
+  .modal-desc ul, .note-content ul { list-style:disc; }
+  .modal-desc ol, .note-content ol { list-style:decimal; }
+  .modal-desc li > ul, .note-content li > ul { list-style:circle; }
+  .modal-desc blockquote, .note-content blockquote {
+    border-left:3px solid var(--border-strong); margin:0.75em 0;
+    padding:4px 12px; color:var(--text-secondary);
+  }
+  .modal-desc pre, .note-content pre {
+    background:var(--bg-secondary); border-radius:var(--radius-md);
+    padding:12px 16px; font-size:0.85em; overflow-x:auto; margin:0.75em 0;
+  }
+  .modal-desc img { max-width:100%; border-radius:var(--radius-md); margin:10px 0; display:block; }
+  .modal-desc a { color:var(--text); text-decoration:underline; }
+  .modal-desc iframe, .modal-desc .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
+  .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:28px; }
+  .modal-block { border-radius:var(--radius-md); padding:16px; }
+  .modal-block-label { font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px; }
+  .modal-block ul { list-style:none; }
+  .modal-block li { font-size:16px; color:var(--text-secondary); padding:3px 0; display:flex; gap:8px; }
+  .modal-block li::before { content:'—'; color:var(--text-tertiary); flex-shrink:0; }
+
+  .modal-images { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:24px; }
+  .modal-images img { width:100%; height:180px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); cursor:zoom-in; transition:opacity .15s; }
+  .modal-images img:hover { opacity:0.85; }
+  .note-item { display:flex; justify-content:space-between; align-items:flex-start; padding:22px 0; border-bottom:1px solid var(--border); gap:16px; cursor:pointer; transition:opacity .15s; }
+  .note-item:hover { opacity:0.75; }
+  .note-content { font-size:18px; color:var(--text-secondary); line-height:1.85; }
+  .note-content h1 { font-size:26px; font-weight:600; margin:18px 0 8px; color:var(--text); }
+  .note-content h2 { font-size:22px; font-weight:600; margin:16px 0 6px; color:var(--text); }
+  .note-content h3 { font-size:19px; font-weight:600; margin:14px 0 4px; color:var(--text); }
+  .note-content p { margin:6px 0; }
+  .note-content img { max-width:100%; border-radius:var(--radius-md); margin:12px 0; display:block; }
+  .hero-desc img,
+  .modal-desc img,
+  .note-content img { cursor:zoom-in; box-sizing:border-box; vertical-align:top; }
+  .hero-desc img[data-image-layout="half"],
+  .modal-desc img[data-image-layout="half"],
+  .note-content img[data-image-layout="half"],
+  .hero-desc img[data-image-layout="third"],
+  .modal-desc img[data-image-layout="third"],
+  .note-content img[data-image-layout="third"] { display:inline-block; margin:10px 6px 10px 0; }
+  .hero-desc img[data-image-layout="half"],
+  .modal-desc img[data-image-layout="half"],
+  .note-content img[data-image-layout="half"] { width:calc(50% - 8px); max-width:calc(50% - 8px); }
+  .hero-desc img[data-image-layout="third"],
+  .modal-desc img[data-image-layout="third"],
+  .note-content img[data-image-layout="third"] { width:calc(33.333% - 8px); max-width:calc(33.333% - 8px); }
+  .note-content blockquote { border-left:3px solid var(--border-strong); padding-left:14px; color:var(--text-tertiary); margin:10px 0; }
+  .note-content ul, .note-content ol { padding-left:22px; margin:6px 0; }
+  .note-content li { margin:3px 0; }
+  .note-content a { color:var(--text); text-decoration:underline; }
+  .note-content strong { font-weight:600; color:var(--text); }
+  .note-content iframe, .note-content .ql-video { width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); border:none; margin:12px 0; display:block; }
+  .note-empty { font-size:16px; color:var(--text-tertiary); padding:20px 0; }
+
+  .notes-list { display:flex; flex-direction:column; }
+  .note-item:first-child { border-top:none; }
+  .note-item:last-child { border-bottom:none; }
+  .note-date { font-size:14px; color:var(--text-tertiary); font-family:var(--font-sans); white-space:nowrap; }
+  .note-title { font-size:18px; color:var(--text); }
+
+  footer { border-top:1px solid var(--border); padding:56px 0 48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:24px; }
+  .footer-name { font-family:var(--font-sans); font-size:16px; color:var(--text-secondary); }
+  .footer-links { display:flex; gap:20px; }
+  .footer-link { font-size:15px; color:var(--text-tertiary); text-decoration:none; }
+  .footer-link:hover { color:var(--text); }
+  .skeleton { background:var(--bg-secondary); border-radius:var(--radius-sm); display:inline-block; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+
+  /* ── 平板 ── */
+  @media (max-width:720px) {
+    .wrapper { padding:0 24px; }
+    .nav-inner { padding:0 24px; }
+    .hero { padding-left:24px; padding-right:24px; }
+    .hero { padding-top:72px; padding-bottom:64px; }
+    .hero-desc { font-size:18px; margin-bottom:32px; }
+    .skill-grid { grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+    .project-row-title { font-size:19px; }
+    .sec-label { margin-bottom:22px; }
+  }
+
+  /* ── 手機 ── */
+  @media (max-width:560px) {
+    .wrapper { padding:0 18px; }
+    .nav-inner { padding:0 18px; position:relative; }
+    .hero { padding-left:18px; padding-right:18px; }
+    .nav-logo { display:none; }
+    .nav-actions { width:100%; display:flex; align-items:center; justify-content:center; }
+    .nav-links { flex:1; display:flex; justify-content:center; }
+    #theme-toggle { position:absolute; right:18px; }
+    .hero { padding-top:56px; padding-bottom:48px; }
+    .hero-title { font-size:clamp(32px,9vw,40px); margin-bottom:16px; }
+    .hero-desc { font-size:16px; line-height:1.8; margin-bottom:28px; max-width:100%; }
+    .hero-desc br { display:none; }
+    .hero-contacts { flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:22px; }
+    .contact-item { width:100%; justify-content:flex-start; }
+    .hero-badge { font-size:13px; padding:4px 12px; margin-bottom:20px; }
+    .sec-label { margin-bottom:16px; }
+    .skill-grid { grid-template-columns:1fr; gap:8px; margin-bottom:40px; }
+    .skill-card { padding:14px; }
+    .skill-card-icon { width:28px; height:28px; font-size:15px; margin-bottom:10px; }
+    .skill-card-title { font-size:13px; margin-bottom:8px; }
+    .tools-grid { gap:7px; }
+    .tool-item { font-size:14px; padding:10px 14px; flex:1 1 100%; }
+    .project-row { grid-template-columns:1fr; gap:12px; padding:22px 0; }
+    /* 小網：封面移到上方，撐滿全寬，16:9 等比 */
+    .project-row-right { flex-direction:column; padding-top:0; align-items:flex-start; width:100%; order:-1; }
+    .project-cover { width:100%; height:auto; aspect-ratio:16/9; }
+    .project-cover-empty { width:100%; height:auto; aspect-ratio:16/9; }
+    .project-row-title { font-size:18px; margin-bottom:6px; }
+    .project-row-desc { font-size:14px; -webkit-line-clamp:2; }
+    .note-item { flex-wrap:wrap; gap:8px; padding:16px 0; }
+    .note-title { font-size:16px; }
+    .note-date { font-size:12px; }
+    .modal-header { padding:14px 18px 12px; }
+    .modal-body { padding:18px 18px 44px; }
+    .modal-grid { grid-template-columns:1fr; }
+    .modal-title { font-size:20px; }
+    .modal-meta { flex-wrap:wrap; gap:10px; }
+  }
+
+  /* ── Lightbox ── */
+  .lb-overlay {
+    position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,0.96);
+    display:none; flex-direction:column;
+    align-items:center; justify-content:center;
+    opacity:0; transition:opacity .25s;
+  }
+  .lb-overlay.open { display:flex; }
+  .lb-overlay.visible { opacity:1; }
+  .lb-top {
+    position:absolute; top:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px 40px;
+  }
+  .lb-close {
+    position:absolute; left:40px;
+    background:none; border:none; color:#fff;
+    font-size:14px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    opacity:0.7; transition:opacity .15s;
+    padding:12px; margin:-12px;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .lb-close:hover { opacity:1; }
+  .lb-counter {
+    font-size:14px; color:rgba(255,255,255,0.7);
+    font-family:var(--font-sans);
+  }
+  .lb-img-wrap {
+    position:relative; display:flex;
+    align-items:center; justify-content:center;
+    width:100%;
+    height:calc(100vh - 88px);
+    margin-top:88px; /* lb-top 的高度，確保圖片不貼到計數文字 */
+    padding:0 100px;
+  }
+  .lb-img {
+    max-width:100%; max-height:100%;
+    width:auto; height:auto;
+    object-fit:contain;
+    display:block;
+    border-radius:var(--radius-md);
+    user-select:none; -webkit-user-drag:none;
+    pointer-events:none;
+    transform-origin:center center;
+  }
+  .lb-btn {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%;
+    --bf: blur(14px) saturate(var(--lg-sat)) brightness(1.15);
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0) 55%),
+      rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.25);
+    color:#fff; font-size:20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s; backdrop-filter:var(--bf);
+    -webkit-backdrop-filter:var(--bf);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.18),
+      inset 1.5px 2px 0 -1.5px rgba(255,255,255,0.5),
+      inset -1.5px -2px 0 -1.5px rgba(255,255,255,0.15),
+      0 4px 16px rgba(0,0,0,0.35);
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .lb-btn:hover { background:rgba(255,255,255,0.22); }
+  .lb-btn:active { background:rgba(255,255,255,0.3); transform:translateY(-50%) scale(0.94); }
+  .lb-btn.prev { left:40px; }
+  .lb-btn.next { right:40px; }
+  .lb-btn:disabled { opacity:0.25; cursor:default; }
+  @media (max-width:720px) {
+    .lb-top { padding:20px 24px; }
+    .lb-close { left:24px; }
+    .lb-btn.prev { left:24px; }
+    .lb-btn.next { right:24px; }
+    .lb-img-wrap { padding:0 80px; margin-top:72px; height:calc(100vh - 72px); }
+  }
+  @media (max-width:560px) {
+    .lb-top { padding:16px 18px; }
+    .lb-close { left:18px; }
+    .lb-img-wrap { padding:0 64px; margin-top:60px; height:calc(100vh - 60px); }
+    .lb-btn { width:40px; height:40px; font-size:18px; }
+    .lb-btn.prev { left:12px; }
+    .lb-btn.next { right:12px; }
+  }
+
+</style>
+<style id="orbit-layout">/* Layout experiment only. All palette, typeface and glass tokens above are unchanged. */
+html {scroll-padding-top:76px}
+body {overflow-x:clip}
+:root {--site-width:1120px;--site-gutter:40px}
+.nav-inner,.wrapper,.profile-overview {max-width:var(--site-width);padding-left:var(--site-gutter);padding-right:var(--site-gutter)}
+.nav-logo {white-space:nowrap}
+.orbit-section {padding:0;z-index:2}
+.orbit-sticky {--orbit-top:88px;--orbit-bottom:140px;position:relative;height:calc(100svh - 60px);min-height:600px;max-height:1080px;isolation:isolate;overflow:visible}
+.orbit-wordmark,.orbit-stage {position:absolute;inset:var(--orbit-top) 0 var(--orbit-bottom)}
+.orbit-wordmark {overflow:clip;inset:calc(var(--orbit-top) - 10%) 0 calc(var(--orbit-bottom) + 10%);z-index:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:35.8435vw;font-weight:800;line-height:1;letter-spacing:-.005em;white-space:nowrap;color:var(--text);opacity:.06;mask-image:linear-gradient(to bottom,transparent,#000 25%,#000 70%,transparent);pointer-events:none;user-select:none;-webkit-user-select:none}
+.orbit-wordmark-text {display:block;flex:none;transform:translateX(var(--wordmark-offset,0px))}
+.orbit-wordmark {transition:opacity .45s ease}
+.orbit-wordmark:not(.is-fitted) {opacity:0}
+.orbit-stage {--outset-top:80px;--outset-bottom:40px;inset:calc(var(--orbit-top) - var(--outset-top)) 0 calc(var(--orbit-bottom) - var(--outset-bottom));z-index:1;touch-action:pan-y;cursor:grab;outline:none;user-select:none;-webkit-user-select:none}
+.orbit-stage.is-dragging {cursor:grabbing}
+.orbit-stage.is-hovering:not(.is-dragging) {cursor:pointer}
+.orbit-stage canvas {width:100%;height:100%;display:block;opacity:0;transition:opacity .8s}
+.orbit-ready .orbit-stage canvas {opacity:1}
+.orbit-loading {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:14px;color:var(--text-secondary);text-align:center;pointer-events:none}
+.orbit-loading span {display:block;width:100px;height:2px;background:var(--glass-border-strong);margin:16px auto}
+.orbit-ready .orbit-loading {display:none}
+.orbit-pointer {position:absolute;left:0;top:0;padding:10px 16px;border-radius:100px;pointer-events:none;z-index:4;font-size:12px;opacity:0;transition:opacity .15s;white-space:nowrap;transform:translate(14px,-46px)}
+.orbit-stage.is-hovering:not(.is-dragging) .orbit-pointer {opacity:1}
+.orbit-bottom {position:absolute;bottom:22px;left:28px;right:28px;display:flex;align-items:center;flex-direction:column;gap:10px;z-index:3}
+.orbit-controls {display:flex;align-items:center;justify-content:center;gap:24px}
+.orbit-arrow {width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text);cursor:pointer;flex-shrink:0;padding:0}
+.orbit-active {font-family:inherit;background:none;border:0;color:var(--text);font-size:16px;display:flex;align-items:center;justify-content:center;gap:14px;min-width:360px;cursor:pointer;padding:10px 0;text-align:center}
+.orbit-active:hover #orbit-title {text-decoration:underline;text-underline-offset:5px}
+.orbit-count {font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.orbit-dots {display:flex;align-items:center;gap:2px;height:20px}
+.orbit-dot {display:grid;place-items:center;width:28px;height:24px;border:0;background:none;cursor:pointer;border-radius:20px}
+.orbit-dot::after {content:'';width:5px;height:5px;background:var(--text);opacity:.2;border-radius:20px;transition:width .3s,opacity .3s}
+.orbit-dot[aria-current="true"]::after {width:22px;opacity:.65}
+.orbit-hint {font-size:11px;letter-spacing:.06em;color:var(--text-tertiary)}
+.sr-only {position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+.orbit-fallback {display:none;padding-top:90px;padding-bottom:90px}
+.orbit-failed {height:auto;min-height:0}
+.orbit-failed .orbit-sticky {display:none}
+.orbit-failed .orbit-fallback {display:block}
+.orbit-section:not(.orbit-ready):not(.orbit-failed) .orbit-controls {opacity:.4;pointer-events:none}
+.profile-overview {margin:80px auto 40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start}
+.profile-overview:has(> .section-hidden) {grid-template-columns:minmax(0,1fr)}
+.profile-overview:has(> .hero.section-hidden):has(> #about.section-hidden) {display:none}
+.hero {max-width:none;min-height:unset;min-width:0;width:100%;padding:0;margin:0;display:block;text-align:left}
+.hero-text {max-width:none;width:100%;padding:0;margin:0}
+.hero-title {font-size:clamp(36px,4vw,46px);line-height:1.3;margin-bottom:22px}
+.hero-desc {max-width:760px;font-size:18px;line-height:1.9;margin-bottom:24px}
+/* Rich-text lists from the admin editor: markers sit inside the text column. */
+.hero-desc ul,.hero-desc ol {margin:.2em 0 .6em;padding-left:1.3em}
+.hero-desc ul {list-style:disc}
+.hero-desc ol {list-style:decimal}
+.hero-desc li {margin:.1em 0;padding-left:.2em}
+.hero-desc li::marker {color:var(--text-tertiary)}
+.hero-desc li > ul,.hero-desc li > ol {margin:.1em 0}
+/* A blank editor line separates groups; keep it shorter than a full text line. */
+.hero-desc p:empty,.hero-desc p:has(> br:only-child) {height:.9em}
+.hero-contacts {margin:0 0 22px;gap:10px}
+.hero-contacts .contact-item {font-size:14px;padding:9px 14px;max-width:100%;overflow-wrap:anywhere}
+.hero-contacts .contact-item svg {flex-shrink:0}
+.profile-overview .sec-label {margin-bottom:24px}
+.profile-overview #about {padding:0;min-width:0}
+.profile-overview .skill-grid {grid-template-columns:minmax(0,1fr);gap:14px;margin-bottom:28px}
+.profile-overview .skill-card {display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;column-gap:12px;row-gap:14px;padding:20px}
+.profile-overview .skill-card-icon,.profile-overview .skill-card-title {margin:0}
+.profile-overview .skill-tag-list {grid-column:1/-1;gap:8px}
+.profile-overview .skill-tag-list .tag {font-size:14px}
+button:focus-visible, a:focus-visible {outline:2px solid var(--ring);outline-offset:5px}
+@media (min-width:1500px) {.orbit-stage {max-width:1500px;margin:auto}.orbit-sticky{max-height:1200px}}
+@media (max-height:760px) and (min-width:761px) {.orbit-sticky{--orbit-top:84px;--orbit-bottom:128px;min-height:550px}.orbit-bottom{bottom:16px;gap:6px}}
+@media (max-width:760px) {
+ :root{--site-gutter:24px}
+ /* Phones are width-bound: the ring scales with the screen width, so a full-height
+    stage left large empty bands above and below it. Size the stage to the scene. */
+ .orbit-sticky{--orbit-top:20px;--orbit-bottom:140px;height:calc(var(--orbit-top) + var(--orbit-bottom) + 78vw);min-height:0;max-height:calc(100svh - 60px)}
+ .orbit-bottom{left:18px;right:18px;bottom:28px;gap:10px}
+ .orbit-active{min-width:0;max-width:260px;font-size:13px;gap:8px;flex-wrap:wrap;line-height:1.6}
+ .orbit-count{flex-basis:100%;font-size:10px}
+ .orbit-controls{gap:12px;width:100%;justify-content:space-between;max-width:430px}
+ .orbit-arrow{width:40px;height:40px}
+ .orbit-hint{font-size:10px}.orbit-pointer{display:none}
+ .profile-overview{grid-template-columns:minmax(0,1fr);gap:40px;margin:24px auto 24px}
+ .hero{padding:0}.hero-text{max-width:100%}.hero-title{font-size:clamp(30px,7.5vw,38px)}.hero-desc{font-size:17px}
+ .profile-overview #about{border-top:1px solid var(--border);padding-top:32px}
+ .profile-overview .skill-card{padding:18px}.profile-overview .skill-grid{margin-bottom:24px}
+}
+@media (prefers-reduced-motion:reduce) {html{scroll-behavior:auto}.orbit-stage canvas,.orbit-dot::after{transition:none}}
+</style>
+<link rel="modulepreload" href="./orbit-assets/three.module.min.js?v=f7cee3c753">
+<link rel="preload" href="./orbit-assets/david-mesh.bin.gz?v=993cc4898d" as="fetch" crossorigin>
+</head>
+<body>
+
+<!-- Liquid Glass 折射濾鏡：必須放在不會被 JS innerHTML 覆寫的位置 -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <filter id="glass-distort" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+    <!-- color-interpolation-filters="sRGB"：SVG 濾鏡預設 linearRGB，
+         深色 backdrop 經 sRGB↔linearRGB 來回轉換會產生混濁暗斑，必須鎖定 sRGB -->
+    <!-- 頻率 ~2.5 cycles/元素：膠囊上呈細緻漣漪而非元素等寬團塊 -->
+    <feTurbulence type="fractalNoise" baseFrequency="2.5 1.8" numOctaves="2" seed="7" result="noise"/>
+    <feGaussianBlur in="noise" stdDeviation="0.012" result="soft"/>
+    <feDisplacementMap in="SourceGraphic" in2="soft" scale="0.01" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<script>
+/* 折射偵測：backdrop-filter 內的 url() SVG 濾鏡目前僅 Chromium 正確渲染，
+   Safari 會解析成功但畫面破圖，因此排除 Safari，其餘瀏覽器優雅降級為純 blur */
+(function () {
+  try {
+    var ua = navigator.userAgent;
+    var isSafari = /Safari/.test(ua) && !/Chrom|Edg|OPR/.test(ua);
+    // 觸控裝置不啟用：導覽列玻璃疊在 WebGL 展間上，每一幀都要重算 SVG 位移濾鏡，手機會明顯掉幀
+    var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    if (!isSafari && !coarse && window.CSS && CSS.supports('backdrop-filter', 'url(#glass-distort) blur(1px)')) {
+      document.documentElement.classList.add('lg-refract');
+    }
+  } catch (e) {}
+})();
+</script>
+<div class="bg-orb-3" aria-hidden="true"></div>
+<div class="bg-grain" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#projects" class="nav-logo" id="nav-name">UI/UX Portfolio</a>
+    <div class="nav-actions">
+      <div class="nav-links" id="nav-links">
+        <!-- nav links 由 JS 從 Supabase nav_items 載入 -->
+      </div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="切換深色模式"></button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<section id="projects" class="orbit-section" aria-label="環形作品集">
+  <div class="orbit-sticky">
+    <div class="orbit-wordmark" aria-hidden="true"><span class="orbit-wordmark-text">UI/UX</span></div>
+    <div id="orbit-stage" class="orbit-stage" tabindex="0" role="region" aria-roledescription="互動作品輪播" aria-label="滾輪或拖曳旋轉作品，或按左右方向鍵切換、Enter 開啟專案">
+      <p class="orbit-loading" role="status">正在佈置作品展間<span></span></p>
+      <span class="orbit-pointer glass-el" aria-hidden="true">查看專案 ↗</span>
+    </div>
+    <div class="orbit-bottom">
+      <div class="orbit-controls">
+        <button class="orbit-arrow glass-el" id="orbit-prev" aria-label="上一件作品"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m14 6-6 6 6 6"/></svg></button>
+        <button class="orbit-active" id="orbit-open" aria-label="開啟目前作品"><span class="orbit-count" id="orbit-count">01 / 03</span><span id="orbit-title">探索作品</span><span aria-hidden="true">↗</span></button>
+        <button class="orbit-arrow glass-el" id="orbit-next" aria-label="下一件作品"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="orbit-dots" id="orbit-dots" aria-label="選擇作品"></div>
+      <p class="orbit-hint" id="orbit-hint" hidden></p>
+      <span class="orbit-live sr-only" aria-live="polite" aria-atomic="true"></span>
+    </div>
+  </div>
+  <div class="orbit-fallback wrapper"><div class="glass-el glass-container"><div class="projects-grid" id="projects-grid"></div></div></div>
+</section>
+<script>// Fit the background "UI/UX" wordmark to the navigation's content width.
+// Inlined as a classic script right after the orbit markup by build-preview.py,
+// so it runs before first paint instead of after the Three.js module loads.
+(function () {
+function alignWordmark() {
+  const wordmark=document.querySelector('.orbit-wordmark');
+  const text=wordmark.querySelector('.orbit-wordmark-text');
+  const nav=document.querySelector('.nav-inner');
+  const context=document.createElement('canvas').getContext('2d');
+  if(!context||!nav)return;
+  function align() {
+    const navBounds=nav.getBoundingClientRect();
+    const navStyle=getComputedStyle(nav);
+    const left=navBounds.left+parseFloat(navStyle.paddingLeft);
+    const right=navBounds.right-parseFloat(navStyle.paddingRight);
+    const width=right-left;
+    if(width<=0)return;
+    let style=getComputedStyle(text);
+    const spacingRatio=(parseFloat(style.letterSpacing)||0)/parseFloat(style.fontSize);
+    context.textAlign='left';
+    // Fit the visible ink to the navigation's actual content gutters, including
+    // its max-width and responsive padding. Keep the type uniformly scaled.
+    context.font=`${style.fontWeight} 1000px ${style.fontFamily}`;
+    const sample=context.measureText(text.textContent);
+    const gaps=Array.from(text.textContent).length-1;
+    const inkWidth=sample.actualBoundingBoxLeft+sample.actualBoundingBoxRight+1000*spacingRatio*gaps;
+    wordmark.style.fontSize=`${1000*width/inkWidth}px`;
+    style=getComputedStyle(text);
+    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const spacing=parseFloat(style.letterSpacing)||0;
+    const metrics=context.measureText(text.textContent);
+    // U and X have different side bearings; center their ink, not the text box.
+    const inkCenter=(metrics.actualBoundingBoxRight+spacing*gaps-metrics.actualBoundingBoxLeft)/2;
+    const bounds=wordmark.getBoundingClientRect();
+    const offset=text.getBoundingClientRect().width/2-inkCenter+(left+right-bounds.left-bounds.right)/2;
+    text.style.setProperty('--wordmark-offset',`${offset}px`);
+  }
+  const observer=new ResizeObserver(align);
+  observer.observe(wordmark);
+  observer.observe(nav);
+  // Keep the wordmark hidden until it is sized with the final web font, so a
+  // reload never shows the oversized CSS fallback or the fallback-font metrics.
+  const reveal=()=>{align();wordmark.classList.add('is-fitted');};
+  // fonts.ready can resolve before layout has requested the 800 weight, so ask
+  // for that exact face. A slow font network still reveals after 1.5 s.
+  const face=getComputedStyle(text);
+  Promise.race([
+    document.fonts.load(`${face.fontWeight} 100px ${face.fontFamily}`,text.textContent),
+    new Promise(resolve=>setTimeout(resolve,1500))
+  ]).then(reveal,reveal);
+  document.fonts.addEventListener('loadingdone',align);
+  align();
+}
+alignWordmark();
+})();
+</script>
+
+
+<div class="profile-overview">
+<section class="hero" id="hero">
+  <div class="hero-text">
+    <p class="sec-label">關於我</p>
+    <h1 class="hero-title" id="hero-title">您好，我是林艾奭</h1>
+    <p class="hero-desc" id="hero-desc">從事 UI / UX 設計工作 4 年左右，是個跨領域的工作者。目前在金融業擔任數位設計專員，主要負責網路銀行和行動銀行的 UI / UX 設計。</p>
+    <div class="hero-contacts" id="hero-contacts">
+      <a href="mailto:zh6502014@gmail.com" class="contact-item glass-el">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        zh6502014@gmail.com
+      </a>
+      <span class="contact-item glass-el">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        0911-585-420
+      </span>
+    </div>
+  </div>
+</section>
+  <section id="about" style="position:relative">
+    <p class="sec-label">設計技能</p>
+    <div class="skill-grid" id="skills-grid">
+      <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🎨</div><div class="skill-card-title"><span class="skeleton" style="width:120px;height:14px"></span></div></div>
+      <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🖼</div><div class="skill-card-title"><span class="skeleton" style="width:100px;height:14px"></span></div></div>
+    </div>
+    <p class="sec-label">使用工具</p>
+    <div class="tools-grid" id="tools-grid">
+      <div class="tool-item glass-el"><span class="skeleton" style="width:80px;height:14px"></span></div>
+      <div class="tool-item glass-el"><span class="skeleton" style="width:90px;height:14px"></span></div>
+    </div>
+  </section>
+</div>
+
+<div class="wrapper">
+
+
+
+
+
+  <section id="notes">
+    <p class="sec-label">隨筆紀錄</p>
+    <div class="glass-el glass-container">
+      <div class="notes-list" id="notes-list">
+      <div class="note-item"><span class="skeleton" style="width:100px;height:13px"></span><span class="skeleton" style="width:250px;height:13px"></span></div>
+    </div>
+      </div>
+  </section>
+
+  <footer>
+    <span class="footer-name" id="footer-name">林艾奭・UI/UX Designer</span>
+    <div class="footer-links">
+      <a href="mailto:zh6502014@gmail.com" class="footer-link" id="footer-email">Email</a>
+    </div>
+  </footer>
+
+</div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal-box">
+    <nav class="modal-toc" id="modal-toc" aria-label="文章目錄" hidden>
+      <div class="modal-toc-head"><span class="modal-toc-title">文章目錄</span></div>
+      <ul class="modal-toc-list" id="modal-toc-list"></ul>
+    </nav>
+    <div class="modal-header" id="modal-header">
+      <div class="modal-header-left" id="modal-header-content"></div>
+      <div class="modal-header-actions">
+        <button class="modal-fs glass-el" id="modal-fs-btn" onclick="toggleModalFullscreen()" aria-label="放大為滿版" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        <button class="modal-close glass-el" onclick="closeModal()" aria-label="關閉">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+// ── Supabase 連線設定（直接寫在這裡）──
+const SUPABASE_URL = 'https://wlxlhyieypohktsvwuuc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndseGxoeWlleXBvaGt0c3Z3dXVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTYxNTAsImV4cCI6MjA5NTM3MjE1MH0.KbgbCGBCoJA6ybawKDTHp6w-Tl_dGpE0RVgbaiFgv3Y';
+
+// 原生 fetch 直接打 Supabase REST API，完全不使用 SDK
+// 避免 @supabase/supabase-js 的 BroadcastChannel / postMessage 觸發 DataCloneError
+function sbFetch(table, params = '') {
+  if (navigator.onLine === false) return Promise.reject(new Error('Offline'));
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000); // 10 秒沒回應視為失敗
+  return fetch(
+    `${SUPABASE_URL}/rest/v1/${table}?${params}`,
+    {
+      signal: ctrl.signal,
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    }
+  ).then(r => {
+    if (!r.ok) throw new Error(table + ' HTTP ' + r.status);   // 401 / 500 等也算失敗
+    return r.json();
+  }).finally(() => clearTimeout(timer));
+}
+
+// 連線預熱完成後，盡早把 6 個查詢一起送出（不等下方數百行 render 函式解析完才開始），
+// 讓資料在網路上往返的同時，瀏覽器繼續解析 JS，縮短可見資料出現的時間。
+function fetchAll() {
+  return Promise.all([
+    sbFetch('profile', 'limit=1'),
+    sbFetch('skills', 'order=sort_order'),
+    sbFetch('tools',  'order=sort_order'),
+    sbFetch('projects', 'published=eq.true&order=sort_order'),
+    sbFetch('notes',    'published=eq.true&order=sort_order'),
+    sbFetch('nav_items', 'order=sort_order'),
+    sbFetch('section_settings', 'select=key,visible').catch(() => []),
+  ]);
+}
+const _dataPromise = navigator.onLine === false ? null : fetchAll();
+
+// ── 離線快取：載入成功就存一份，之後連不上時先顯示上次的內容 ──
+const DATA_CACHE_KEY = 'portfolio-data-v1';
+function saveDataCache(data) {
+  try { localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({ t: Date.now(), data })); } catch (e) {}
+}
+function readDataCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(DATA_CACHE_KEY) || 'null');
+    return c && Number.isFinite(c.t) && Array.isArray(c.data) && c.data.length >= 6 && c.data.slice(0, 6).every(Array.isArray) ? c : null;
+  } catch (e) { return null; }
+}
+function renderAllData(data) {
+  const [profile, skills, tools, projects, notes, navItems, sectionSettings] = data;
+  if (profile?.[0])   renderProfile(profile[0]);
+  if (Array.isArray(skills)) renderSkills(skills);
+  if (Array.isArray(tools)) renderTools(tools);
+  if (Array.isArray(projects)) renderProjects(projects);
+  if (Array.isArray(notes)) renderNotes(notes);
+  if (Array.isArray(navItems)) renderNav(navItems);
+  applySectionVisibility(sectionSettings);
+  requestAnimationFrame(updateNav);
+}
+
+// 離線提示列
+function showOfflineBanner(sub, title = navigator.onLine === false ? '目前離線' : '連線不穩') {
+  let bar = document.getElementById('offline-banner');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'offline-banner';
+    bar.setAttribute('role', 'status');
+    bar.innerHTML = '<span class="offline-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8a15 15 0 0 0-9.4-3.7"/><path d="M5 12.9a10 10 0 0 1 3.6-2.1M19 12.9a10 10 0 0 0-3.5-2.1"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="m2 2 20 20"/></svg></span><span class="offline-msg"><b class="offline-title"></b><span class="offline-sub"></span></span><button type="button" class="offline-retry">重新載入</button>';
+    bar.querySelector('.offline-retry').addEventListener('click', retryLoad);
+    document.body.appendChild(bar);
+  }
+  bar.querySelector('.offline-title').textContent = title;
+  bar.querySelector('.offline-sub').textContent = sub;
+  bar.classList.add('show');
+}
+function hideOfflineBanner() {
+  const bar = document.getElementById('offline-banner');
+  if (bar) bar.classList.remove('show');
+}
+
+// Render saved content immediately; refresh in the background without rebuilding
+// the scene when the response is unchanged. A disconnect invalidates older requests.
+let _retrying = false, _loadSequence = 0, _hasRenderedData = false, _lastDataJSON = '';
+function renderDataIfChanged(data) {
+  const json = JSON.stringify(data);
+  if (json !== _lastDataJSON) { renderAllData(data); _lastDataJSON = json; }
+  _hasRenderedData = true;
+  applyRoute();
+}
+function offlineMessage(cache = readDataCache()) {
+  if (!cache) return '尚無已儲存的內容，恢復連線後會自動載入';
+  const d = new Date(cache.t);
+  return `顯示 ${d.getMonth() + 1}/${d.getDate()} 已儲存的內容；已下載的圖片可離線瀏覽`;
+}
+let _retryQueued = false;
+async function retryLoad() {
+  // Reconnecting during an in-flight retry queues one more attempt, so a
+  // request invalidated by an offline event is never the last one.
+  if (_retrying) { _retryQueued = true; return; }
+  _retrying = true;
+  const btn = document.querySelector('#offline-banner .offline-retry');
+  if (btn) { btn.disabled = true; btn.textContent = '載入中…'; }
+  // Brief network blips refresh silently; only an already visible banner changes.
+  if (navigator.onLine !== false && document.getElementById('offline-banner')?.classList.contains('show'))
+    showOfflineBanner('正在更新內容…', '重新連線中');
+  try { await loadData(); }
+  finally {
+    _retrying = false;
+    if (btn) { btn.disabled = false; btn.textContent = '重新載入'; }
+    if (_retryQueued) { _retryQueued = false; retryLoad(); }
+  }
+}
+async function loadData(promise = null) {
+  const sequence = ++_loadSequence;
+  const cache = readDataCache();
+  if (!_hasRenderedData && cache) renderDataIfChanged(cache.data);
+  if (navigator.onLine === false) {
+    if (!_hasRenderedData) { renderFallback(); _hasRenderedData = true; }
+    showOfflineBanner(offlineMessage(cache));
+    return false;
+  }
+  try {
+    const data = await (promise || fetchAll());
+    if (sequence !== _loadSequence) return false;
+    window.orbitEmptyReason = '';
+    renderDataIfChanged(data);
+    saveDataCache(data);
+    hideOfflineBanner();
+    window.dispatchEvent(new CustomEvent('portfolio-data-ready'));
+    return true;
+  } catch (e) {
+    if (sequence !== _loadSequence) return false;
+    if (!_hasRenderedData) { renderFallback(); _hasRenderedData = true; }
+    showOfflineBanner(offlineMessage(cache));
+    return false;
+  }
+}
+window.addEventListener('offline', () => {
+  ++_loadSequence;
+  showOfflineBanner(offlineMessage());
+});
+window.addEventListener('online', retryLoad);
+
+
+// ── 區塊顯示開關（後台 section_settings）──
+// 關閉的區塊加上 .section-hidden；導覽列中指向被隱藏區塊的連結也一併隱藏
+function applySectionVisibility(rows) {
+  if (!Array.isArray(rows)) return; // 尚未建表或讀取失敗 → 全部顯示
+  const off = new Set(rows.filter(r => r && r.visible === false).map(r => r.key));
+  const $ = id => document.getElementById(id);
+  const targets = {
+    profile:    () => [$('hero'), document.querySelector('.hero-3d')],
+    skills:     () => { const g = $('skills-grid'); return [g, g && g.previousElementSibling]; },
+    tools:      () => { const g = $('tools-grid');  return [g, g && g.previousElementSibling]; },
+    projects:   () => [$('projects')],
+    notes:      () => [$('notes')],
+    navigation: () => [$('nav-links')],
+  };
+  Object.keys(targets).forEach(key => {
+    targets[key]().forEach(el => el && el.classList.toggle('section-hidden', off.has(key)));
+  });
+  // 技能與工具都關閉時，整個「關於」區塊一起隱藏
+  const about = $('about');
+  if (about) about.classList.toggle('section-hidden', off.has('skills') && off.has('tools'));
+  // 導覽列連結：指向已隱藏區塊就隱藏
+  document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+    const target = $(link.dataset.section);
+    link.classList.toggle('section-hidden', !!(target && target.classList.contains('section-hidden')));
+  });
+  updateNav();
+}
+
+
+function mergeDescParagraphs(root) {
+  const isEmpty = el => el.tagName === 'P' && !el.textContent.trim() && !el.querySelector('img');
+  let group = null;
+  for (const el of Array.from(root.children)) {
+    if (el.tagName !== 'P' || isEmpty(el)) { group = null; continue; }
+    if (!group) { group = el; continue; }
+    group.append(...el.childNodes);
+    el.remove();
+  }
+}
+
+// ── Quill 2 清單 → 標準 HTML ──
+// Quill 2 把編號與點點清單都存成 <ol><li data-list="...">，縮排用 ql-indent-N；
+// 這裡轉成正確的 <ol>/<ul> 巢狀結構，並移除編輯器用的 .ql-ui 標記
+function fixRichLists(html) {
+  if (!html || html.indexOf('data-list') === -1) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  root.querySelectorAll('span.ql-ui').forEach(s => s.remove());
+  root.querySelectorAll('ol').forEach(ol => {
+    const lis = Array.from(ol.children).filter(li => li.tagName === 'LI');
+    if (!lis.some(li => li.hasAttribute('data-list'))) return;
+    const frag = document.createDocumentFragment();
+    const stack = [];
+    lis.forEach(li => {
+      const type = li.getAttribute('data-list') === 'ordered' ? 'OL' : 'UL';
+      const m = (li.className || '').match(/ql-indent-(\d+)/);
+      const indent = m ? +m[1] : 0;
+      li.removeAttribute('data-list');
+      li.className = (li.className || '').replace(/\bql-indent-\d+\b/g, '').trim();
+      if (!li.className) li.removeAttribute('class');
+      while (stack.length) {
+        const top = stack[stack.length - 1];
+        if (top.indent > indent || (top.indent === indent && top.type !== type)) stack.pop(); else break;
+      }
+      let top = stack[stack.length - 1];
+      if (!top || top.indent < indent) {
+        const list = document.createElement(type);
+        if (top) (top.el.lastElementChild || top.el).appendChild(list); else frag.appendChild(list);
+        top = { el: list, type, indent };
+        stack.push(top);
+      }
+      top.el.appendChild(li);
+    });
+    ol.replaceWith(frag);
+  });
+  return root.innerHTML;
+}
+
+
+// ── 圖片說明文字：img[data-caption] → <span class="rich-figure"> + 說明 ──
+// 用 span（而非 figure）包裝，才能留在 <p> 裡、不被瀏覽器拆開；寬度 / 對齊 / 併排樣式從 img 移到外框
+function wrapRichCaptions(html) {
+  if (!html || html.indexOf('data-caption') === -1) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  root.querySelectorAll('img[data-caption]').forEach(img => {
+    const fig = document.createElement('span');
+    fig.className = 'rich-figure';
+    const layout = img.getAttribute('data-image-layout');
+    if (layout && layout !== 'block') fig.setAttribute('data-image-layout', layout);
+    ['width', 'maxWidth', 'margin', 'verticalAlign'].forEach(k => { if (img.style[k]) { fig.style[k] = img.style[k]; img.style[k] = ''; } });
+    img.removeAttribute('data-image-layout');
+    img.style.width = '100%'; img.style.maxWidth = '100%'; img.style.margin = '0'; img.style.display = 'block';
+    const cap = document.createElement('span');
+    cap.className = 'rich-caption';
+    cap.textContent = img.getAttribute('data-caption');
+    img.replaceWith(fig);
+    fig.appendChild(img); fig.appendChild(cap);
+  });
+  return root.innerHTML;
+}
+// ── 表格：外包一層可左右捲動的容器（手機不會撐破版面）──
+function wrapRichTables(html) {
+  if (!html || html.indexOf('<table') === -1) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  root.querySelectorAll('table').forEach(tbl => {
+    if (tbl.parentElement && tbl.parentElement.classList.contains('rich-table-wrap')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'rich-table-wrap';
+    tbl.replaceWith(wrap); wrap.appendChild(tbl);
+  });
+  return root.innerHTML;
+}
+function prepRichHtml(html) { return wrapRichTables(wrapRichCaptions(fixRichLists(html))); }
+
+// ── renderNav ──
+function renderNav(items) {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl) return;
+
+  const uniqueItems = [];
+  const seen = new Set();
+  (items || []).forEach(item => {
+    const href = (item.href || '').trim();
+    const key = href || (item.label || '').trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    uniqueItems.push({ ...item, href });
+  });
+
+  navEl.innerHTML = uniqueItems.map((item, i) => {
+    const section = item.href ? item.href.replace('#', '') : '';
+    return `<a href="${item.href || '#'}" class="nav-link${i === 0 ? ' active' : ''}" data-section="${section}">${item.label || ''}</a>`;
+  }).join('');
+
+  navEl.querySelectorAll('.nav-link').forEach(link => {
+    // hover
+    link.addEventListener('mouseenter', () => movePillTo(link));
+    // 點擊：立即更新 active + pill（不等 scroll 觸發）
+    link.addEventListener('click', () => {
+      navEl.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      movePillTo(link);
+    });
+  });
+  navEl.addEventListener('mouseleave', () => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) movePillTo(active);
+  });
+
+  // 等 DOM reflow 後重算 pill 位置
+  requestAnimationFrame(() => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) setPillPosition(active);
+  });
+}
+
+function renderProfile(p) {
+  const heroTitle = (p.name || '您好，我是林艾奭').trim();
+  const navName = ((p.nav_name && p.nav_name.trim()) || 'UI/UX Portfolio').replace(/作品集/g, 'Portfolio');
+  document.getElementById('hero-title').textContent = heroTitle;
+  document.getElementById('nav-name').textContent = navName;
+  // footer-name 為靜態文字，不由後台控制
+  const descEl = document.getElementById('hero-desc');
+  if (descEl) {
+    descEl.innerHTML = prepRichHtml(p.description || '');
+    // 小網（≤560px）：大網用來斷句的連續段落合併成一段；
+    // 空白行仍視為分段，清單、圖片等其他區塊原樣保留
+    if (window.innerWidth <= 560) mergeDescParagraphs(descEl);
+    bindContentLightbox(descEl);
+  }
+  const contacts = document.getElementById('hero-contacts');
+  contacts.innerHTML = '';
+  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
+  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
+  document.getElementById('footer-email').href = 'mailto:' + (p.email || '');
+}
+
+function renderSkills(data) {
+  if (!data.length) { document.getElementById('skills-grid').innerHTML = ''; return; }
+  document.getElementById('skills-grid').innerHTML = data.map(s => `
+    <div class="skill-card glass-el glass-card">
+      <div class="skill-card-icon">${s.icon || '🎨'}</div>
+      <div class="skill-card-title">${s.title}</div>
+      <div class="skill-tag-list">${(s.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function renderTools(data) {
+  if (!data.length) { document.getElementById('tools-grid').innerHTML = ''; return; }
+  document.getElementById('tools-grid').innerHTML = data.map(t => `
+    <div class="tool-item glass-el"><div><div class="tool-name">${t.name}</div>${t.description ? `<div class="tool-desc">${t.description}</div>` : ''}</div></div>
+  `).join('');
+}
+
+let allProjects = [];
+function renderProjects(data) {
+  allProjects = data;
+  window.orbitProjects = data;
+  window.dispatchEvent(new CustomEvent("orbit-projects", { detail: data }));
+  const grid = document.getElementById('projects-grid');
+  grid.innerHTML = '';
+  data.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'project-row';
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
+    row.onclick = () => openModal(p.id);
+    row.onkeydown = (e) => { if (e.key === 'Enter') openModal(p.id); };
+
+    const coverUrl = parseImgArr(p.images)[0] || '';
+    const coverEl = document.createElement(coverUrl ? 'img' : 'div');
+    if (coverUrl) {
+      coverEl.className = 'project-cover';
+      coverEl.src = coverUrl;
+      coverEl.alt = p.title + ' 封面';
+      coverEl.loading = 'lazy';
+      coverEl.decoding = 'async';
+      coverEl.onerror = function() {
+        const e = document.createElement('div');
+        e.className = 'project-cover-empty';
+        e.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
+        this.parentNode.replaceChild(e, this);
+      };
+    } else {
+      coverEl.className = 'project-cover-empty';
+      coverEl.innerHTML = '<span class="project-cover-empty-icon">🖼</span>';
+    }
+
+    const tags = (p.tags||[]).map(t => {
+      const s = document.createElement('span');
+      s.className = 'tag'; s.textContent = t; return s.outerHTML;
+    }).join('');
+
+    const right = document.createElement('div');
+    right.className = 'project-row-right';
+    right.appendChild(coverEl);
+
+    row.innerHTML = '<div>' +
+      '<p class="project-row-num">' + String(i+1).padStart(2,'0') + '</p>' +
+      '<h2 class="project-row-title">' + p.title + '</h2>' +
+      (p.time_range ? '<p class="project-time" style="margin-bottom:8px">' + p.time_range + '</p>' : '') +
+      '<p class="project-row-desc">' + stripHtml(p.description || '') + '</p>' +
+      '<div class="project-tags">' + tags + '</div>' +
+      '</div>';
+    row.appendChild(right);
+    grid.appendChild(row);
+  });
+}
+
+let allNotes = [];
+function renderNotes(data) {
+  allNotes = data;
+  document.getElementById('notes-list').innerHTML = data.map(n => `
+    <div class="note-item" onclick="openNote(${n.id})" role="button" tabindex="0"
+      onkeydown="if(event.key==='Enter')openNote(${n.id})">
+      <span class="note-date">${formatDate(n.note_date)}</span>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <span class="note-title">${n.title}</span>
+        ${n.note_type ? `<div style="display:flex;flex-wrap:wrap;gap:10px;overflow:visible">${n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="note-type">${t}</span>`).join('')}</div>` : ''}
+      </div>
+
+    </div>
+  `).join('');
+}
+
+function openNote(id) {
+  const n = allNotes.find(x => x.id === id);
+  if (!n) return;
+  const contentHtml = n.content
+    ? `<div class="note-content">${prepRichHtml(n.content)}</div>`
+    : `<p class="note-empty">此篇隨筆尚未加入內容。</p>`;
+  document.getElementById('modal-header-content').innerHTML =
+    '<h2 class="modal-title">' + n.title + '</h2>' +
+    '<div class="modal-collapsible" id="modal-collapsible">' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
+      (n.note_date ? '<span class="modal-time">' + formatDate(n.note_date) + '</span>' : '') +
+      (n.note_type ? '<div class="chip-row">' + n.note_type.split('·').map(t=>t.trim()).filter(Boolean).map(t=>'<span class="note-type">'+t+'</span>').join('') + '</div>' : '') +
+    '</div>' +
+    '</div>';
+  document.getElementById('modal-content').innerHTML = contentHtml;
+  bindContentLightbox(document.getElementById('modal-content'));
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setModalRoute('note', n.id, n.title);
+}
+
+function openModal(id) {
+  const p = allProjects.find(x => x.id === id);
+  if (!p) return;
+
+  const imgs = parseImgArr(p.images);
+  const coverUrl = imgs[0] || '';
+
+  // Header: tags + title + meta
+  const tagsHtml = (p.tags||[]).map(t => { const s = document.createElement('span'); s.className='tag'; s.textContent=t; return s.outerHTML; }).join('');
+  const membersHtml = p.members ? p.members.split('·').map(m => { const s=document.createElement('span'); s.className='tag'; s.textContent=m.trim(); return s.outerHTML; }).filter(Boolean).join('') : '';
+
+  document.getElementById('modal-header-content').innerHTML =
+    '<h2 class="modal-title">' + p.title + '</h2>' +
+    '<div class="modal-collapsible" id="modal-collapsible">' +
+    '<div class="modal-meta" style="margin-top:8px;flex-direction:column;align-items:flex-start;gap:10px;overflow:visible">' +
+      (p.time_range ? '<span class="modal-time">' + p.time_range + '</span>' : '') +
+      (membersHtml ? '<div class="chip-row">' + membersHtml + '</div>' : '') +
+      '<div class="chip-row">' + tagsHtml + '</div>' +
+    '</div>';
+
+  // Body: cover → description → sections → rest images
+  const body = document.getElementById('modal-content');
+  body.innerHTML = '';
+
+  // Cover image full width
+  if (coverUrl) {
+    const coverWrap = document.createElement('div');
+    coverWrap.className = 'modal-cover-wrap';
+    const coverImg = document.createElement('img');
+    coverImg.src = coverUrl;
+    coverImg.alt = p.title;
+    coverImg.loading = 'lazy';
+    coverImg.decoding = 'async';
+    coverWrap.appendChild(coverImg);
+    body.appendChild(coverWrap);
+  }
+
+  // Sections first
+  const sections = (p.sections && p.sections.length) ? p.sections : [];
+  if (sections.length) {
+    const grid = document.createElement('div');
+    grid.className = 'modal-grid';
+    if (coverUrl) grid.style.marginTop = '20px';
+    sections.forEach(s => {
+      if (!s.title) return;
+      const block = document.createElement('div');
+      block.className = 'modal-block glass-el';
+      const lines = (s.items||[]).flatMap(x => x ? x.split('\n') : []).map(l=>l.trim()).filter(Boolean);
+      block.innerHTML = '<p class="modal-block-label">' + s.title + '</p>' +
+        (lines.length ? '<ul>' + lines.map(l=>'<li>'+l+'</li>').join('') + '</ul>' : '');
+      grid.appendChild(block);
+    });
+    body.appendChild(grid);
+  }
+
+  // Content (rich text) after sections
+  if (p.content) {
+    const desc = document.createElement('div');
+    desc.className = 'modal-desc';
+    desc.style.marginTop = '20px';
+    desc.innerHTML = prepRichHtml(p.content);
+    bindContentLightbox(desc);
+    body.appendChild(desc);
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setModalRoute('project', p.id, p.title);
+}
+
+// ── 每篇專案 / 隨筆各自的網址（#project-3、#note-5）──
+// 開啟時把網址改成該篇的連結；用網址進來會自動打開；瀏覽器上一頁 = 關閉彈窗
+const BASE_TITLE = document.title;
+let _routing = false;      // 正在由網址觸發開啟，不要再寫一次網址
+let _routePushed = false;  // 這次網址是我們 push 進去的（關閉時可用 history.back 退回）
+let _openRoute = null;
+
+function routeHash(kind, id) { return '#' + kind + '-' + id; }
+function setModalRoute(kind, id, title) {
+  _openRoute = { kind, id };
+  const plain = stripHtml(title || '');
+  if (plain) document.title = plain + ' — ' + BASE_TITLE;
+  if (_routing) return;
+  const h = routeHash(kind, id);
+  if (location.hash === h) return;
+  try { history.pushState(null, '', location.pathname + location.search + h); _routePushed = true; } catch (e) {}
+}
+function clearModalRoute() {
+  document.title = BASE_TITLE;
+  const open = _openRoute; _openRoute = null;
+  if (!open || location.hash !== routeHash(open.kind, open.id)) return;
+  try {
+    if (_routePushed) { _routePushed = false; history.back(); }
+    else history.replaceState(null, '', location.pathname + location.search);
+  } catch (e) {}
+}
+function applyRoute() {
+  const m = /^#(project|note)-(\d+)$/.exec(location.hash);
+  const overlay = document.getElementById('modal-overlay');
+  if (!m) { if (overlay.classList.contains('open')) closeModal(); return; }
+  const kind = m[1], id = Number(m[2]);
+  if (overlay.classList.contains('open') && _openRoute && _openRoute.kind === kind && _openRoute.id === id) return;
+  _routing = true;
+  try { kind === 'project' ? openModal(id) : openNote(id); } finally { _routing = false; }
+}
+window.addEventListener('popstate', applyRoute);
+
+// ── Modal collapsible header on scroll ──
+(function() {
+  const body = document.getElementById('modal-content');
+  if (!body) return;
+  let lastScrollY = 0;
+  let ticking = false;
+
+  body.addEventListener('scroll', () => {
+    lastScrollY = body.scrollTop;
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const collapsible = document.getElementById('modal-collapsible');
+        if (collapsible) {
+          if (lastScrollY > 20) {
+            collapsible.classList.add('collapsed');
+          } else {
+            collapsible.classList.remove('collapsed');
+          }
+        }
+        updateTocActive();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+})();
+
+function bindContentLightbox(container) {
+  if (!container || typeof lbOpen !== 'function') return;
+  const imgs = Array.from(container.querySelectorAll('img')).filter(img => img.src);
+  if (!imgs.length) return;
+  const urls = imgs.map(img => img.src);
+  imgs.forEach((img, index) => {
+    img.style.cursor = 'zoom-in';
+    img.onclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      lbOpen(urls, index);
+    };
+  });
+}
+
+// ── 滿版彈窗 + 左側目錄（scroll-spy） ──
+let tocItems = [];  // [{el, link}]
+const FS_ICON_EXPAND = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+const FS_ICON_RESTORE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
+
+function isTocViewport() { return window.matchMedia('(min-width:1280px)').matches; }
+
+function toggleModalFullscreen() {
+  const box = document.getElementById('modal-box');
+  const btn = document.getElementById('modal-fs-btn');
+  const on = box.classList.toggle('fullscreen');
+  btn.innerHTML = on ? FS_ICON_RESTORE : FS_ICON_EXPAND;
+  btn.setAttribute('aria-label', on ? '還原視窗' : '放大為滿版');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (on) { buildModalToc(); }
+  else { hideModalToc(); }
+}
+
+function hideModalToc() {
+  const toc = document.getElementById('modal-toc');
+  toc.hidden = true;
+  toc.classList.remove('collapsed');
+  document.getElementById('modal-toc-list').innerHTML = '';
+  tocItems = [];
+}
+
+function buildModalToc() {
+  const toc = document.getElementById('modal-toc');
+  const list = document.getElementById('modal-toc-list');
+  const body = document.getElementById('modal-content');
+  list.innerHTML = '';
+  tocItems = [];
+
+  // 只在桌機顯示；非桌機就算滿版也不建目錄
+  if (!isTocViewport()) { toc.hidden = true; return; }
+
+  // 從富文字容器抓標題（專案 .modal-desc／隨筆 .note-content）
+  const scope = body.querySelector('.modal-desc, .note-content') || body;
+  const heads = Array.from(scope.querySelectorAll('h1, h2, h3'))
+    .filter(h => h.textContent.trim());
+
+  if (!heads.length) { hideModalToc(); return; }
+
+  heads.forEach((h, i) => {
+    if (!h.id) h.id = 'toc-h-' + i;
+    const lvl = Number(h.tagName.slice(1));
+    const a = document.createElement('a');
+    a.className = 'lvl-' + lvl;
+    a.textContent = h.textContent.trim();
+    a.title = a.textContent;
+    a.href = '#' + h.id;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const top = headTopInBody(h, body) - 20;
+      body.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+    list.appendChild(a);
+    tocItems.push({ el: h, link: a });
+  });
+
+  toc.hidden = false;
+  // 目錄頂端對齊內容（封面）頂端：header 高度 + body 上內距
+  const headerH = (document.getElementById('modal-header').offsetHeight) || 80;
+  const bodyPadTop = parseFloat(getComputedStyle(body).paddingTop) || 48;
+  const topPx = headerH + bodyPadTop;
+  toc.style.top = topPx + 'px';
+  toc.style.maxHeight = 'calc(100% - ' + (topPx + 40) + 'px)';
+  updateTocActive();
+}
+
+function headTopInBody(h, body) {
+  return h.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+}
+
+function updateTocActive() {
+  if (!tocItems.length) return;
+  const body = document.getElementById('modal-content');
+  const pos = body.scrollTop + 28;  // 目前視窗頂部對應的內容位置
+  let activeIdx = 0;
+  for (let i = 0; i < tocItems.length; i++) {
+    if (headTopInBody(tocItems[i].el, body) <= pos) activeIdx = i; else break;
+  }
+  tocItems.forEach((it, i) => it.link.classList.toggle('active', i === activeIdx));
+}
+
+window.addEventListener('resize', () => {
+  const box = document.getElementById('modal-box');
+  if (box && box.classList.contains('fullscreen')) buildModalToc();
+});
+
+function closeModal() {
+  const overlay = document.getElementById('modal-overlay');
+  const wasOpen = overlay.classList.contains('open');
+  overlay.classList.remove('open');
+  if (wasOpen) clearModalRoute();
+  document.body.style.overflow = '';
+  // 還原滿版與目錄狀態
+  const box = document.getElementById('modal-box');
+  if (box.classList.contains('fullscreen')) {
+    box.classList.remove('fullscreen');
+    const btn = document.getElementById('modal-fs-btn');
+    btn.innerHTML = FS_ICON_EXPAND;
+    btn.setAttribute('aria-label', '放大為滿版');
+    btn.setAttribute('aria-pressed', 'false');
+  }
+  hideModalToc();
+}
+function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function parseImgArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === 'string') {
+    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed.filter(Boolean) : []; }
+    catch { return []; }
+  }
+  return [];
+}
+function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ''; }
+function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${y}.${m}.${day}`; }
+
+function renderFallback() {
+  // 讓 3D 展間區分「連不上」與「真的沒有作品」
+  window.orbitEmptyReason = 'offline';
+  renderProjects([]);
+  renderNotes([]);
+  renderSkills([]);
+  renderTools([]);
+  renderNav([
+    { label:'設計專案', href:'#projects' },
+    { label:'關於我', href:'#hero' },
+    { label:'隨筆紀錄', href:'#notes' }
+  ]);
+  for (const id of ['projects-grid', 'notes-list', 'skills-grid', 'tools-grid']) {
+    document.getElementById(id).innerHTML = '<p class="note-empty">尚無已儲存的內容，連線後即可瀏覽。</p>';
+  }
+}
+
+// ── Theme toggle ──
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function getTheme() {
+  return localStorage.getItem('theme') || 'system';
+}
+function applyTheme(theme) {
+  const effective = theme === 'system' ? getSystemTheme() : theme;
+  document.documentElement.setAttribute('data-theme', effective);
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const isSystem = theme === 'system';
+  if (effective === 'dark') {
+    btn.textContent = '☀️';
+    btn.setAttribute('data-tip', isSystem ? '切換為亮色模式（目前跟隨系統：暗色）' : '切換為亮色模式');
+  } else {
+    btn.textContent = '🌙';
+    btn.setAttribute('data-tip', isSystem ? '切換為暗色模式（目前跟隨系統：亮色）' : '切換為暗色模式');
+  }
+  // 3D 模型光照跟隨主題
+  const model = document.getElementById('hero-model');
+  if (model) {
+    model.exposure = effective === 'dark' ? 0.6 : 1.6;
+  }
+}
+function toggleTheme() {
+  const current = getTheme();
+  const system = getSystemTheme();
+  let next;
+  if (current === 'system') {
+    next = system === 'dark' ? 'light' : 'dark';
+  } else {
+    next = 'system';
+  }
+  try { localStorage.setItem('theme', next); } catch (e) {}
+  // 不支援 View Transition 或偏好減少動態時直接切換（不做逐元素過渡，避免卡頓）
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    applyTheme(next);
+    return;
+  }
+  document.startViewTransition(() => applyTheme(next));
+}
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (getTheme() === 'system') applyTheme('system');
+});
+// Init on load
+applyTheme(getTheme());
+
+// Nav scroll highlight
+// ── Glass Nav pill ──
+function getPillMetrics(link) {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl || !link) return null;
+  const navRect = navEl.getBoundingClientRect();
+  const linkRect = link.getBoundingClientRect();
+  return { x: linkRect.left - navRect.left - 4, w: linkRect.width };
+}
+
+// Move pill without stretch (scroll)
+function setPillPosition(link) {
+  const navEl = document.getElementById('nav-links');
+  const m = getPillMetrics(link);
+  if (!m || !navEl) return;
+  navEl.style.setProperty('--pill-x', m.x + 'px');
+  navEl.style.setProperty('--pill-w', m.w + 'px');
+}
+
+// Move pill with stretch animation (hover)
+function movePillTo(link) {
+  const navEl = document.getElementById('nav-links');
+  const m = getPillMetrics(link);
+  if (!m || !navEl) return;
+  navEl.classList.remove('hover-slide');
+  void navEl.offsetWidth;
+  navEl.classList.add('hover-slide');
+  navEl.style.setProperty('--pill-x', m.x + 'px');
+  navEl.style.setProperty('--pill-w', m.w + 'px');
+}
+
+// Hover behaviour
+document.addEventListener('DOMContentLoaded', () => {
+  const navEl = document.getElementById('nav-links');
+  if (!navEl) return;
+  navEl.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('mouseenter', () => movePillTo(link));
+  });
+  navEl.addEventListener('mouseleave', () => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) movePillTo(active);
+  });
+  // Init pill position
+  setTimeout(() => {
+    const active = navEl.querySelector('.nav-link.active');
+    if (active) setPillPosition(active);
+  }, 100);
+});
+
+function updateNav() {
+  const links = Array.from(document.querySelectorAll('.nav-link[data-section]:not(.section-hidden)'));
+  const targets = links.map(link => ({ link, target: document.getElementById(link.dataset.section) }))
+    .filter(({ target }) => target && target.getClientRects().length)
+    .map(item => ({ ...item, top: item.target.getBoundingClientRect().top }))
+    .sort((a, b) => a.top - b.top);
+  if (!targets.length) return;
+
+  // V2 puts the project gallery before the combined profile/skills section.
+  // Compare viewport positions so nested sections work as well as top-level ones.
+  const threshold = (document.querySelector('.nav')?.getBoundingClientRect().bottom || 60) + 40;
+  let current = targets[0].link;
+  targets.forEach(({ link, top }) => { if (top <= threshold) current = link; });
+  // A short last section may never reach the top beneath the fixed navigation.
+  const atBottom = window.scrollY > 0 &&
+    Math.ceil(window.scrollY + window.innerHeight) >= document.documentElement.scrollHeight - 2;
+  if (atBottom) current = targets[targets.length - 1].link;
+  links.forEach(link => {
+    const active = link === current;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
+  });
+  setPillPosition(current);
+}
+let navScrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (navScrollTicking) return;
+  navScrollTicking = true;
+  requestAnimationFrame(() => {
+    updateNav();
+    navScrollTicking = false;
+  });
+}, { passive: true });
+window.addEventListener('resize', updateNav, { passive: true });
+document.fonts?.ready.then(updateNav);
+
+loadData(_dataPromise);
+
+</script>
+
+<script>
+// ── Lightbox ──
+(function() {
+  let _imgs = [];
+  let _idx  = 0;
+
+  window.lbOpen = function(imgs, idx) {
+    _imgs = imgs;
+    _idx  = idx;
+    const overlay = document.getElementById('lb-overlay');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => overlay.classList.add('visible'));
+    lbRender();
+    document.addEventListener('keydown', lbKey);
+  };
+
+  window.lbClose = function() {
+    const overlay = document.getElementById('lb-overlay');
+    overlay.classList.remove('visible');
+    setTimeout(() => { overlay.style.display = 'none'; }, 250);
+    document.removeEventListener('keydown', lbKey);
+  };
+
+  window.lbMove = function(dir) {
+    _idx = (_idx + dir + _imgs.length) % _imgs.length;
+    lbRender();
+  };
+
+  window.lbOverlayClick = function(e) {
+    if (e.target === document.getElementById('lb-overlay')) lbClose();
+  };
+
+  function lbRender() {
+    const img = document.getElementById('lb-img');
+    img.src = _imgs[_idx];
+    // 切換圖片時沿用同一 initWidth，保持一致預設大小
+    img.style.maxWidth  = '100%';
+    img.style.maxHeight = '100%';
+    document.getElementById('lb-counter').textContent = `${_idx + 1} / ${_imgs.length}`;
+    document.getElementById('lb-prev').disabled = _imgs.length <= 1;
+    document.getElementById('lb-next').disabled = _imgs.length <= 1;
+  }
+
+  function lbKey(e) {
+    if (e.key === 'ArrowLeft')  lbMove(-1);
+    if (e.key === 'ArrowRight') lbMove(1);
+    if (e.key === 'Escape')     lbClose();
+  }
+
+  // touch：swipe 切換 + pinch-to-zoom 放大
+  let _touchX = null;
+  let _touchY = null;
+  let _scale     = 1;
+  let _panX      = 0;
+  let _panY      = 0;
+  let _lastScale = 1;
+  let _lastPanX  = 0;
+  let _lastPanY  = 0;
+  let _initDist  = 0;
+  let _isPinch   = false;
+
+  function lbApplyTransform(animate) {
+    const img = document.getElementById('lb-img');
+    if (!img) return;
+    img.style.transition = animate ? 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
+    img.style.transform = `translate(${_panX}px,${_panY}px) scale(${_scale})`;
+  }
+
+  function lbResetTransform() {
+    _scale = 1; _panX = 0; _panY = 0;
+    _lastScale = 1; _lastPanX = 0; _lastPanY = 0;
+    lbApplyTransform(true); // 動畫回正
+  }
+
+  const _origMove = window.lbMove;
+  window.lbMove = function(dir) { lbResetTransform(); _origMove(dir); };
+  const _origOpen = window.lbOpen;
+  window.lbOpen = function(imgs, idx) { lbResetTransform(); _origOpen(imgs, idx); };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('lb-overlay');
+    if (!overlay) return;
+
+    overlay.addEventListener('touchstart', e => {
+      // 如果點到按鈕，完全不干涉，讓瀏覽器處理 click
+      if (e.target.closest('button')) return;
+
+      _isPinch = e.touches.length === 2;
+      if (_isPinch) {
+        const t1 = e.touches[0], t2 = e.touches[1];
+        _initDist  = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        _lastScale = _scale;
+        _lastPanX  = _panX;
+        _lastPanY  = _panY;
+      } else {
+        _touchX    = e.touches[0].clientX;
+        _touchY    = e.touches[0].clientY;
+        _lastPanX  = _panX;
+        _lastPanY  = _panY;
+      }
+    }, { passive: true }); // passive:true 讓按鈕 click 正常觸發
+
+    overlay.addEventListener('touchmove', e => {
+      if (e.target.closest('button')) return;
+      e.preventDefault(); // 阻止頁面滾動
+
+      if (e.touches.length === 2) {
+        // Pinch zoom
+        const t1 = e.touches[0], t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const maxScale = window.innerWidth <= 760 ? 3 : 2;
+        _scale = Math.min(Math.max(_lastScale * (dist / _initDist), 1), maxScale);
+        // 縮回 1x 時清掉 pan
+        if (_scale <= 1) { _scale = 1; _panX = 0; _panY = 0; lbApplyTransform(true); return; }
+        lbApplyTransform();
+      } else if (e.touches.length === 1 && _scale > 1 && !_isPinch) {
+        // Pan when zoomed
+        _panX = _lastPanX + (e.touches[0].clientX - _touchX);
+        _panY = _lastPanY + (e.touches[0].clientY - _touchY);
+        lbApplyTransform();
+      }
+    }, { passive: false });
+
+    let _lastTapTime = 0;
+    overlay.addEventListener('touchend', e => {
+      if (e.target.closest('button')) return;
+      if (_isPinch && e.touches.length < 2) {
+        _isPinch = false;
+        return;
+      }
+      const now = Date.now();
+      const isDoubleTap = (now - _lastTapTime) < 300;
+      _lastTapTime = now;
+
+      // 雙擊：縮放中 → 回到原始；原始 → 放大 2x
+      if (isDoubleTap && e.touches.length === 0) {
+        if (_scale > 1) {
+          lbResetTransform();
+        } else {
+          const dblMax = window.innerWidth <= 760 ? 3 : 2;
+          _scale = dblMax; _panX = 0; _panY = 0;
+          _lastScale = dblMax;
+          lbApplyTransform(true);
+        }
+        _touchX = null; _touchY = null;
+        return;
+      }
+
+      // swipe 切換（只在 scale === 1 且非 pinch）
+      if (!_isPinch && _scale <= 1 && _touchX !== null) {
+        const dx = e.changedTouches[0].clientX - _touchX;
+        const dy = e.changedTouches[0].clientY - _touchY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) lbMove(dx < 0 ? 1 : -1);
+      }
+      _touchX = null; _touchY = null;
+    }, { passive: true });
+  });
+})();
+</script>
+<div class="lb-overlay" id="lb-overlay" onclick="lbOverlayClick(event)">
+  <div class="lb-top">
+    <button class="lb-close" onclick="lbClose()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>
+      關閉
+    </button>
+    <span class="lb-counter" id="lb-counter"></span>
+  </div>
+  <div class="lb-img-wrap">
+    <button class="lb-btn prev" id="lb-prev" onclick="lbMove(-1)">‹</button>
+    <img class="lb-img" id="lb-img" src="" alt="">
+    <button class="lb-btn next" id="lb-next" onclick="lbMove(1)">›</button>
+  </div>
+</div>
+<!-- Portfolio V2. Original David mesh: 1d_inc, CC BY 4.0. Three.js r169: MIT. See orbit-assets/ATTRIBUTION.txt. -->
+<script>window.orbitFallback = [{"id": 1, "title": "永豐數位銀行 UI/UX 專案", "description": "有幸中途加入永豐新網銀專案，工作中面對的挑戰是接手前合作廠商提供的設計稿。因此在專案進行前必須要先理解當初的設計規範，從中減去過時的設計模式。", "tags": ["Mobile UI", "Web UI", "Design System"], "images": ["https://wlxlhyieypohktsvwuuc.supabase.co/storage/v1/object/public/portfolio-images/1780573676694-xo1c6yppwy.jpg"], "time_range": "2026/02 — 2026/08"}, {"id": 2, "title": "大咖繳費 APP UI 改版", "description": "專案中我負責 UI 設計，收斂舊有設計元素重新建造新設計系統", "tags": ["Mobile UI", "Design System"], "images": ["https://wlxlhyieypohktsvwuuc.supabase.co/storage/v1/object/public/portfolio-images/1781006088313-17c1aj7puaai.jpg"], "time_range": "2026/06 — 2026/10"}, {"id": 4, "title": "夜暮決鬥 - 回合制策略遊戲設計", "description": "用 AI 自製的遊戲，故事由四位主角各自的過往展開，逐步追查暮晶、鐘聲與失蹤者背後的秘密。", "tags": ["TBS (Turn-Based Strategy)", "Vibe coding"], "images": ["https://wlxlhyieypohktsvwuuc.supabase.co/storage/v1/object/public/portfolio-images/1791361825759-izdsce8bvyh.jpg"], "time_range": "2026/09 — 2026/10"}];</script>
+<script type="module">import * as THREE from './orbit-assets/three.module.min.js?v=f7cee3c753';
+/* @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const { BackSide, BoxGeometry, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, Scene } = THREE;
+const legacy = {
+    topLight: {
+        intensity: 500,
+        position: [0.418, 16.199, 0.300],
+    },
+    room: {
+        position: [-0.757, 13.219, 0.717],
+        scale: [31.713, 28.305, 28.591],
+    },
+    boxes: [
+        {
+            position: [-10.906, 2.009, 1.846],
+            rotation: -0.195,
+            scale: [2.328, 7.905, 4.651],
+        },
+        {
+            position: [-5.607, -0.754, -0.758],
+            rotation: 0.994,
+            scale: [1.970, 1.534, 3.955],
+        },
+        {
+            position: [6.167, 0.857, 7.803],
+            rotation: 0.561,
+            scale: [3.927, 6.285, 3.687],
+        },
+        {
+            position: [-2.017, 0.018, 6.124],
+            rotation: 0.333,
+            scale: [2.002, 4.566, 2.064],
+        },
+        {
+            position: [2.291, -0.756, -2.621],
+            rotation: -0.286,
+            scale: [1.546, 1.552, 1.496],
+        },
+        {
+            position: [-2.193, -0.369, -5.547],
+            rotation: 0.516,
+            scale: [3.875, 3.487, 2.986],
+        },
+    ],
+    lights: [
+        {
+            intensity: 50,
+            position: [-16.116, 14.37, 8.208],
+            scale: [0.1, 2.428, 2.739],
+        },
+        {
+            intensity: 50,
+            position: [-16.109, 18.021, -8.207],
+            scale: [0.1, 2.425, 2.751],
+        },
+        {
+            intensity: 17,
+            position: [14.904, 12.198, -1.832],
+            scale: [0.15, 4.265, 6.331],
+        },
+        {
+            intensity: 43,
+            position: [-0.462, 8.89, 14.520],
+            scale: [4.38, 5.441, 0.088],
+        },
+        {
+            intensity: 20,
+            position: [3.235, 11.486, -12.541],
+            scale: [2.5, 2.0, 0.1],
+        },
+        {
+            intensity: 100,
+            position: [0.0, 20.0, 0.0],
+            scale: [1.0, 0.1, 1.0],
+        },
+    ]
+};
+const neutral = {
+    topLight: {
+        intensity: 400,
+        position: [0.5, 14.0, 0.5],
+    },
+    room: {
+        position: [0.0, 13.2, 0.0],
+        scale: [31.5, 28.5, 31.5],
+    },
+    boxes: [
+        {
+            position: [-10.906, -1.0, 1.846],
+            rotation: -0.195,
+            scale: [2.328, 7.905, 4.651],
+        },
+        {
+            position: [-5.607, -0.754, -0.758],
+            rotation: 0.994,
+            scale: [1.970, 1.534, 3.955],
+        },
+        {
+            position: [6.167, -0.16, 7.803],
+            rotation: 0.561,
+            scale: [3.927, 6.285, 3.687],
+        },
+        {
+            position: [-2.017, 0.018, 6.124],
+            rotation: 0.333,
+            scale: [2.002, 4.566, 2.064],
+        },
+        {
+            position: [2.291, -0.756, -2.621],
+            rotation: -0.286,
+            scale: [1.546, 1.552, 1.496],
+        },
+        {
+            position: [-2.193, -0.369, -5.547],
+            rotation: 0.516,
+            scale: [3.875, 3.487, 2.986],
+        },
+    ],
+    lights: [
+        {
+            intensity: 80,
+            position: [-14.0, 10.0, 8.0],
+            scale: [0.1, 2.5, 2.5],
+        },
+        {
+            intensity: 80,
+            position: [-14.0, 14.0, -4.0],
+            scale: [0.1, 2.5, 2.5],
+        },
+        {
+            intensity: 23,
+            position: [14.0, 12.0, 0.0],
+            scale: [0.1, 5.0, 5.0],
+        },
+        {
+            intensity: 16,
+            position: [0.0, 9.0, 14.0],
+            scale: [5.0, 5.0, 0.1],
+        },
+        {
+            intensity: 80,
+            position: [7.0, 8.0, -14.0],
+            scale: [2.5, 2.5, 0.1],
+        },
+        {
+            intensity: 80,
+            position: [-7.0, 16.0, -14.0],
+            scale: [2.5, 2.5, 0.1],
+        },
+        {
+            intensity: 1,
+            position: [0.0, 20.0, 0.0],
+            scale: [0.1, 0.1, 0.1],
+        },
+    ]
+};
+class EnvironmentScene extends Scene {
+    constructor(name) {
+        super();
+        this.position.y = -3.5;
+        const geometry = new BoxGeometry();
+        geometry.deleteAttribute('uv');
+        const roomMaterial = new MeshStandardMaterial({ metalness: 0, side: BackSide });
+        const boxMaterial = new MeshStandardMaterial({ metalness: 0 });
+        const data = name == 'legacy' ? legacy : neutral;
+        const mainLight = new PointLight(0xffffff, data.topLight.intensity, 28, 2);
+        mainLight.position.set(...data.topLight.position);
+        this.add(mainLight);
+        const room = new Mesh(geometry, roomMaterial);
+        room.position.set(...data.room.position);
+        room.scale.set(...data.room.scale);
+        this.add(room);
+        for (const box of data.boxes) {
+            const box1 = new Mesh(geometry, boxMaterial);
+            box1.position.set(...box.position);
+            box1.rotation.set(0, box.rotation, 0);
+            box1.scale.set(...box.scale);
+            this.add(box1);
+        }
+        for (const light of data.lights) {
+            const light1 = new Mesh(geometry, this.createAreaLightMaterial(light.intensity));
+            light1.position.set(...light.position);
+            light1.scale.set(...light.scale);
+            this.add(light1);
+        }
+    }
+    createAreaLightMaterial(intensity) {
+        const material = new MeshBasicMaterial();
+        material.color.setScalar(intensity);
+        return material;
+    }
+}
+// Vendored from @google/model-viewer 3.5.0; changed only the local Three.js import.
+
+// A single 3D scene gives the curved work panels and original David model real occlusion.
+const section = document.querySelector('.orbit-section');
+const stage = document.getElementById('orbit-stage');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const title = document.getElementById('orbit-title');
+const count = document.getElementById('orbit-count');
+const dots = document.getElementById('orbit-dots');
+const hint = document.getElementById('orbit-hint');
+const live = document.querySelector('.orbit-live');
+const pointerLabel = document.querySelector('.orbit-pointer');
+const TAU = Math.PI * 2;
+let projects = [], cards = [], bust, renderer, scene, camera, ring;
+let angle = 0, targetAngle = 0, active = 0;
+let frame = 0, visible = true, dirty = true, drag = null, hover = null;
+let renderedAngle = 0, lastFrameTime = 0, pendingPointer = null, occluders = [];
+let lastPointer = null;
+let mouseX = 0, mouseY = 0, moveX = 0, moveY = 0, buildVersion = 0;
+let headPointerBounds = null, headReturn = null;
+let headViewBounds = null;
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+// Desktop places the panels 10% further from the sculpture; panel size is unchanged
+// (each panel keeps its arc length). Phones keep the tighter ring.
+const WIDE_LAYOUT = matchMedia('(min-width: 761px)');
+const ringRadius = () => 3.95 * 1.1 * (WIDE_LAYOUT.matches ? 1.1 : 1);
+let RADIUS = ringRadius();
+// Enlarge each cover and its glass surface by 10%, keeping the orbit radius.
+const CARD_HEIGHT = (2.7 + .15) * 1.1;
+const SCENE_SCALE = 1.2;
+// Keep the original pointer range, with gentler tracking and a soft return.
+const HEAD_POINTER_RANGE = THREE.MathUtils.degToRad(30);
+const HEAD_RETURN_DURATION = 600;
+const HEAD_TURN_RESPONSE_MS = 220 / (1.05 * 1.01);
+const HEAD_MAX_TURN_SPEED = THREE.MathUtils.degToRad(220 * 1.05 * 1.01);
+const HEAD_BASE_YAW = -0.308;
+const HEAD_PANEL_PITCH_LIMIT = THREE.MathUtils.degToRad(18);
+const panelLookPoint = new THREE.Vector3();
+const meshDisposables = new Set();
+const HEAD_MESH_URL = './orbit-assets/david-mesh.bin?v=993cc4898d';
+const HEAD_MESH_GZIP_URL = typeof DecompressionStream === 'function' ? './orbit-assets/david-mesh.bin.gz?v=993cc4898d' : null;
+let sceneProjectsKey = null;
+const COARSE_POINTER = matchMedia('(pointer:coarse)').matches;
+// Phones fill a tall, oversized canvas with layered transparent glass. Start at
+// a lower resolution there, and step down further only when frames measurably
+// miss their budget during continuous motion. Never step back up (no flicker).
+const PIXEL_RATIO_STEPS = COARSE_POINTER ? [1.5, 1.25, 1] : [1.75, 1.5, 1.25];
+const TEXTURE_LIMIT = COARSE_POINTER ? 1024 : 2048;
+let pixelRatioLevel = 0, frameSamples = 0, slowFrames = 0, measureAfter = Infinity;
+function currentPixelRatio() {
+  return Math.min(window.devicePixelRatio || 1, PIXEL_RATIO_STEPS[pixelRatioLevel]);
+}
+function trackFrameCost(interval, now) {
+  // Idle gaps between gestures are not slowness; skip start-up texture uploads.
+  if (interval > 100 || now < measureAfter || pixelRatioLevel >= PIXEL_RATIO_STEPS.length - 1) return;
+  frameSamples++;
+  if (interval > 24) slowFrames++;
+  if (frameSamples < 45) return;
+  const tooSlow = slowFrames > frameSamples * .35;
+  frameSamples = slowFrames = 0;
+  if (!tooSlow) return;
+  const next = Math.min(window.devicePixelRatio || 1, PIXEL_RATIO_STEPS[pixelRatioLevel + 1]);
+  if (next >= currentPixelRatio()) return;
+  pixelRatioLevel++;
+  resize();
+}
+
+async function loadHeadGeometry() {
+  if (HEAD_MESH_GZIP_URL && typeof DecompressionStream === 'function') {
+    try {
+      const response = await fetch(HEAD_MESH_GZIP_URL);
+      if (!response.ok) throw new Error('Compressed geometry unavailable');
+      return await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    } catch (error) { /* Keep a raw fallback for older browsers or damaged caches. */ }
+  }
+  const response = await fetch(HEAD_MESH_URL);
+  if (!response.ok) throw new Error('David geometry unavailable');
+  return response.arrayBuffer();
+}
+
+function invalidate() {
+  dirty = true;
+  if (!frame && visible && !document.hidden) frame = requestAnimationFrame(render);
+}
+function effectiveTheme() {
+  return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+}
+function syncTheme() {
+  if (!renderer) return;
+  const dark = effectiveTheme() === 'dark';
+  renderer.toneMappingExposure = dark ? .9 : 1.08;
+  // Original model-viewer exposure: 1.6 in light mode, 0.6 in dark mode.
+  // Compensate only the head's IBL so the existing glass stays unchanged.
+  if (bust) bust.material.envMapIntensity = (dark ? .6 : 1.6) / renderer.toneMappingExposure;
+  // Draw now rather than on the next frame: the theme's view transition captures
+  // the new state right after the switch, and the sculpture must already be lit.
+  if (ring && visible && !document.hidden) {
+    if (frame) cancelAnimationFrame(frame);
+    render(performance.now());
+  } else invalidate();
+}
+function fail(message) {
+  section.classList.add('orbit-failed');
+  stage.querySelector('.orbit-loading').textContent = message;
+  if (frame) cancelAnimationFrame(frame);
+  frame = 0;
+}
+function resize() {
+  const {width, height} = stage.getBoundingClientRect();
+  if (!width || !height) return;
+  const aspect = width / height;
+  // Extra canvas space keeps the enlarged sculpture clear of the viewport edges.
+  // Compensate for that space so the requested scale remains exactly 120%.
+  const style = getComputedStyle(stage);
+  const extraHeight = parseFloat(style.getPropertyValue('--outset-top')) + parseFloat(style.getPropertyValue('--outset-bottom'));
+  const baseHeight = Math.max(1, height - extraHeight);
+  const baseViewHeight = Math.max(7.0, (RADIUS*2+.8) / (width / baseHeight));
+  // Fit the full rotation envelope, including the front panel's lower edge,
+  // hover lift and glass rim. Fit once per resize, never zoom while hovering.
+  camera.updateMatrixWorld();
+  const radius=RADIUS+.04, halfCardHeight=CARD_HEIGHT/2+.025;
+  const point=new THREE.Vector3();
+  let minY=Infinity,maxY=-Infinity;
+  for(const y of [-.86-halfCardHeight,-.86+halfCardHeight+.08])for(const z of [-radius,radius]) {
+    point.set(0,y,z).applyMatrix4(camera.matrixWorldInverse);
+    minY=Math.min(minY,point.y);maxY=Math.max(maxY,point.y);
+  }
+  if(headViewBounds) {minY=Math.min(minY,headViewBounds.min);maxY=Math.max(maxY,headViewBounds.max);}
+  const padding=width<=760?14:20;
+  const viewHeight = Math.max(
+    baseViewHeight * height / baseHeight / SCENE_SCALE,
+    (maxY-minY)*height/Math.max(1,height-padding*2),
+    radius*2*height/Math.max(1,width-padding*2)
+  );
+  const paddingWorld=padding*viewHeight/height;
+  // Keep the existing composition when it fits; shift only enough to clear an edge.
+  const centerY=THREE.MathUtils.clamp(0,maxY+paddingWorld-viewHeight/2,minY-paddingWorld+viewHeight/2);
+  camera.left = -viewHeight * aspect / 2;
+  camera.right = viewHeight * aspect / 2;
+  camera.top = centerY + viewHeight / 2;
+  camera.bottom = centerY - viewHeight / 2;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(currentPixelRatio());
+  renderer.setSize(width, height);
+  updateHeadPointerBounds(width, height);
+  invalidate();
+}
+function measureHeadViewBounds() {
+  // Project the original mesh over all yaw angles and its allowed pitch range.
+  // The yaw extrema are analytic; pitch samples include both limits. Cache this
+  // once at load so pointer movement does not trigger geometry work or zooming.
+  const vertices=bust.geometry.getAttribute('position');
+  const m=camera.matrixWorldInverse.elements;
+  const origin=bust.position.clone().applyMatrix4(camera.matrixWorldInverse);
+  const horizontalWeight=Math.hypot(m[1],m[9]);
+  let min=Infinity,max=-Infinity;
+  for(let step=0;step<=24;step++) {
+    const pitch=THREE.MathUtils.lerp(-HEAD_POINTER_RANGE/2,HEAD_PANEL_PITCH_LIMIT,step/24);
+    const sin=Math.sin(pitch),cos=Math.cos(pitch);
+    for(let i=0;i<vertices.count;i++) {
+      const x=vertices.getX(i)*bust.scale.x,y=vertices.getY(i)*bust.scale.y,z=vertices.getZ(i)*bust.scale.z;
+      const pitchedY=y*cos-z*sin,pitchedZ=y*sin+z*cos;
+      const center=origin.y+m[5]*pitchedY;
+      const spread=horizontalWeight*Math.hypot(x,pitchedZ);
+      min=Math.min(min,center-spread);max=Math.max(max,center+spread);
+    }
+  }
+  headViewBounds={min:min-.03,max:max+.03};
+}
+function updateHeadPointerBounds(width, height) {
+  if (!bust) return;
+  // A stable, head-sized interaction area with the original 400:460 container
+  // ratio. Never recompute from the live rotation, which would feed back into input.
+  bust.geometry.computeBoundingBox();
+  const box = bust.geometry.boundingBox;
+  const transform = new THREE.Matrix4().compose(bust.position,
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(0, HEAD_BASE_YAW, 0)), bust.scale);
+  camera.updateMatrixWorld();
+  let left=Infinity, right=-Infinity, top=Infinity, bottom=-Infinity;
+  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+    const p = new THREE.Vector3(x,y,z).applyMatrix4(transform).project(camera);
+    const px=(p.x+1)*width/2, py=(1-p.y)*height/2;
+    left=Math.min(left,px);right=Math.max(right,px);top=Math.min(top,py);bottom=Math.max(bottom,py);
+  }
+  const h=(bottom-top)*1.04, w=h*400/460;
+  headPointerBounds={left:(left+right-w)/2,top:(top+bottom-h)/2,width:w,height:h};
+}
+function nearestYaw(yaw, reference) {
+  return reference + Math.atan2(Math.sin(yaw-reference),Math.cos(yaw-reference));
+}
+function returnHead() {
+  mouseX=mouseY=0;
+  if (!headReturn && (moveX || moveY)) {
+    // Equivalent angle, shortest way home even after following a full orbit.
+    moveX=nearestYaw(moveX*HEAD_POINTER_RANGE,0)/HEAD_POINTER_RANGE;
+    headReturn={x:moveX,y:moveY,start:performance.now()};
+  }
+}
+function updateHeadPointer(e, rect) {
+  if (e.pointerType==='touch' || reduced.matches || !headPointerBounds) return;
+  const b=headPointerBounds, x=e.clientX-rect.left, y=e.clientY-rect.top;
+  if (x>=b.left && x<=b.left+b.width && y>=b.top && y<=b.top+b.height) {
+    headReturn=null;
+    mouseX=nearestYaw(((x-b.left)/b.width-.5)*HEAD_POINTER_RANGE,moveX*HEAD_POINTER_RANGE)/HEAD_POINTER_RANGE;
+    mouseY=(y-b.top)/b.height-.5;
+  } else returnHead();
+}
+function lookAtPanel(hit) {
+  if (!bust || reduced.matches || lastPointer?.pointerType==='touch') return;
+  const card=cards[hit.object.userData.projectIndex];
+  // Aim mostly at the work itself, with a little movement within its surface.
+  // Use its current world position, so rotating the ring changes David's gaze.
+  card.group.localToWorld(panelLookPoint.set(0,0,RADIUS));
+  panelLookPoint.lerp(hit.point,.25);
+  // Follow the full ring, including negative Z behind David. Unwrap around the
+  // current pose so crossing +/-180 degrees never reverses through the front.
+  const currentYaw=HEAD_BASE_YAW+moveX*HEAD_POINTER_RANGE;
+  const yaw=nearestYaw(Math.atan2(panelLookPoint.x,panelLookPoint.z),currentYaw);
+  const pitch=THREE.MathUtils.clamp(Math.atan2(1.45-panelLookPoint.y,Math.hypot(panelLookPoint.x,panelLookPoint.z))*.5,0,HEAD_PANEL_PITCH_LIMIT);
+  headReturn=null;
+  mouseX=(yaw-HEAD_BASE_YAW)/HEAD_POINTER_RANGE;
+  mouseY=pitch/HEAD_POINTER_RANGE;
+}
+function curvedGeometry(radius, span, height, invertUV = false) {
+  const position = [], uv = [], indices = [];
+  const segments = 96;
+  for (let i=0; i<=segments; i++) {
+    const a = (i/segments - .5)*span;
+    for (let j=0; j<2; j++) {
+      position.push(Math.sin(a)*radius, (j-.5)*height, Math.cos(a)*radius);
+      uv.push(invertUV ? 1-i/segments : i/segments, j);
+    }
+  }
+  for (let i=0; i<segments; i++) {
+    const k=i*2; indices.push(k,k+2,k+1,k+2,k+3,k+1);
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(position,3));
+  geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  geometry.setIndex(indices);geometry.computeVertexNormals();
+  meshDisposables.add(geometry);
+  return geometry;
+}
+function rimCurve(radius, span, y) {
+  const points=[];
+  for(let i=0;i<=96;i++) {
+    const a=(i/96-.5)*span;
+    points.push(new THREE.Vector3(Math.sin(a)*radius,y,Math.cos(a)*radius));
+  }
+  return new THREE.CatmullRomCurve3(points);
+}
+function tube(curve, material, width=.013) {
+  const geo=new THREE.TubeGeometry(curve,100,width,5,false);
+  meshDisposables.add(geo);
+  return new THREE.Mesh(geo,material);
+}
+// Unroll the cylinder to preserve the source image ratio. Every material uses
+// these same positions; glass depth comes from its fine rim, not oversized faces.
+function setCardAspectRatio(card, aspect = 16 / 9) {
+  const ratio = Number.isFinite(aspect) && aspect > 0 ? aspect : 16 / 9;
+  if (card.aspect === ratio) return;
+  const height = CARD_HEIGHT;
+  const span = height * ratio / RADIUS;
+  const oldGeometry = new Set(card.panels.map(mesh => mesh.geometry));
+  card.frame.traverse(mesh => { if (mesh.geometry) oldGeometry.add(mesh.geometry); });
+  oldGeometry.forEach(geometry => {
+    geometry.dispose();
+    meshDisposables.delete(geometry);
+  });
+  card.frame.clear();
+
+  const frontGeometry = curvedGeometry(RADIUS, span, height);
+  const backGeometry = curvedGeometry(RADIUS, span, height, true);
+  card.panels.forEach(mesh => { mesh.geometry = mesh === card.surfaces[1] ? backGeometry : frontGeometry; });
+  const { white, blue, pink } = card.rimMaterials;
+  for (const y of [-height / 2, height / 2]) {
+    card.frame.add(tube(rimCurve(RADIUS + .012, span, y), white));
+    card.frame.add(tube(rimCurve(RADIUS - .012, span, y), y > 0 ? blue : pink, .018));
+  }
+  for (const side of [-1, 1]) {
+    const a = side * span / 2, x = Math.sin(a) * RADIUS, z = Math.cos(a) * RADIUS;
+    card.frame.add(tube(new THREE.LineCurve3(
+      new THREE.Vector3(x, -height / 2, z), new THREE.Vector3(x, height / 2, z)
+    ), white, .014));
+  }
+  card.aspect = ratio;
+}
+function coverURL(p) {
+  try { return (Array.isArray(p.images) ? p.images : JSON.parse(p.images || '[]'))[0] || ''; }
+  catch { return ''; }
+}
+function placeholderTexture(p) {
+  const canvas=document.createElement('canvas');canvas.width=1280;canvas.height=720;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#edf1f5';ctx.fillRect(0,0,1280,720);
+  ctx.fillStyle='#333';ctx.font='500 52px "Noto Sans TC",sans-serif';
+  const chars=Array.from(p.title || 'Project');
+  const lines=[];let line='';
+  for(const c of chars){if(ctx.measureText(line+c).width>1100){lines.push(line);line=c;}else line+=c;}lines.push(line);
+  lines.forEach((s,i)=>ctx.fillText(s,70,300+i*80));
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+  return texture;
+}
+function pickSceneAt(clientX,clientY) {
+  const rect=stage.getBoundingClientRect();
+  if(clientX<rect.left || clientX>rect.right || clientY<rect.top || clientY>rect.bottom)return null;
+  pointer.set((clientX-rect.left)/rect.width*2-1,1-(clientY-rect.top)/rect.height*2);
+  raycaster.setFromCamera(pointer,camera);
+  // Include David, so a panel behind the sculpture cannot be clicked through the face.
+  const hits=raycaster.intersectObjects([...cards.flatMap(c=>c.surfaces),...occluders],false);
+  return hits[0] || null;
+}
+function pickSurfaceAt(clientX,clientY) {
+  const hit=pickSceneAt(clientX,clientY);
+  return hit?.object.userData.projectIndex !== undefined ? hit : null;
+}
+function pickAt(clientX,clientY) {
+  return pickSurfaceAt(clientX,clientY)?.object.userData.projectIndex ?? null;
+}
+function updateActive(index, announce=false) {
+  if(!projects.length)return;
+  active=((index%projects.length)+projects.length)%projects.length;
+  const p=projects[active];
+  title.textContent=p.title;
+  count.textContent=`${String(active+1).padStart(2,'0')} / ${String(projects.length).padStart(2,'0')}`;
+  document.getElementById('orbit-open').setAttribute('aria-label',`開啟專案：${p.title}`);
+  [...dots.children].forEach((b,i)=>b.setAttribute('aria-current',String(i===active)));
+  if(announce)live.textContent=`第 ${active+1} 件作品，共 ${projects.length} 件：${p.title}`;
+}
+function nearestProject() {
+  let nearest=0,distance=Infinity;
+  cards.forEach((card,index)=>{
+    const a=card.base+targetAngle;
+    const d=Math.abs(Math.atan2(Math.sin(a),Math.cos(a)));
+    if(d<distance){distance=d;nearest=index;}
+  });
+  return nearest;
+}
+function goTo(index, announce=true) {
+  if(!projects.length)return;
+  hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');
+  const i=((index%projects.length)+projects.length)%projects.length;
+  const desired=-cards[i].base;
+  const total=targetAngle;
+  const delta=Math.atan2(Math.sin(desired-total),Math.cos(desired-total));
+  targetAngle+=delta;
+  if(reduced.matches)angle=targetAngle;
+  updateActive(i,announce);invalidate();
+}
+function openProject(index=active) {
+  hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');invalidate();
+  if(projects[index] && typeof window.openModal === 'function') window.openModal(projects[index].id);
+}
+async function buildProjects(data) {
+  if(!Array.isArray(data))return;
+  const key=JSON.stringify([window.orbitEmptyReason||'',data.map(p=>[p.id,p.title,coverURL(p)])]);
+  if(key===sceneProjectsKey)return;
+  sceneProjectsKey=key;
+  const selectedId=projects[active]?.id;
+  hint.textContent='';hint.hidden=true;
+  const version=++buildVersion;
+  hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');
+  const previous=cards;
+  previous.forEach(c=>{
+    ring.remove(c.group);
+    c.group.traverse(o=>{if(o.material){o.material.map?.dispose();o.material.dispose();}});
+  });
+  meshDisposables.forEach(g=>g.dispose());
+  meshDisposables.clear();
+  projects=data;cards=[];dots.replaceChildren();
+  if(!projects.length) {
+    const unreachable=navigator.onLine===false || window.orbitEmptyReason==='offline';
+    hint.textContent=unreachable?'暫時無法載入作品，連線後會自動更新':'目前沒有可顯示的作品';hint.hidden=false;
+    title.textContent=unreachable?'等待連線':'暫無作品';count.textContent='00 / 00';invalidate();return;
+  }
+  const step=TAU/projects.length;
+  const loader=new THREE.TextureLoader();
+  projects.forEach((p,i)=>{
+    const group=new THREE.Group();
+    // Two front panels and one rear panel form the opening composition in the reference.
+    const base=-Math.PI/3+i*step;
+    group.rotation.y=base;group.position.y=-.86;
+    ring.add(group);
+    const glassMaterial=new THREE.ShaderMaterial({
+      transparent:true,side:THREE.DoubleSide,depthWrite:false,
+      vertexShader:`varying vec2 vUv;varying vec3 vNormal;varying vec3 vView;
+        void main(){vUv=uv;vec4 mv=modelViewMatrix*vec4(position,1.);vNormal=normalize(normalMatrix*normal);vView=-mv.xyz;gl_Position=projectionMatrix*mv;}`,
+      fragmentShader:`varying vec2 vUv;varying vec3 vNormal;varying vec3 vView;
+        void main(){vec3 n=normalize(vNormal);vec3 v=normalize(vView);
+          float fresnel=pow(1.-abs(dot(n,v)),2.8);
+          float rim=pow(abs(vUv.y-.5)*2.,16.)+pow(abs(vUv.x-.5)*2.,22.);
+          float reflection=pow(max(abs(dot(reflect(-normalize(vec3(-.6,.85,1.)),n),v)),0.),38.);
+          float ribbon=exp(-pow((vUv.x*.7+vUv.y-.83)*12.,2.));
+          vec3 tint=mix(vec3(.79,.89,1.),vec3(1.,.95,.99),vUv.x);
+          float alpha=.075+fresnel*.16+rim*.26+reflection*.32+ribbon*.09;
+          gl_FragColor=vec4(mix(tint,vec3(1.),reflection),min(alpha,.68));}`
+    });
+    const initialGeometry=new THREE.BufferGeometry();
+    const glass=new THREE.Mesh(initialGeometry,glassMaterial);
+    group.add(glass);
+    const placeholder=placeholderTexture(p);
+    const frontMaterial=new THREE.MeshBasicMaterial({map:placeholder,side:THREE.FrontSide,toneMapped:false,transparent:false,opacity:1,depthWrite:true});
+    const backMaterial=frontMaterial.clone();backMaterial.side=THREE.BackSide;backMaterial.transparent=true;backMaterial.opacity=.56;backMaterial.depthWrite=false;
+    const front=new THREE.Mesh(initialGeometry,frontMaterial);
+    const back=new THREE.Mesh(initialGeometry,backMaterial);
+    front.userData.projectIndex=i;back.userData.projectIndex=i;
+    group.add(front,back);
+    const white=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.94,depthWrite:false});
+    const blue=new THREE.MeshBasicMaterial({color:0xb1d4f7,transparent:true,opacity:.70,depthWrite:false});
+    const pink=new THREE.MeshBasicMaterial({color:0xe2d2f1,transparent:true,opacity:.55,depthWrite:false});
+    // A clear-coat reflection above the opaque cover: a soft light panel with
+    // a sharp highlight and subtle cool/warm edges, following the curved UVs.
+    const sheenMaterial=new THREE.ShaderMaterial({
+      transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false,
+      uniforms:{hoverAmount:{value:0},pointerUV:{value:new THREE.Vector2(.5,.5)},sweep:{value:1}},
+      vertexShader:`varying vec2 vUv;varying vec3 vNormal;varying vec3 vView;
+        void main(){vUv=uv;vec4 mv=modelViewMatrix*vec4(position,1.);vNormal=normalize(normalMatrix*normal);vView=-mv.xyz;gl_Position=projectionMatrix*mv;}`,
+      fragmentShader:`varying vec2 vUv;varying vec3 vNormal;varying vec3 vView;
+        uniform float hoverAmount;uniform vec2 pointerUV;uniform float sweep;
+        void main(){
+          vec3 n=normalize(vNormal);vec3 v=normalize(vView);
+          float fresnel=pow(1.-abs(dot(n,v)),3.);
+          float slant=(vUv.y-.5)*(.22+(pointerUV.y-.5)*.18);
+          float axis=vUv.x+slant+n.x*.045;
+          float center=mix(.18,.82,pointerUV.x);
+          float distanceToLight=axis-center;
+          float softbox=exp(-pow(distanceToLight*7.,2.))*.22;
+          float glint=exp(-pow((distanceToLight+.035)*42.,2.))*.34;
+          float echo=exp(-pow((distanceToLight-.15)*65.,2.))*.12;
+          float sweepAxis=mix(-.35,1.35,sweep);
+          float passing=exp(-pow((axis-sweepAxis)*13.,2.))*sin(sweep*3.14159265)*.34;
+          float edge=pow(abs(vUv.x-.5)*2.,24.)+pow(abs(vUv.y-.5)*2.,30.);
+          float edgeLight=edge*(.12+fresnel*.24);
+          float idle=pow(vUv.y,18.)*.035;
+          float alpha=idle+hoverAmount*(softbox+glint+echo+passing+edgeLight+fresnel*.035);
+          vec3 tint=mix(vec3(.83,.94,1.),vec3(1.,.91,.96),smoothstep(-.08,.12,distanceToLight));
+          tint=mix(tint,vec3(1.),clamp((glint+passing)*2.,0.,1.));
+          gl_FragColor=vec4(tint,min(alpha,.66));
+        }`
+    });
+    const sheen=new THREE.Mesh(initialGeometry,sheenMaterial);
+    const frame=new THREE.Group();
+    group.add(sheen,frame);
+    const card={group,surfaces:[front,back],panels:[glass,front,back,sheen],frame,
+      rimMaterials:{white,blue,pink},base,sheen:sheenMaterial,
+      hoverTarget:new THREE.Vector2(.5,.5),wasHovered:false};
+    setCardAspectRatio(card);
+    cards.push(card);
+    const dot=document.createElement('button');dot.className='orbit-dot';dot.type='button';
+    dot.setAttribute('aria-label',`旋轉至作品 ${i+1}：${p.title}`);
+    dot.addEventListener('click',()=>goTo(i));dots.append(dot);
+    const url=coverURL(p);
+    if(url)loader.load(url,texture=>{
+      if(version!==buildVersion){texture.dispose();return;}
+      texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),COARSE_POINTER?4:8);
+      const image=texture.image;
+      const width=image.naturalWidth || image.width;
+      const height=image.naturalHeight || image.height;
+      // Panels never display more than this; oversized covers stall the GPU upload
+      // and mipmap generation on phones. Keep the original aspect ratio.
+      if(Math.max(width,height)>TEXTURE_LIMIT) {
+        const scale=TEXTURE_LIMIT/Math.max(width,height),canvas=document.createElement('canvas');
+        canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
+        const context=canvas.getContext('2d');
+        if(context) {
+          context.imageSmoothingQuality='high';
+          context.drawImage(image,0,0,canvas.width,canvas.height);
+          texture.image=canvas;texture.needsUpdate=true;
+        }
+      }
+      setCardAspectRatio(card, width / height);
+      frontMaterial.map=texture;backMaterial.map=texture;
+      frontMaterial.needsUpdate=true;backMaterial.needsUpdate=true;placeholder.dispose();invalidate();
+    },undefined,()=>{ /* The named placeholder remains usable when a cover is unavailable. */ });
+  });
+  // Start with the SinoPac banking project facing the viewer, including cached
+  // loads. Data refreshes retain the selected work instead of resetting the ring.
+  const preferred=projects.findIndex(p=>p.id===(selectedId ?? 1));
+  const initial=preferred<0?0:preferred;
+  angle=targetAngle=renderedAngle=-cards[initial].base;
+  ring.rotation.y=renderedAngle;
+  updateActive(initial);invalidate();
+}
+function render(now) {
+  frame=0;
+  if(!visible || document.hidden)return;
+  const dt=Math.min((now-(lastFrameTime || now-16.67))/16.67,3);
+  if(lastFrameTime)trackFrameCost(now-lastFrameTime,now);
+  lastFrameTime=now;
+  const ease=reduced.matches ? 1 : 1-Math.pow(.83,dt);
+  const headEase=reduced.matches?1:1-Math.exp(-dt*16.67/HEAD_TURN_RESPONSE_MS);
+  const headStep=reduced.matches?Infinity:HEAD_MAX_TURN_SPEED*dt*16.67/1000/HEAD_POINTER_RANGE;
+  const ringWasMoving=Math.abs(targetAngle-angle)>.0002||Math.abs(angle-renderedAngle)>.0002;
+  angle+=(targetAngle-angle)*ease;
+  renderedAngle+=(angle-renderedAngle)*(drag?.locked ? 1 : ease);
+  ring.rotation.y=renderedAngle;
+  ring.updateMatrixWorld(true);
+  const gazePointer=pendingPointer || (ringWasMoving ? lastPointer : null);
+  if(gazePointer && !drag){
+    const hit=pickSurfaceAt(gazePointer.x,gazePointer.y);
+    hover=hit?.object.userData.projectIndex ?? null;
+    if(hit){
+      const card=cards[hover];
+      // Back covers mirror their texture UVs; reflections stay on the physical surface.
+      card.hoverTarget.set(hit.object===card.surfaces[1] ? 1-hit.uv.x : hit.uv.x,hit.uv.y);
+      lookAtPanel(hit);
+    } else {
+      updateHeadPointer({clientX:gazePointer.x,clientY:gazePointer.y,pointerType:gazePointer.pointerType},stage.getBoundingClientRect());
+    }
+    stage.classList.toggle("is-hovering",hover!==null);pendingPointer=null;
+  }
+  if (headReturn) {
+    const progress=reduced.matches?1:Math.min(1,(now-headReturn.start)/HEAD_RETURN_DURATION);
+    const remaining=1-progress*progress*(3-2*progress);
+    moveX=headReturn.x*remaining;moveY=headReturn.y*remaining;
+    if (progress===1) headReturn=null;
+  } else {
+    moveX+=THREE.MathUtils.clamp((mouseX-moveX)*headEase,-headStep,headStep);
+    moveY+=THREE.MathUtils.clamp((mouseY-moveY)*headEase,-headStep,headStep);
+  }
+  if(bust){
+    bust.rotation.y=HEAD_BASE_YAW+moveX*HEAD_POINTER_RANGE;
+    bust.rotation.x=moveY*HEAD_POINTER_RANGE;
+    // The original moves the camera around a fixed model/environment. Rotating
+    // both here preserves that lighting relationship within the shared ring scene.
+    bust.material.envMapRotation.copy(bust.rotation);
+    occluders.forEach(o=>{
+      o.position.copy(o.userData.headOffset).applyQuaternion(bust.quaternion).add(bust.position);
+      o.quaternion.copy(bust.quaternion);o.updateMatrixWorld();
+    });
+  }
+  let reflectionsMoving=false;
+  cards.forEach((c,i)=>{
+    const hovered=hover===i && !drag;
+    const target=hovered && !reduced.matches?.08:0;
+    c.group.position.y+=(target-.86-c.group.position.y)*(reduced.matches?1:ease);
+    const uniforms=c.sheen.uniforms;
+    if(hovered && !c.wasHovered)uniforms.sweep.value=reduced.matches?1:0;
+    c.wasHovered=hovered;
+    const amount=hovered?1:0;
+    uniforms.hoverAmount.value+=(amount-uniforms.hoverAmount.value)*ease;
+    uniforms.pointerUV.value.lerp(c.hoverTarget,ease);
+    if(uniforms.sweep.value<1)uniforms.sweep.value=reduced.matches?1:Math.min(1,uniforms.sweep.value+dt/42);
+    const glow=uniforms.hoverAmount.value;
+    c.rimMaterials.white.opacity=.94+glow*.06;
+    c.rimMaterials.blue.opacity=.70+glow*.20;
+    c.rimMaterials.pink.opacity=.55+glow*.15;
+    if(Math.abs(amount-glow)>.001 || (hovered && uniforms.pointerUV.value.distanceToSquared(c.hoverTarget)>.000001) || uniforms.sweep.value<1)reflectionsMoving=true;
+  });
+  renderer.render(scene,camera);
+  dirty=false;
+  const moving=Math.abs(targetAngle-angle)>.0002||Math.abs(angle-renderedAngle)>.0002||Math.abs(mouseX-moveX)>.0002||Math.abs(mouseY-moveY)>.0002||cards.some((c,i)=>Math.abs(c.group.position.y-((hover===i && !drag && !reduced.matches?.08:0)-.86))>.001);
+  if(moving || reflectionsMoving || headReturn)frame=requestAnimationFrame(render);
+}
+async function init() {
+  try {
+    renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
+    renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled=false;
+    renderer.domElement.setAttribute('aria-hidden','true');stage.prepend(renderer.domElement);
+    const geometryRequest=loadHeadGeometry().then(binary=>({binary}),error=>({error}));
+    scene=new THREE.Scene();
+    camera=new THREE.OrthographicCamera(-6,6,3.5,-3.5,.1,100);
+    camera.position.set(0,3.65,15);camera.lookAt(0,.4,0);
+    ring=new THREE.Group();scene.add(ring);
+    // Same neutral studio environment used by the original model-viewer 3.5.0.
+    const environmentScene=new EnvironmentScene('neutral');
+    const pmrem=new THREE.PMREMGenerator(renderer);
+    const headEnvironment=pmrem.fromScene(environmentScene,.04,.1,100);
+    pmrem.dispose();
+    const environmentResources=new Set();
+    environmentScene.traverse(o=>{if(o.geometry)environmentResources.add(o.geometry);if(o.material)environmentResources.add(o.material);});
+    environmentResources.forEach(resource=>resource.dispose());
+    syncTheme();resize();
+    new ResizeObserver(resize).observe(stage);
+    new MutationObserver(syncTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+    matchMedia('(prefers-color-scheme:dark)').addEventListener('change',syncTheme);
+    new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)invalidate();},{rootMargin:'100px'}).observe(stage);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)invalidate();});
+    renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();fail('作品展間暫時無法顯示，請使用下方作品列表。');});
+    const geometryResult=await geometryRequest;
+    if(geometryResult.error)throw geometryResult.error;
+    const binary=geometryResult.binary,header=new DataView(binary);
+    const vertices=header.getUint32(0,true),indices=header.getUint32(4,true);
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(binary,8,vertices*3),3));
+    geometry.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(binary,8+vertices*12,vertices*3),3));
+    geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(binary,8+vertices*24,indices),1));
+    // Restore the original GLB material (baseColorFactor is linear RGB).
+    bust=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({
+      color:new THREE.Color().setRGB(.539777445607042,.539777445607042,.539777445607042,THREE.LinearSRGBColorSpace),
+      metalness:0,roughness:.6,side:THREE.DoubleSide,envMap:headEnvironment.texture
+    }));
+    // Pitch in the sculpture's local direction, so looking behind still looks
+    // down toward the panel rather than tilting upward around the world's X axis.
+    bust.rotation.order='YXZ';
+    bust.scale.setScalar(5.4);bust.position.set(0,.85,0);bust.rotation.y=HEAD_BASE_YAW;
+    scene.add(bust);
+    measureHeadViewBounds();
+    syncTheme();resize();
+    // Lightweight pick volumes avoid raycasting the 46,664-triangle sculpture on every pointer move.
+    const occluderMaterial=new THREE.MeshBasicMaterial({visible:false});
+    const headPick=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),occluderMaterial);
+    headPick.position.set(0,1.65,0);headPick.scale.set(1.12,1.65,.95);
+    const neckPick=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),occluderMaterial);
+    neckPick.position.set(0,-.6,0);neckPick.scale.set(1.05,1.15,.75);
+    occluders=[headPick,neckPick];occluders.forEach(o=>{o.userData.headOffset=o.position.clone().sub(bust.position);scene.add(o);o.updateMatrixWorld();});
+    await buildProjects(window.orbitProjects ?? window.orbitFallback);
+    section.classList.add('orbit-ready');invalidate();
+    measureAfter=performance.now()+1500;
+  } catch(error) { console.error('Orbit preview:',error);fail('作品展間暫時無法顯示，請使用下方作品列表。'); }
+}
+window.addEventListener('orbit-projects',e=>{if(ring)buildProjects(e.detail);});
+WIDE_LAYOUT.addEventListener('change',()=>{
+  RADIUS=ringRadius();
+  if(!ring || !cards.length)return;
+  // Rebuild the panels on the new ring, keeping the selected work in front.
+  sceneProjectsKey=null;
+  buildProjects(projects).then(resize);
+});
+
+// Page scrolling moves the whole hero normally; it never rotates the scene.
+window.addEventListener('scroll',()=>{
+  // Touch scrolling leaves nothing to reset; skip a WebGL redraw per scroll event.
+  if(!ring || (hover===null && !pendingPointer && !lastPointer && !headReturn && !moveX && !moveY && !mouseX && !mouseY))return;
+  hover=null;pendingPointer=lastPointer=null;returnHead();
+  stage.classList.remove('is-hovering');invalidate();
+},{passive:true});
+reduced.addEventListener('change',()=>{headReturn=null;pendingPointer=lastPointer=null;mouseX=mouseY=moveX=moveY=0;invalidate();});
+
+// Keep a continuous wheel gesture with its starting surface. A panel moving
+// underneath the pointer must not steal a page scroll already in progress.
+const wheelGesture={mode:null,time:-Infinity,x:0,y:0};
+window.addEventListener('wheel',e=>{
+  if(e.ctrlKey || e.metaKey || !e.deltaY)return;
+  if(e.timeStamp-wheelGesture.time>250 || Math.hypot(e.clientX-wheelGesture.x,e.clientY-wheelGesture.y)>6) {
+    wheelGesture.mode=null;wheelGesture.x=e.clientX;wheelGesture.y=e.clientY;
+  }
+  wheelGesture.time=e.timeStamp;
+  if(!stage.contains(e.target))wheelGesture.mode='page';
+},{capture:true,passive:true});
+
+// Test the actual scene objects, not the canvas or a broad rectangular band.
+// Empty background on either side (and between objects) keeps native page scroll.
+stage.addEventListener('wheel',e=>{
+  if(!cards.length || !section.classList.contains('orbit-ready') || section.classList.contains('orbit-failed') || e.ctrlKey || e.metaKey || !e.deltaY)return;
+  if(wheelGesture.mode==='page')return;
+  if(wheelGesture.mode!=='orbit' && !pickSceneAt(e.clientX,e.clientY)) {
+    wheelGesture.mode='page';return;
+  }
+  if(!e.cancelable)return;
+  wheelGesture.mode='orbit';
+  e.preventDefault();
+  if(drag)return;
+  const rect=stage.getBoundingClientRect();
+  const unit=e.deltaMode===1 ? 16 : e.deltaMode===2 ? rect.height : 1;
+  targetAngle-=THREE.MathUtils.clamp(e.deltaY*unit,-120,120)*.004;
+  hover=null;
+  stage.classList.remove('is-hovering');
+  pendingPointer=lastPointer={x:e.clientX,y:e.clientY,pointerType:'mouse'};
+  const nearest=nearestProject();
+  if(nearest!==active)updateActive(nearest);
+  invalidate();
+},{passive:false});
+
+stage.addEventListener('pointerdown',e=>{
+  if(e.button!==0 || !cards.length)return;
+  hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');invalidate();
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,startAngle:targetAngle,moved:false,locked:false,velocity:0,lastTime:e.timeStamp,rect:stage.getBoundingClientRect()};
+  if(e.pointerType==='mouse')stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',e=>{
+  // A drag reuses the rectangle measured on pointerdown: no layout read per move.
+  const rect=drag && e.pointerId===drag.id ? drag.rect : stage.getBoundingClientRect();
+  if(e.pointerType!=='touch'){pointerLabel.style.left=`${e.clientX-rect.left}px`;pointerLabel.style.top=`${e.clientY-rect.top}px`;}
+  if(drag && e.pointerId===drag.id){
+    const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(!drag.locked && Math.abs(dy)>8 && Math.abs(dy)>Math.abs(dx)*1.2){drag=null;return;}
+    // Mouse is captured on pointerdown; touch and pen already have implicit capture.
+    // Explicitly capturing touch mid-swipe made the browser fire lostpointercapture,
+    // which ended the drag after its first frame and left the ring stuck.
+    if(!drag.locked && Math.abs(dx)>6){drag.moved=true;drag.locked=true;stage.classList.add('is-dragging');}
+    if(drag.locked){targetAngle=drag.startAngle+dx/Math.max(rect.width,500)*TAU*.8;angle=targetAngle;renderedAngle=targetAngle;hover=null;stage.classList.remove('is-hovering');invalidate();}
+    drag.velocity=(e.clientX-drag.lastX)/Math.max(8,e.timeStamp-drag.lastTime);
+    drag.lastTime=e.timeStamp;drag.lastX=e.clientX;return;
+  }
+  updateHeadPointer(e,rect);
+  if(cards.length && e.pointerType!=='touch')pendingPointer=lastPointer={x:e.clientX,y:e.clientY,pointerType:e.pointerType};
+  invalidate();
+});
+function finishDrag(e,cancelled=false) {
+  if(!drag)return;
+  const current=drag;drag=null;stage.classList.remove('is-dragging');
+  if(stage.hasPointerCapture(current.id))stage.releasePointerCapture(current.id);
+  if(cancelled)return;
+  if(current.moved){
+    updateActive(nearestProject(),true);
+    const delta=e.timeStamp-current.lastTime<100 ? current.velocity*65 : 0;
+    if(!reduced.matches)targetAngle+=THREE.MathUtils.clamp(delta/Math.max(stage.clientWidth,500)*TAU*.5,-.1,.1);
+    const rect=stage.getBoundingClientRect();
+    if(e.pointerType!=='touch' && e.clientX>=rect.left && e.clientX<=rect.right && e.clientY>=rect.top && e.clientY<=rect.bottom)
+      pendingPointer=lastPointer={x:e.clientX,y:e.clientY,pointerType:e.pointerType};
+    invalidate();
+  }else{
+    const picked=pickAt(e.clientX,e.clientY);if(picked!==null){updateActive(picked);openProject(picked);}
+  }
+}
+stage.addEventListener('pointerup',e=>finishDrag(e));
+stage.addEventListener('pointercancel',e=>finishDrag(e,true));
+stage.addEventListener('lostpointercapture',e=>{
+  // pointerup/pointercancel finish a drag; only an unexpected loss mid-drag resets it.
+  if(!drag || e.pointerId!==drag.id)return;
+  const current=drag;drag=null;stage.classList.remove('is-dragging');
+  if(current.moved){updateActive(nearestProject(),true);invalidate();}
+});
+stage.addEventListener('pointerleave',()=>{pendingPointer=lastPointer=null;if(drag)return;hover=null;returnHead();stage.classList.remove('is-hovering');invalidate();});
+stage.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'){e.preventDefault();goTo(active+1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();goTo(active-1);}
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();openProject();}
+  if(e.key==='Home'){e.preventDefault();goTo(0);}
+  if(e.key==='End'){e.preventDefault();goTo(projects.length-1);}
+});
+document.getElementById('orbit-prev').addEventListener('click',()=>goTo(active-1));
+document.getElementById('orbit-next').addEventListener('click',()=>goTo(active+1));
+document.getElementById('orbit-open').addEventListener('click',()=>openProject());
+init();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

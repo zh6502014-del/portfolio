@@ -484,6 +484,8 @@
   .rich-caption { display:block; margin-top:8px; font-size:13px; line-height:1.6; color:var(--text-tertiary); text-align:center; }
   /* ── 歷程時間軸（.rich-timeline，後台 TimelineBlot 產生；admin / index 共用同一份樣式）── */
   .rich-timeline { container-type: inline-size; margin: 24px 0; }
+  .rich-timeline:first-child { margin-top: 0; }
+  .rich-timeline:last-child { margin-bottom: 0; }   /* 結尾由外層容器的 margin 決定間距 */
   .rich-timeline .rt-list { display: flex; flex-direction: column; }
   .rich-timeline .rt-item { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 16px; padding-bottom: 24px; }
   .rich-timeline .rt-item:last-child { padding-bottom: 0; }
@@ -1599,7 +1601,20 @@ function wrapRichTables(html) {
   });
   return root.innerHTML;
 }
-function prepRichHtml(html) { return wrapRichTables(wrapRichCaptions(fixRichLists(html))); }
+// Quill 在區塊（時間軸、表格、影片）後面一定會留一行空白 <p><br></p>，
+// 前台顯示時移除內容結尾的空白行，避免和下一個區塊之間多出空間
+function trimRichTrailing(html) {
+  if (!html || !/<p>\s*(<br\s*\/?>)?\s*<\/p>\s*$/i.test(html)) return html || '';
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  let last = root.lastChild;
+  while (last && (last.nodeType === 3 ? !last.textContent.trim()
+      : last.tagName === 'P' && !last.textContent.trim() && !last.querySelector('img, iframe, video'))) {
+    last.remove(); last = root.lastChild;
+  }
+  return root.innerHTML;
+}
+function prepRichHtml(html) { return wrapRichTables(wrapRichCaptions(fixRichLists(trimRichTrailing(html)))); }
 
 // ── renderNav ──
 function renderNav(items) {
