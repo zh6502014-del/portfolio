@@ -90,7 +90,12 @@ function syncTheme() {
   // Original model-viewer exposure: 1.6 in light mode, 0.6 in dark mode.
   // Compensate only the head's IBL so the existing glass stays unchanged.
   if (bust) bust.material.envMapIntensity = (dark ? .6 : 1.6) / renderer.toneMappingExposure;
-  invalidate();
+  // Draw now rather than on the next frame: the theme's view transition captures
+  // the new state right after the switch, and the sculpture must already be lit.
+  if (ring && visible && !document.hidden) {
+    if (frame) cancelAnimationFrame(frame);
+    render(performance.now());
+  } else invalidate();
 }
 function fail(message) {
   section.classList.add('orbit-failed');

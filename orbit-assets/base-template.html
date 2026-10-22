@@ -298,14 +298,11 @@
   html { scroll-behavior: smooth; }
   body::before { opacity: 1; }
   body::after  { opacity: 1; }
-  html.theme-transitioning,
-  html.theme-transitioning *,
-  html.theme-transitioning *::before,
-  html.theme-transitioning *::after {
-    transition: background-color 0.5s cubic-bezier(0.4,0,0.2,1),
-      color 0.5s cubic-bezier(0.4,0,0.2,1),
-      border-color 0.5s cubic-bezier(0.4,0,0.2,1) !important;
-  }
+  /* 主題切換：以 View Transition 對整頁快照做一次交叉淡化。
+     舊做法是讓所有元素的顏色各自過渡 0.5 秒，每一幀都要重算樣式與玻璃的 backdrop-filter，
+     而漸層、陰影、3D 雕塑又無法過渡，會先跳一下 ── 兩者都造成切換卡頓 */
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration:.42s; animation-timing-function:cubic-bezier(.4,0,.2,1); }
   body { font-family:var(--font-sans); background:var(--bg); color:var(--text); line-height:1.7; font-size:20px; min-height:100vh; position:relative; }
   /* ── Background orbs for glass effect ──
      效能關鍵：orbs 必須保持靜態。fixed 元素若持續動畫，
@@ -1944,10 +1941,13 @@ function toggleTheme() {
   } else {
     next = 'system';
   }
-  document.documentElement.classList.add('theme-transitioning');
-  localStorage.setItem('theme', next);
-  applyTheme(next);
-  setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 550);
+  try { localStorage.setItem('theme', next); } catch (e) {}
+  // 不支援 View Transition 或偏好減少動態時直接切換（不做逐元素過渡，避免卡頓）
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    applyTheme(next);
+    return;
+  }
+  document.startViewTransition(() => applyTheme(next));
 }
 // Listen for system theme changes
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
