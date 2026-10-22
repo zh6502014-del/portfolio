@@ -1191,6 +1191,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // 原生 fetch 直接打 Supabase REST API，完全不使用 SDK
 // 避免 @supabase/supabase-js 的 BroadcastChannel / postMessage 觸發 DataCloneError
 function sbFetch(table, params = '') {
+  if (navigator.onLine === false) return Promise.reject(new Error('Offline'));
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 10000); // 10 秒沒回應視為失敗
   return fetch(
@@ -1223,7 +1224,7 @@ function fetchAll() {
     sbFetch('section_settings', 'select=key,visible').catch(() => []),
   ]);
 }
-const _dataPromise = fetchAll();
+const _dataPromise = navigator.onLine === false ? null : fetchAll();
 
 // ── 離線快取：載入成功就存一份，之後連不上時先顯示上次的內容 ──
 const DATA_CACHE_KEY = 'portfolio-data-v1';
@@ -1233,23 +1234,22 @@ function saveDataCache(data) {
 function readDataCache() {
   try {
     const c = JSON.parse(localStorage.getItem(DATA_CACHE_KEY) || 'null');
-    return c && Array.isArray(c.data) ? c : null;
+    return c && Number.isFinite(c.t) && Array.isArray(c.data) && c.data.length >= 6 && c.data.slice(0, 6).every(Array.isArray) ? c : null;
   } catch (e) { return null; }
 }
 function renderAllData(data) {
   const [profile, skills, tools, projects, notes, navItems, sectionSettings] = data;
   if (profile?.[0])   renderProfile(profile[0]);
-  if (skills?.length)  renderSkills(skills);
-  if (tools?.length)   renderTools(tools);
-  if (projects?.length) renderProjects(projects);
-  if (notes?.length)   renderNotes(notes);
-  if (navItems?.length) renderNav(navItems);
+  if (Array.isArray(skills)) renderSkills(skills);
+  if (Array.isArray(tools)) renderTools(tools);
+  if (Array.isArray(projects)) renderProjects(projects);
+  if (Array.isArray(notes)) renderNotes(notes);
+  if (Array.isArray(navItems)) renderNav(navItems);
   applySectionVisibility(sectionSettings);
 }
 
 // 離線提示列
-function showOfflineBanner(sub) {
-  const title = navigator.onLine === false ? '目前離線' : '連線不穩';
+function showOfflineBanner(sub, title = navigator.onLine === false ? '目前離線' : '連線不穩') {
   let bar = document.getElementById('offline-banner');
   if (!bar) {
     bar = document.createElement('div');
@@ -1268,38 +1268,58 @@ function hideOfflineBanner() {
   if (bar) bar.classList.remove('show');
 }
 
-let _retrying = false;
+// Render saved content immediately; refresh in the background without rebuilding
+// the scene when the response is unchanged. A disconnect invalidates older requests.
+let _retrying = false, _loadSequence = 0, _hasRenderedData = false, _lastDataJSON = '';
+function renderDataIfChanged(data) {
+  const json = JSON.stringify(data);
+  if (json !== _lastDataJSON) { renderAllData(data); _lastDataJSON = json; }
+  _hasRenderedData = true;
+  applyRoute();
+}
+function offlineMessage(cache = readDataCache()) {
+  if (!cache) return '尚無已儲存的內容，恢復連線後會自動載入';
+  const d = new Date(cache.t);
+  return `顯示 ${d.getMonth() + 1}/${d.getDate()} 已儲存的內容；已下載的圖片可離線瀏覽`;
+}
 async function retryLoad() {
   if (_retrying) return;
   _retrying = true;
   const btn = document.querySelector('#offline-banner .offline-retry');
   if (btn) { btn.disabled = true; btn.textContent = '載入中…'; }
-  try { await loadData(fetchAll()); }
+  if (navigator.onLine !== false) showOfflineBanner('正在更新內容…', '重新連線中');
+  try { await loadData(); }
   finally { _retrying = false; if (btn) { btn.disabled = false; btn.textContent = '重新載入'; } }
 }
-
-async function loadData(promise = _dataPromise) {
+async function loadData(promise = null) {
+  const sequence = ++_loadSequence;
+  const cache = readDataCache();
+  if (!_hasRenderedData && cache) renderDataIfChanged(cache.data);
+  if (navigator.onLine === false) {
+    if (!_hasRenderedData) { renderFallback(); _hasRenderedData = true; }
+    showOfflineBanner(offlineMessage(cache));
+    return false;
+  }
   try {
-    const data = await promise;
-    renderAllData(data);
+    const data = await (promise || fetchAll());
+    if (sequence !== _loadSequence) return false;
+    renderDataIfChanged(data);
     saveDataCache(data);
     hideOfflineBanner();
-    applyRoute();
+    window.dispatchEvent(new CustomEvent('portfolio-data-ready'));
+    return true;
   } catch (e) {
-    const cache = readDataCache();
-    if (cache) {
-      try { renderAllData(cache.data); } catch (err) { renderFallback(); }
-      const d = new Date(cache.t);
-      showOfflineBanner(`顯示 ${d.getMonth() + 1}/${d.getDate()} 的內容`);
-    } else {
-      renderFallback();
-      showOfflineBanner('顯示預設內容');
-    }
-    applyRoute();
+    if (sequence !== _loadSequence) return false;
+    if (!_hasRenderedData) { renderFallback(); _hasRenderedData = true; }
+    showOfflineBanner(offlineMessage(cache));
+    return false;
   }
 }
-// 網路恢復時自動重新載入
-window.addEventListener('online', () => { if (document.getElementById('offline-banner')?.classList.contains('show')) retryLoad(); });
+window.addEventListener('offline', () => {
+  ++_loadSequence;
+  showOfflineBanner(offlineMessage());
+});
+window.addEventListener('online', retryLoad);
 
 
 // ── 區塊顯示開關（後台 section_settings）──
@@ -1858,25 +1878,18 @@ function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerH
 function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${y}.${m}.${day}`; }
 
 function renderFallback() {
-  // 沒有快取、又連不上資料庫時顯示的趣味預設內容
-  const fallbackProjects = [
-    { id:1, title:'網路好像去喝咖啡了 ☕', time_range:'剛剛 — 還沒回來', tags:['Offline','等一下下'], description:'作品集正在和網路鬧小脾氣，資料還在路上。先看看這幾張備用卡片，等它回來就會換成真正的作品。', goals:['讓你等待時不無聊'], challenges:['沒有網路'], methods:['深呼吸','按一下重新載入'], work_items:['假裝一切都很正常'], products:['這張備用卡片'], insight:'好的設計連離線時也要有禮貌。', role:'備用設計師', members:'', images:[] },
-    { id:2, title:'訊號正在爬山 ⛰️', time_range:'預計很快抵達', tags:['Loading','加油'], description:'資料正在翻山越嶺，路上可能有點喘。', goals:['平安抵達畫面'], challenges:['山上收訊不太好'], methods:['慢慢來'], work_items:['攜帶一份專案清單'], products:['一點點耐心'], insight:'重新整理之前，先喝口水。', role:'登山客', members:'', images:[] },
-    { id:3, title:'伺服器在午睡 😴', time_range:'請勿打擾（但可以按重新載入）', tags:['Zzz','等它醒來'], description:'它睡得很沉，輕輕敲門也許就會醒。', goals:['睡飽'], challenges:['鬧鐘壞了'], methods:['輕輕按下重新載入'], work_items:['夢見 100% 上線率'], products:['一顆枕頭'], insight:'休息是為了走更長的路。', role:'午睡專家', members:'', images:[] }
-  ];
-  const fallbackNotes = [
-    { id:1, title:'【離線小語】沒有網路的時候，剛好可以看看窗外', note_date:'2026-01-01', note_type:'碎碎念' },
-    { id:2, title:'【離線小語】重新整理是一種溫柔的重新開始', note_date:'2026-01-01', note_type:'碎碎念' },
-    { id:3, title:'【離線小語】作品很快回來，先給你一個擁抱', note_date:'2026-01-01', note_type:'碎碎念' }
-  ];
-  renderProjects(fallbackProjects);
-  renderNotes(fallbackNotes);
-  document.getElementById('skills-grid').innerHTML = `
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🫖</div><div class="skill-card-title">耐心等待</div><div class="skill-tag-list"><span class="tag">深呼吸</span><span class="tag">喝口茶</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🔌</div><div class="skill-card-title">檢查插頭</div><div class="skill-tag-list"><span class="tag">Wi-Fi</span><span class="tag">飛航模式</span></div></div>
-    <div class="skill-card glass-el glass-card"><div class="skill-card-icon">🔄</div><div class="skill-card-title">重新載入</div><div class="skill-tag-list"><span class="tag">再試一次</span><span class="tag">Cmd + R</span></div></div>
-  `;
-  document.getElementById('tools-grid').innerHTML = ['🧋 珍珠奶茶','🎧 耳機','🪴 小盆栽','📚 一本書'].map(n=>`<div class="tool-item glass-el"><div class="tool-name">${n}</div></div>`).join('');
+  renderProjects([]);
+  renderNotes([]);
+  renderSkills([]);
+  renderTools([]);
+  renderNav([
+    { label:'設計專案', href:'#projects' },
+    { label:'關於我', href:'#hero' },
+    { label:'隨筆紀錄', href:'#notes' }
+  ]);
+  for (const id of ['projects-grid', 'notes-list', 'skills-grid', 'tools-grid']) {
+    document.getElementById(id).innerHTML = '<p class="note-empty">尚無已儲存的內容，連線後即可瀏覽。</p>';
+  }
 }
 
 // ── Theme toggle ──
@@ -2012,7 +2025,7 @@ window.addEventListener('scroll', () => {
 window.addEventListener('resize', updateNav, { passive: true });
 document.fonts?.ready.then(updateNav);
 
-loadData();
+loadData(_dataPromise);
 
 // ── 3D 模型載入進度（model-viewer progress 事件） ──
 (function() {

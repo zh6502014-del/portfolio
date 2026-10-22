@@ -35,6 +35,22 @@ const HEAD_BASE_YAW = -0.308;
 const HEAD_PANEL_PITCH_LIMIT = THREE.MathUtils.degToRad(18);
 const panelLookPoint = new THREE.Vector3();
 const meshDisposables = new Set();
+const HEAD_MESH_URL = './orbit-assets/david-mesh.bin';
+const HEAD_MESH_GZIP_URL = null;
+let sceneProjectsKey = null;
+
+async function loadHeadGeometry() {
+  if (HEAD_MESH_GZIP_URL && typeof DecompressionStream === 'function') {
+    try {
+      const response = await fetch(HEAD_MESH_GZIP_URL);
+      if (!response.ok) throw new Error('Compressed geometry unavailable');
+      return await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    } catch (error) { /* Keep a raw fallback for older browsers or damaged caches. */ }
+  }
+  const response = await fetch(HEAD_MESH_URL);
+  if (!response.ok) throw new Error('David geometry unavailable');
+  return response.arrayBuffer();
+}
 
 function alignWordmark() {
   const wordmark=document.querySelector('.orbit-wordmark');
@@ -346,7 +362,11 @@ function openProject(index=active) {
   if(projects[index] && typeof window.openModal === 'function') window.openModal(projects[index].id);
 }
 async function buildProjects(data) {
-  if(!Array.isArray(data)||!data.length) { hint.textContent='目前尚無公開作品';hint.hidden=false;return; }
+  if(!Array.isArray(data))return;
+  const key=JSON.stringify(data.map(p=>[p.id,p.title,coverURL(p)]));
+  if(key===sceneProjectsKey)return;
+  sceneProjectsKey=key;
+  const selectedId=projects[active]?.id;
   hint.textContent='';hint.hidden=true;
   const version=++buildVersion;
   hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');
@@ -358,6 +378,10 @@ async function buildProjects(data) {
   meshDisposables.forEach(g=>g.dispose());
   meshDisposables.clear();
   projects=data;cards=[];dots.replaceChildren();
+  if(!projects.length) {
+    hint.textContent='目前沒有可顯示的作品';hint.hidden=false;
+    title.textContent='暫無作品';count.textContent='00 / 00';invalidate();return;
+  }
   const step=TAU/projects.length;
   const loader=new THREE.TextureLoader();
   projects.forEach((p,i)=>{
@@ -446,7 +470,13 @@ async function buildProjects(data) {
       frontMaterial.needsUpdate=true;backMaterial.needsUpdate=true;placeholder.dispose();invalidate();
     },undefined,()=>{ /* The named placeholder remains usable when a cover is unavailable. */ });
   });
-  updateActive(Math.min(active,projects.length-1));invalidate();
+  // Start with the SinoPac banking project facing the viewer, including cached
+  // loads. Data refreshes retain the selected work instead of resetting the ring.
+  const preferred=projects.findIndex(p=>p.id===(selectedId ?? 1));
+  const initial=preferred<0?0:preferred;
+  angle=targetAngle=renderedAngle=-cards[initial].base;
+  ring.rotation.y=renderedAngle;
+  updateActive(initial);invalidate();
 }
 function render(now) {
   frame=0;
@@ -525,6 +555,7 @@ async function init() {
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
     renderer.shadowMap.enabled=false;
     renderer.domElement.setAttribute('aria-hidden','true');stage.prepend(renderer.domElement);
+    const geometryRequest=loadHeadGeometry().then(binary=>({binary}),error=>({error}));
     scene=new THREE.Scene();
     camera=new THREE.OrthographicCamera(-6,6,3.5,-3.5,.1,100);
     camera.position.set(0,3.65,15);camera.lookAt(0,.4,0);
@@ -544,9 +575,9 @@ async function init() {
     new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)invalidate();},{rootMargin:'100px'}).observe(stage);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)invalidate();});
     renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();fail('作品展間暫時無法顯示，請使用下方作品列表。');});
-    const response=await fetch('./orbit-assets/david-mesh.bin');
-    if(!response.ok)throw new Error('David geometry unavailable');
-    const binary=await response.arrayBuffer(),header=new DataView(binary);
+    const geometryResult=await geometryRequest;
+    if(geometryResult.error)throw geometryResult.error;
+    const binary=geometryResult.binary,header=new DataView(binary);
     const vertices=header.getUint32(0,true),indices=header.getUint32(4,true);
     const geometry=new THREE.BufferGeometry();
     geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(binary,8,vertices*3),3));
@@ -571,7 +602,7 @@ async function init() {
     const neckPick=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),occluderMaterial);
     neckPick.position.set(0,-.6,0);neckPick.scale.set(1.05,1.15,.75);
     occluders=[headPick,neckPick];occluders.forEach(o=>{o.userData.headOffset=o.position.clone().sub(bust.position);scene.add(o);o.updateMatrixWorld();});
-    await buildProjects(window.orbitProjects?.length ? window.orbitProjects : window.orbitFallback);
+    await buildProjects(window.orbitProjects ?? window.orbitFallback);
     section.classList.add('orbit-ready');invalidate();
   } catch(error) { console.error('Orbit preview:',error);fail('作品展間暫時無法顯示，請使用下方作品列表。'); }
 }
