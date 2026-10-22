@@ -7,7 +7,7 @@ os.chdir(Path(__file__).resolve().parent.parent)
 p=Path('orbit-assets/base-template.html').read_text()
 p=p.replace('<title>林艾奭 — UI/UX Designer</title>','<title>林艾奭 — 環形作品集互動測試</title>')
 p=p.replace('Noto+Sans+TC:wght@300;400;500;600;700&display=swap','Noto+Sans+TC:wght@300;400;500;600;700;800&display=swap')
-p=p.replace('<a href="#hero" class="nav-logo" id="nav-name">林艾奭</a>', '<a href="#hero" class="nav-logo" id="nav-name">UI/UX Portfolio</a>')
+p=p.replace('<a href="#hero" class="nav-logo" id="nav-name">林艾奭</a>', '<a href="#projects" class="nav-logo" id="nav-name">UI/UX Portfolio</a>')
 p=p.replace("const navName = (p.nav_name && p.nav_name.trim()) || '林艾奭';", "const navName = ((p.nav_name && p.nav_name.trim()) || 'UI/UX Portfolio').replace(/作品集/g, 'Portfolio');")
 p=re.sub(r'<!-- 3D 模型：fixed.*?<div class="wrapper">','<div class="wrapper">',p,flags=re.S)
 p=re.sub(r'  <section id="projects">.*?</section>','',p,count=1,flags=re.S)
@@ -22,8 +22,6 @@ p=re.sub(r'<section class="hero" id="hero">.*?</section>',
 start=p.index('// ── 3D 模型載入進度')
 end=p.index('</script>',start)
 p=p[:start]+p[end:]
-p=p.replace('let current = sectionIds[0] || links[0].dataset.section;', 'let current = sectionIds[0] || links[0].dataset.section;\n  let nearestTop = -Infinity;')
-p=p.replace('if (el && window.scrollY >= el.offsetTop - 100) current = id;', 'if (el) { const top = el.getBoundingClientRect().top; if (top <= 100 && top > nearestTop) { current = id; nearestTop = top; } }')
 p=p.replace('  applySectionVisibility(sectionSettings);', '  applySectionVisibility(sectionSettings);\n  requestAnimationFrame(updateNav);')
 p=p.replace('  allProjects = data;','  allProjects = data;\n  window.orbitProjects = data;\n  window.dispatchEvent(new CustomEvent("orbit-projects", { detail: data }));',1)
 # Keep the original data renderer and project modal, use a complete fallback if WebGL is unavailable.

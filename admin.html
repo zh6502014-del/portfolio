@@ -3918,7 +3918,7 @@ async function renderNavigationPage() {
     </div>
     <div class="card">
       <p style="font-size:13px;color:var(--text-tertiary);margin-bottom:20px;">
-        每個項目可設定顯示文字與 href 錨點（例如 <code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">#about</code>）
+        V2 版面順序：設計專案 → 關於我 → 隨筆紀錄。每個項目可設定顯示文字與 href 錨點（例如 <code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">#about</code>）
       </p>
       <div id="nav-items-list"></div>
       <div class="form-actions">
@@ -3945,10 +3945,10 @@ async function renderNavigationPage() {
   ]);
 
   const anchors = [
-    { href: '#hero',     label: '頁首',   preview: profileRes.data?.name || '—',                    desc: 'Hero 區塊（姓名、自我介紹）' },
-    { href: '#about',    label: '關於',   preview: '設計技能 / 使用工具',                              desc: '技能卡片與工具清單' },
-    { href: '#projects', label: '作品集', preview: projectsRes.data?.[0]?.title || '（尚無專案）',    desc: '作品集列表' },
-    { href: '#notes',    label: '隨筆',   preview: notesRes.data?.[0]?.title    || '（尚無隨筆）',    desc: '隨筆紀錄列表' },
+    { href: '#projects', label: '設計專案', preview: projectsRes.data?.[0]?.title || '（尚無專案）', desc: '頁首：3D 環形作品展區' },
+    { href: '#hero',     label: '關於我',   preview: profileRes.data?.name || '—', desc: '關於我：自我介紹、聯絡方式與並排技能' },
+    { href: '#about',    label: '設計技能', preview: '設計技能 / 使用工具', desc: '關於我區域中的技能卡片與工具清單' },
+    { href: '#notes',    label: '隨筆紀錄', preview: notesRes.data?.[0]?.title || '（尚無隨筆）', desc: '頁尾前的隨筆紀錄列表' },
   ];
 
   const refCard = document.createElement('div');

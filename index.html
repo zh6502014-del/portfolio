@@ -1138,7 +1138,7 @@ button:focus-visible, a:focus-visible {outline:2px solid var(--ring);outline-off
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="#hero" class="nav-logo" id="nav-name">UI/UX Portfolio</a>
+    <a href="#projects" class="nav-logo" id="nav-name">UI/UX Portfolio</a>
     <div class="nav-actions">
       <div class="nav-links" id="nav-links">
         <!-- nav links 由 JS 從 Supabase nav_items 載入 -->
@@ -1994,7 +1994,6 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 applyTheme(getTheme());
 
 // Nav scroll highlight
-const sections = ['about','projects','notes'];
 // ── Glass Nav pill ──
 function getPillMetrics(link) {
   const navEl = document.getElementById('nav-links');
@@ -2044,22 +2043,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateNav() {
-  const links = document.querySelectorAll('.nav-link[data-section]:not(.section-hidden)');
-  if (!links.length) return;
+  const links = Array.from(document.querySelectorAll('.nav-link[data-section]:not(.section-hidden)'));
+  const targets = links.map(link => ({ link, target: document.getElementById(link.dataset.section) }))
+    .filter(({ target }) => target && target.getClientRects().length)
+    .map(item => ({ ...item, top: item.target.getBoundingClientRect().top }))
+    .sort((a, b) => a.top - b.top);
+  if (!targets.length) return;
 
-  // 從 nav-link 的 data-section 動態建立 section 清單（不寫死，跟 Supabase nav_items 同步）
-  const sectionIds = Array.from(links).map(l => l.dataset.section).filter(id => document.getElementById(id));
-
-  // 預設 active 是第一個有對應 section 的 link
-  let current = sectionIds[0] || links[0].dataset.section;
-  let nearestTop = -Infinity;
-  sectionIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { const top = el.getBoundingClientRect().top; if (top <= 100 && top > nearestTop) { current = id; nearestTop = top; } }
+  // V2 puts the project gallery before the combined profile/skills section.
+  // Compare viewport positions so nested sections work as well as top-level ones.
+  const threshold = (document.querySelector('.nav')?.getBoundingClientRect().bottom || 60) + 40;
+  let current = targets[0].link;
+  targets.forEach(({ link, top }) => { if (top <= threshold) current = link; });
+  // A short last section may never reach the top beneath the fixed navigation.
+  const atBottom = window.scrollY > 0 &&
+    Math.ceil(window.scrollY + window.innerHeight) >= document.documentElement.scrollHeight - 2;
+  if (atBottom) current = targets[targets.length - 1].link;
+  links.forEach(link => {
+    const active = link === current;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
   });
-  links.forEach(link => link.classList.toggle('active', link.dataset.section === current));
-  const active = document.querySelector('.nav-link.active:not(.section-hidden)');
-  if (active) setPillPosition(active);
+  setPillPosition(current);
 }
 let navScrollTicking = false;
 window.addEventListener('scroll', () => {
@@ -2070,6 +2076,8 @@ window.addEventListener('scroll', () => {
     navScrollTicking = false;
   });
 }, { passive: true });
+window.addEventListener('resize', updateNav, { passive: true });
+document.fonts?.ready.then(updateNav);
 
 loadData();
 
