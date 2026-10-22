@@ -482,6 +482,25 @@
   .rich-table-wrap td[data-bg="purple"] { background:color-mix(in oklab, #a855f7 18%, transparent); }
   .rich-table-wrap p { margin:0; }
   .rich-caption { display:block; margin-top:8px; font-size:13px; line-height:1.6; color:var(--text-tertiary); text-align:center; }
+  /* ── 歷程時間軸（.rich-timeline，後台 TimelineBlot 產生；admin / index 共用同一份樣式）── */
+  .rich-timeline { container-type: inline-size; margin: 24px 0; }
+  .rich-timeline .rt-list { display: flex; flex-direction: column; }
+  .rich-timeline .rt-item { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 16px; padding-bottom: 24px; }
+  .rich-timeline .rt-item:last-child { padding-bottom: 0; }
+  .rich-timeline .rt-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 24px; bottom: 6px; width: 1px; transform: translateX(-50%); background: var(--border-strong); }
+  .rich-timeline .rt-dot { width: 11px; height: 11px; margin-top: 6px; justify-self: center; border-radius: 50%; background: var(--text); }
+  .rich-timeline .rt-body { min-width: 0; }
+  .rich-timeline .rt-date { font-size: 12px; line-height: 1.6; letter-spacing: .04em; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  .rich-timeline .rt-title { font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--text); }
+  .rich-timeline .rt-desc { margin-top: 2px; font-size: 14px; line-height: 1.7; color: var(--text-secondary); white-space: pre-line; overflow-wrap: anywhere; }
+  /* 水平：只在容器夠寬時套用，窄版面（手機、窄 modal）自動回到垂直 */
+  @container (min-width: 521px) {
+    .rich-timeline[data-orientation="horizontal"] .rt-list { flex-direction: row; overflow-x: auto; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item { flex: 1 1 0; min-width: 120px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 11px auto; row-gap: 14px; padding: 0 16px 0 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item:last-child { padding-right: 0; }
+    .rich-timeline[data-orientation="horizontal"] .rt-item:not(:last-child)::before { left: 17px; right: 6px; top: 5px; bottom: auto; width: auto; height: 1px; transform: none; }
+    .rich-timeline[data-orientation="horizontal"] .rt-dot { justify-self: start; margin-top: 0; }
+  }
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--text); font-weight: 500; }
 

@@ -606,6 +606,51 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .video-modal-hint { font-size:13px; color:var(--text-tertiary); margin-top:8px; line-height:1.6; }
 .video-modal-actions { display:flex; gap:8px; margin-top:18px; }
 
+/* ── 歷程時間軸（.rich-timeline，後台 TimelineBlot 產生；admin / index 共用同一份樣式）── */
+.rich-timeline { container-type: inline-size; margin: 24px 0; }
+.rich-timeline .rt-list { display: flex; flex-direction: column; }
+.rich-timeline .rt-item { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 16px; padding-bottom: 24px; }
+.rich-timeline .rt-item:last-child { padding-bottom: 0; }
+.rich-timeline .rt-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 24px; bottom: 6px; width: 1px; transform: translateX(-50%); background: var(--border-strong); }
+.rich-timeline .rt-dot { width: 11px; height: 11px; margin-top: 6px; justify-self: center; border-radius: 50%; background: var(--text); }
+.rich-timeline .rt-body { min-width: 0; }
+.rich-timeline .rt-date { font-size: 12px; line-height: 1.6; letter-spacing: .04em; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.rich-timeline .rt-title { font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--text); }
+.rich-timeline .rt-desc { margin-top: 2px; font-size: 14px; line-height: 1.7; color: var(--text-secondary); white-space: pre-line; overflow-wrap: anywhere; }
+/* 水平：只在容器夠寬時套用，窄版面（手機、窄 modal）自動回到垂直 */
+@container (min-width: 521px) {
+  .rich-timeline[data-orientation="horizontal"] .rt-list { flex-direction: row; overflow-x: auto; }
+  .rich-timeline[data-orientation="horizontal"] .rt-item { flex: 1 1 0; min-width: 120px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 11px auto; row-gap: 14px; padding: 0 16px 0 0; }
+  .rich-timeline[data-orientation="horizontal"] .rt-item:last-child { padding-right: 0; }
+  .rich-timeline[data-orientation="horizontal"] .rt-item:not(:last-child)::before { left: 17px; right: 6px; top: 5px; bottom: auto; width: auto; height: 1px; transform: none; }
+  .rich-timeline[data-orientation="horizontal"] .rt-dot { justify-self: start; margin-top: 0; }
+}
+/* 編輯器內：時間軸是不可直接打字的區塊，點擊開啟編輯彈窗 */
+.ql-editor .rich-timeline { cursor: pointer; padding: 14px 16px; margin: 14px 0; border-radius: var(--radius-md); outline: 1px dashed transparent; transition: outline-color .15s, background .15s; user-select: none; }
+.ql-editor .rich-timeline:hover { outline-color: var(--border-strong); background: var(--bg-secondary); }
+.ql-editor .rich-timeline .rt-title:empty::before { content: '（未命名）'; color: var(--text-tertiary); font-weight: 400; }
+/* 時間軸編輯彈窗 */
+.rt-modal-card { width: 760px; max-height: 88vh; overflow-y: auto; }
+.rt-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-md); background: var(--bg-tertiary); }
+.rt-seg button { border: 0; background: none; color: var(--text-secondary); font: inherit; font-size: 13px; padding: 5px 14px; border-radius: calc(var(--radius-md) - 2px); cursor: pointer; }
+.rt-seg button.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.rt-rows { display: flex; flex-direction: column; gap: 8px; }
+.rt-row { display: grid; grid-template-columns: 20px 130px minmax(0, 1fr) 28px; gap: 8px; align-items: start; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); }
+.rt-row.dragging { opacity: .45; }
+.rt-row .rt-handle { cursor: grab; color: var(--text-tertiary); font-size: 13px; line-height: 34px; text-align: center; user-select: none; }
+.rt-row .rt-fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rt-row .form-input { width: 100%; box-sizing: border-box; }
+.rt-row textarea.form-input { resize: vertical; min-height: 54px; font: inherit; font-size: 13px; line-height: 1.6; }
+.rt-row .rt-del { border: 0; background: none; color: var(--text-tertiary); font-size: 18px; line-height: 34px; cursor: pointer; border-radius: 6px; }
+.rt-row .rt-del:hover { color: var(--danger); background: var(--bg-tertiary); }
+.rt-add { margin-top: 8px; width: 100%; border: 1px dashed var(--border-strong); background: none; color: var(--text-secondary); font: inherit; font-size: 13px; padding: 8px; border-radius: var(--radius-md); cursor: pointer; }
+.rt-add:hover { background: var(--bg-secondary); color: var(--text); }
+.rt-preview { padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
+.rt-preview .rich-timeline { margin: 0; }
+.rt-modal-card .video-modal-actions .btn-primary { width: auto; margin-top: 0; }
+.rt-modal-card .video-modal-actions .rt-spacer { flex: 1; }
+@media (max-width: 600px) { .rt-row { grid-template-columns: 20px minmax(0, 1fr) 28px; } .rt-row .rt-date-in { grid-column: 2; grid-row: 1; } .rt-row .rt-fields { grid-column: 2; grid-row: 2; } .rt-row .rt-del { grid-column: 3; grid-row: 1; } }
+
 /* ── Image ratio popover ── */
 .img-ratio-popover {
   position: absolute;
@@ -2012,6 +2057,60 @@ let quillInstances = {};
   } catch (e) { console.warn('divider blot 註冊失敗', e); }
 })();
 
+// 歷程時間軸 blot（<div class="rich-timeline">）
+//  資料存在 data-orientation / data-items（JSON），子節點是預先渲染好的 HTML，
+//  前台 index.html 只需要 CSS 就能顯示；點擊區塊 → openTimelineModal 編輯
+function rtNormalize(v) {
+  if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { v = null; } }
+  if (!v || typeof v !== 'object') v = {};
+  const items = (Array.isArray(v.items) ? v.items : []).map(it => ({
+    date:  String((it && it.date)  || ''),
+    title: String((it && it.title) || ''),
+    desc:  String((it && it.desc)  || '')
+  }));
+  return { orientation: v.orientation === 'horizontal' ? 'horizontal' : 'vertical', items };
+}
+function rtRender(node, value) {
+  const v = rtNormalize(value);
+  node.setAttribute('data-orientation', v.orientation);
+  node.setAttribute('data-items', JSON.stringify(v.items));
+  node.innerHTML = '';
+  const list = document.createElement('div');
+  list.className = 'rt-list';
+  v.items.forEach(it => {
+    const item = document.createElement('div'); item.className = 'rt-item';
+    const dot  = document.createElement('span'); dot.className = 'rt-dot';
+    const body = document.createElement('div'); body.className = 'rt-body';
+    if (it.date) { const d = document.createElement('div'); d.className = 'rt-date'; d.textContent = it.date; body.appendChild(d); }
+    const t = document.createElement('div'); t.className = 'rt-title'; t.textContent = it.title; body.appendChild(t);
+    if (it.desc) { const ds = document.createElement('div'); ds.className = 'rt-desc'; ds.textContent = it.desc; body.appendChild(ds); }
+    item.appendChild(dot); item.appendChild(body); list.appendChild(item);
+  });
+  node.appendChild(list);
+  return node;
+}
+(function registerTimeline() {
+  try {
+    const BlockEmbed = Quill.import('blots/block/embed');
+    class TimelineBlot extends BlockEmbed {
+      static create(value) {
+        const node = super.create();
+        node.setAttribute('contenteditable', 'false');
+        return rtRender(node, value);
+      }
+      static value(node) {
+        let items = [];
+        try { items = JSON.parse(node.getAttribute('data-items') || '[]'); } catch (e) {}
+        return rtNormalize({ orientation: node.getAttribute('data-orientation'), items });
+      }
+    }
+    TimelineBlot.blotName = 'timeline';
+    TimelineBlot.tagName = 'div';
+    TimelineBlot.className = 'rich-timeline';
+    Quill.register(TimelineBlot, true);
+  } catch (e) { console.warn('timeline blot 註冊失敗', e); }
+})();
+
 function qxInCode(fmt) { return !!(fmt && (fmt['code-block'] || fmt.table)); }
 
 // Markdown 快捷鍵（追加在 Quill 預設 bindings 之外）
@@ -2080,6 +2179,8 @@ const QX_COMMANDS = [
       const b = q.getBounds(i), rc = q.container.getBoundingClientRect();
       qtOpenGrid(q, id, { top: rc.top + b.top, bottom: rc.top + b.bottom, left: rc.left + b.left });
     } },
+  { group: '媒體', icon: '⋮', label: '歷程時間軸', desc: '垂直 / 水平排列的時間軸', kw: 'timeline process step history 時間軸 歷程 流程 步驟 里程碑',
+    run: (q, i, id) => openTimelineModal(id, null, i) },
 ];
 const QX_SLASH_CHARS = ['/', '／', '、'];
 
@@ -3446,6 +3547,14 @@ function makeQuill(id, placeholder, richMode) {
 
       span.appendChild(videoBtn);
       span.appendChild(tableBtn);
+      const timelineBtn = document.createElement('button');
+      timelineBtn.type = 'button';
+      timelineBtn.className = 'ql-extra-btn';
+      timelineBtn.innerHTML = '⋮';
+      timelineBtn.setAttribute('aria-label', '插入歷程時間軸');
+      timelineBtn.dataset.tip = '插入歷程時間軸';
+      timelineBtn.onclick = () => openTimelineModal(id);
+      span.appendChild(timelineBtn);
       tb.appendChild(span);
       attachQuillTooltips(id);
     }, 0);
@@ -3454,6 +3563,13 @@ function makeQuill(id, placeholder, richMode) {
     qiEnhance(q, id, wrap);
     // 表格：工具列、＋按鈕、Tab 新增列、貼上 <th>
     qtEnhance(q, id, wrap);
+    // 點擊時間軸區塊 → 開啟編輯彈窗
+    q.root.addEventListener('click', e => {
+      const tl = e.target.closest && e.target.closest('.rich-timeline');
+      if (!tl || !q.root.contains(tl)) return;
+      e.preventDefault();
+      openTimelineModal(id, tl);
+    });
   }
 
   quillInstances[id] = q;
@@ -3633,6 +3749,178 @@ function insertVideo() {
 function closeVideoModal() {
   const m = document.getElementById('video-modal');
   if (m) m.remove();
+}
+
+// ── 歷程時間軸 modal ──
+//  _rt.index === null → 新增；否則為編輯中區塊在 Quill 內的位置
+let _rt = null;
+const RT_SAMPLE = [
+  { date: '2024.01', title: '研究', desc: '' },
+  { date: '2024.03', title: '設計', desc: '' },
+  { date: '2024.06', title: '上線', desc: '' }
+];
+function openTimelineModal(editorId, node, atIndex) {
+  const q = quillInstances[editorId];
+  if (!q) return;
+  let index = null, value = { orientation: 'vertical', items: RT_SAMPLE };
+  if (node) {
+    const blot = Quill.find(node);
+    if (!blot) return;
+    index = blot.offset(q.scroll);
+    value = blot.constructor.value(node);
+  }
+  let insertAt = null;
+  if (!node) {
+    if (typeof atIndex === 'number') insertAt = atIndex;
+    else { const range = q.getSelection(true); insertAt = range ? range.index : q.getLength() - 1; }
+  }
+  _rt = { id: editorId, index, insertAt, orientation: rtNormalize(value).orientation };
+  if (typeof qxHideAll === 'function') qxHideAll();
+  closeTimelineModal(true);
+
+  const modal = document.createElement('div');
+  modal.id = 'timeline-modal';
+  modal.className = 'video-modal';
+  modal.innerHTML =
+    '<div class="video-modal-card rt-modal-card">' +
+      '<div class="video-modal-title">' + (index === null ? '插入歷程時間軸' : '編輯歷程時間軸') + '</div>' +
+      '<div class="form-row">' +
+        '<label class="form-label">排列方向</label>' +
+        '<div class="rt-seg" id="rt-seg">' +
+          '<button type="button" data-o="vertical">垂直</button>' +
+          '<button type="button" data-o="horizontal">水平</button>' +
+        '</div>' +
+        '<p class="video-modal-hint">水平排列在手機或窄版面會自動改成垂直</p>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<label class="form-label">節點（拖曳 ⋮⋮ 調整順序）</label>' +
+        '<div class="rt-rows" id="rt-rows"></div>' +
+        '<button type="button" class="rt-add" id="rt-add">＋ 新增節點</button>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<label class="form-label">預覽</label>' +
+        '<div class="rt-preview"><div class="rich-timeline" id="rt-preview"></div></div>' +
+      '</div>' +
+      '<div class="video-modal-actions">' +
+        (index === null ? '' : '<button type="button" class="btn btn-danger" id="rt-remove">刪除時間軸</button>') +
+        '<span class="rt-spacer"></span>' +
+        '<button type="button" class="btn btn-secondary" id="rt-cancel">取消</button>' +
+        '<button type="button" class="btn btn-primary" id="rt-save">' + (index === null ? '插入' : '更新') + '</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+
+  const rows = modal.querySelector('#rt-rows');
+  rtNormalize(value).items.forEach(it => rows.appendChild(rtMakeRow(it)));
+  if (!rows.children.length) rows.appendChild(rtMakeRow({}));
+
+  modal.querySelectorAll('#rt-seg button').forEach(b => b.addEventListener('click', () => { _rt.orientation = b.dataset.o; rtRefresh(); }));
+  modal.querySelector('#rt-add').addEventListener('click', () => {
+    const r = rtMakeRow({}); rows.appendChild(r); rtRefresh(); r.querySelector('.rt-date-in').focus();
+  });
+  modal.querySelector('#rt-cancel').addEventListener('click', () => closeTimelineModal());
+  modal.querySelector('#rt-save').addEventListener('click', saveTimeline);
+  const rm = modal.querySelector('#rt-remove');
+  if (rm) rm.addEventListener('click', removeTimeline);
+  modal.addEventListener('input', rtRefresh);
+  rtBindDrag(rows);
+  document.addEventListener('keydown', rtOnKey, true);
+  rtRefresh();
+  setTimeout(() => rows.querySelector('.rt-date-in')?.focus(), 80);
+}
+function rtMakeRow(it) {
+  const row = document.createElement('div');
+  row.className = 'rt-row';
+  const handle = document.createElement('span');
+  handle.className = 'rt-handle'; handle.textContent = '⋮⋮'; handle.title = '拖曳排序';
+  const date = document.createElement('input');
+  date.className = 'form-input rt-date-in'; date.placeholder = '日期，如 2024.03'; date.value = it.date || '';
+  const fields = document.createElement('div'); fields.className = 'rt-fields';
+  const title = document.createElement('input');
+  title.className = 'form-input rt-title-in'; title.placeholder = '階段標題'; title.value = it.title || '';
+  const desc = document.createElement('textarea');
+  desc.className = 'form-input rt-desc-in'; desc.placeholder = '描述（選填）'; desc.rows = 2; desc.value = it.desc || '';
+  fields.appendChild(title); fields.appendChild(desc);
+  const del = document.createElement('button');
+  del.type = 'button'; del.className = 'rt-del'; del.textContent = '×'; del.title = '刪除節點';
+  del.addEventListener('click', () => { row.remove(); rtRefresh(); });
+  // 只有按住把手時才可拖曳，避免影響輸入框選字
+  handle.addEventListener('mousedown', () => { row.draggable = true; });
+  row.addEventListener('dragend', () => { row.draggable = false; row.classList.remove('dragging'); rtRefresh(); });
+  row.addEventListener('dragstart', e => { row.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', ''); } catch (x) {} });
+  row.append(handle, date, fields, del);
+  return row;
+}
+
+function rtBindDrag(rows) {
+  rows.addEventListener('dragover', e => {
+    const dragging = rows.querySelector('.rt-row.dragging');
+    if (!dragging) return;
+    e.preventDefault();
+    const others = Array.from(rows.querySelectorAll('.rt-row:not(.dragging)'));
+    const after = others.find(r => { const b = r.getBoundingClientRect(); return e.clientY < b.top + b.height / 2; });
+    if (after) rows.insertBefore(dragging, after); else rows.appendChild(dragging);
+  });
+}
+
+function rtCollect() {
+  const items = Array.from(document.querySelectorAll('#rt-rows .rt-row')).map(r => ({
+    date:  r.querySelector('.rt-date-in').value.trim(),
+    title: r.querySelector('.rt-title-in').value.trim(),
+    desc:  r.querySelector('.rt-desc-in').value.trim()
+  }));
+  return { orientation: _rt ? _rt.orientation : 'vertical', items };
+}
+
+function rtRefresh() {
+  if (!_rt) return;
+  document.querySelectorAll('#rt-seg button').forEach(b => b.classList.toggle('on', b.dataset.o === _rt.orientation));
+  const pv = document.getElementById('rt-preview');
+  if (!pv) return;
+  const v = rtCollect();
+  v.items = v.items.filter(it => it.date || it.title || it.desc);
+  rtRender(pv, v);
+}
+
+function saveTimeline() {
+  if (!_rt) return;
+  const q = quillInstances[_rt.id];
+  const v = rtCollect();
+  v.items = v.items.filter(it => it.date || it.title || it.desc);
+  if (!v.items.length) { toast('請至少填寫一個節點'); return; }
+  if (q) {
+    if (_rt.index === null) {
+      const at = Math.min(_rt.insertAt, q.getLength() - 1);
+      q.insertEmbed(at, 'timeline', v, 'user');
+      q.setSelection(at + 1, 0, 'user');
+      toast('✓ 時間軸已插入');
+    } else {
+      // 刪除＋插入合成同一筆 delta，復原（⌘Z）時才會一次還原成舊版時間軸
+      const Delta = Quill.import('delta');
+      q.updateContents(new Delta().retain(_rt.index).delete(1).insert({ timeline: v }), 'user');
+      q.setSelection(_rt.index + 1, 0, 'silent');
+      toast('✓ 時間軸已更新');
+    }
+  }
+  closeTimelineModal();
+}
+
+function removeTimeline() {
+  if (!_rt || _rt.index === null) return;
+  const q = quillInstances[_rt.id];
+  if (q) { q.deleteText(_rt.index, 1, 'user'); q.setSelection(_rt.index, 0, 'silent'); toast('時間軸已刪除'); }
+  closeTimelineModal();
+}
+
+function rtOnKey(e) {
+  if (e.key === 'Escape' && document.getElementById('timeline-modal')) { e.stopPropagation(); closeTimelineModal(); }
+}
+
+function closeTimelineModal(keepState) {
+  const m = document.getElementById('timeline-modal');
+  if (m) m.remove();
+  document.removeEventListener('keydown', rtOnKey, true);
+  if (!keepState) _rt = null;
 }
 
 // ── Insert Table Modal ──

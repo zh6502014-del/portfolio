@@ -1,0 +1,25 @@
+{
+  "version": "V1",
+  "created_at": "2026-10-22T09:55:05.815404+08:00",
+  "repository": "https://github.com/zh6502014-del/portfolio",
+  "site_url": "https://zh6502014-del.github.io/portfolio/",
+  "commit": "c2efbf9645d6a7a4d0a372a4f6810399c215bc75",
+  "archive": "portfolio-v1.zip",
+  "sha256": "e4c786486886db2f2c87f75d1dfaace260eface9df611774ae06281cbd878ce0",
+  "files": {
+    "index.html": "3f79e25bb5cd3a9ecb153ec0f84fd1cf33525c7cb896bff2038f84cd267cb4ba",
+    "admin.html": "e1256f411ddf582b80ae0d6b33c2773412b3b59f852b72cda7355773facb583d",
+    "component-map.html": "cc85e67e5a5aac820bc25941f03134f54294842a75abbdcf636cd2385e3515db",
+    "README.md": "d64c14fd6e0fd1db33157bc440b36536aa27fa9af9dd83f4e7d7faea1a21bce8",
+    "david_head.glb": "4e5e3f76eac2c33286c62886a3f0eafbde11bf1815657fc795c7f308b416b1ad"
+  },
+  "remote_tag": "v1-backup-20261022",
+  "remote_tag_url": "https://github.com/zh6502014-del/portfolio/tree/v1-backup-20261022",
+  "v2_commit": "645fc8543464aafd94e12a1f1683a409b0bc068c",
+  "v2_deployment": "https://github.com/zh6502014-del/portfolio/actions/runs/39708577815",
+  "v2_deployment_status": "success",
+  "v2_live_files_verified": [
+    "index.html",
+    "admin.html"
+  ]
+}
