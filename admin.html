@@ -152,6 +152,12 @@ body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-
 .sec-switch input:checked + .track { background: var(--accent); opacity: 1; }
 .sec-switch input:checked + .track::after { transform: translateX(12px); background: var(--accent-text); }
 .sec-switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 個人資料：Email / 電話 前台顯示開關 */
+.contact-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.contact-label-row .form-label { margin-bottom: 0; }
+.contact-vis { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: var(--text-tertiary); user-select: none; }
+.contact-vis .sec-switch { margin: 0; }
+.contact-field.off .form-input { opacity: 0.5; }
 .nav-section-hint { font-size: 11px; color: var(--text-tertiary); padding: 0 10px 6px; line-height: 1.5; }
 .sidebar-footer {
   margin-top: auto; padding: 12px 8px;
@@ -949,7 +955,12 @@ ALTER TABLE section_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "public read" ON section_settings;
 DROP POLICY IF EXISTS "auth write" ON section_settings;
 CREATE POLICY "public read" ON section_settings FOR SELECT USING (true);
-CREATE POLICY "auth write" ON section_settings FOR ALL USING (auth.role() = 'authenticated');</pre>
+CREATE POLICY "auth write" ON section_settings FOR ALL USING (auth.role() = 'authenticated');
+
+-- 頁尾文字（個人資料頁 → 頁尾）
+ALTER TABLE profile
+ADD COLUMN IF NOT EXISTS footer_text TEXT,
+ADD COLUMN IF NOT EXISTS footer_link_label TEXT;</pre>
     </details>
 
     <button class="btn btn-primary" onclick="saveConfig()">儲存設定並繼續</button>
@@ -1174,6 +1185,7 @@ async function loadSectionVisibility() {
     (data || []).forEach(r => { sectionVisibility[r.key] = r.visible !== false; });
   } catch (e) { console.warn('section_settings 讀取失敗（尚未建表時預設全部顯示）', e); }
   syncSectionSwitches();
+  syncContactSwitches();
 }
 async function toggleSection(key, input) {
   const visible = input.checked;
@@ -1188,6 +1200,32 @@ async function toggleSection(key, input) {
   sectionVisibility[key] = visible;
   syncSectionSwitches();
   toast(visible ? '✓ 前台已顯示此區塊' : '✓ 前台已隱藏此區塊');
+}
+
+// 個人資料頁：Email / 電話的前台顯示開關（同樣存在 section_settings，key 為 contact_email / contact_phone）
+function syncContactSwitches() {
+  document.querySelectorAll('.contact-field[data-contact]').forEach(row => {
+    const on = sectionVisibility[row.dataset.contact] !== false;
+    const input = row.querySelector('.contact-vis input');
+    if (input) input.checked = on;
+    row.classList.toggle('off', !on);
+    const t = row.querySelector('.contact-vis-text');
+    if (t) t.textContent = on ? '前台顯示' : '前台隱藏';
+  });
+}
+async function toggleContactVisibility(key, input) {
+  const visible = input.checked;
+  const { error } = await supabase_client.from('section_settings')
+    .upsert({ key, visible, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) {
+    input.checked = !visible;
+    toast('✗ 儲存失敗：請先在 Supabase 執行 section_settings 建表語法');
+    console.error(error);
+    return;
+  }
+  sectionVisibility[key] = visible;
+  syncContactSwitches();
+  toast((key === 'contact_email' ? 'Email' : '電話') + (visible ? ' 已在前台顯示' : ' 已在前台隱藏'));
 }
 
 // ── Boot ──
@@ -4388,9 +4426,23 @@ async function renderProfilePage() {
       <div class="form-row"><label class="form-label">Hero 標題</label><input class="form-input" id="p-name" placeholder="您好，我是林艾奭" /></div>
       <div class="form-row"><label class="form-label">自我介紹（支援基本格式）</label><div id="p-desc-editor"></div></div>
       <div class="form-row-2">
-        <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="p-email" type="email" /></div>
-        <div class="form-row"><label class="form-label">電話</label><input class="form-input" id="p-phone" /></div>
+        <div class="form-row contact-field" data-contact="contact_email">
+          <div class="contact-label-row"><label class="form-label" for="p-email">Email</label>
+            <label class="contact-vis"><span class="contact-vis-text">前台顯示</span><span class="sec-switch"><input type="checkbox" checked aria-label="前台顯示 Email" onchange="toggleContactVisibility('contact_email', this)"><span class="track"></span></span></label></div>
+          <input class="form-input" id="p-email" type="email" /></div>
+        <div class="form-row contact-field" data-contact="contact_phone">
+          <div class="contact-label-row"><label class="form-label" for="p-phone">電話</label>
+            <label class="contact-vis"><span class="contact-vis-text">前台顯示</span><span class="sec-switch"><input type="checkbox" checked aria-label="前台顯示電話" onchange="toggleContactVisibility('contact_phone', this)"><span class="track"></span></span></label></div>
+          <input class="form-input" id="p-phone" /></div>
       </div>
+    </div>
+    <div class="card" id="p-footer-card">
+      <div class="form-label" style="font-size:14px;color:var(--text);margin-bottom:14px">頁尾</div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label" for="p-footer-text">左側文字</label><input class="form-input" id="p-footer-text" placeholder="林艾奭・UI/UX Designer" /></div>
+        <div class="form-row"><label class="form-label" for="p-footer-link">右側 Email 連結文字</label><input class="form-input" id="p-footer-link" placeholder="Email" /></div>
+      </div>
+      <p class="video-modal-hint" id="p-footer-hint">留白會使用預設文字。Email 連結會寄到上方的 Email，上方 Email 關閉前台顯示時，頁尾連結也會一起隱藏。</p>
     </div>
   `;
   const descEditor = makeQuill('p-desc-editor', '自我介紹...', true);
@@ -4400,9 +4452,21 @@ async function renderProfilePage() {
     document.getElementById('p-navname').value = data.nav_name || '';
     document.getElementById('p-email').value = data.email || '';
     document.getElementById('p-phone').value = data.phone || '';
+    // 頁尾欄位：資料表還沒有 footer_* 欄位時停用輸入，避免儲存整筆失敗
+    _profileHasFooter = 'footer_text' in data && 'footer_link_label' in data;
+    document.getElementById('p-footer-text').value = data.footer_text || '';
+    document.getElementById('p-footer-link').value = data.footer_link_label || '';
+    if (!_profileHasFooter) {
+      ['p-footer-text', 'p-footer-link'].forEach(i => { document.getElementById(i).disabled = true; });
+      const h = document.getElementById('p-footer-hint');
+      h.textContent = '尚未建立頁尾欄位：請到 Supabase SQL Editor 執行「頁尾文字」的 ALTER TABLE 語法（在初始設定的 SQL 最下方），重新整理後即可編輯。';
+      h.style.color = 'var(--danger)';
+    }
     if (data.description && descEditor) { setEditorHTML('p-desc-editor', data.description); }
   }
+  syncContactSwitches();
 }
+let _profileHasFooter = false;
 async function saveProfile() {
   const payload = {
     name: document.getElementById('p-name').value,
@@ -4412,6 +4476,10 @@ async function saveProfile() {
     phone: document.getElementById('p-phone').value,
     updated_at: new Date().toISOString()
   };
+  if (_profileHasFooter) {
+    payload.footer_text = document.getElementById('p-footer-text').value.trim();
+    payload.footer_link_label = document.getElementById('p-footer-link').value.trim();
+  }
   try {
     const { data: existing } = await supabase_client.from('profile').select('id').single();
     let error;

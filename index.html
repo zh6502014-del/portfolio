@@ -1106,6 +1106,7 @@ body {overflow-x:clip}
 /* A blank editor line separates groups; keep it shorter than a full text line. */
 .hero-desc p:empty,.hero-desc p:has(> br:only-child) {height:.9em}
 .hero-contacts {margin:0 0 22px;gap:10px}
+.hero-contacts:not(:has(> .contact-item:not(.section-hidden))) {display:none} /* Email、電話都沒有或都隱藏時，不留空白 */
 .hero-contacts .contact-item {font-size:14px;padding:9px 14px;max-width:100%;overflow-wrap:anywhere}
 .hero-contacts .contact-item svg {flex-shrink:0}
 .profile-overview .sec-label {margin-bottom:24px}
@@ -1500,6 +1501,9 @@ function applySectionVisibility(rows) {
     projects:   () => [$('projects')],
     notes:      () => [$('notes')],
     navigation: () => [$('nav-links')],
+    // 個人資料頁的 Email / 電話開關；Email 隱藏時頁尾的 Email 連結一起隱藏
+    contact_email: () => [document.querySelector('#hero-contacts [data-contact="email"]'), $('footer-email')],
+    contact_phone: () => [document.querySelector('#hero-contacts [data-contact="phone"]')],
   };
   Object.keys(targets).forEach(key => {
     targets[key]().forEach(el => el && el.classList.toggle('section-hidden', off.has(key)));
@@ -1663,7 +1667,6 @@ function renderProfile(p) {
   const navName = ((p.nav_name && p.nav_name.trim()) || 'UI/UX Portfolio').replace(/作品集/g, 'Portfolio');
   document.getElementById('hero-title').textContent = heroTitle;
   document.getElementById('nav-name').textContent = navName;
-  // footer-name 為靜態文字，不由後台控制
   const descEl = document.getElementById('hero-desc');
   if (descEl) {
     descEl.innerHTML = prepRichHtml(p.description || '');
@@ -1674,9 +1677,14 @@ function renderProfile(p) {
   }
   const contacts = document.getElementById('hero-contacts');
   contacts.innerHTML = '';
-  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
-  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
-  document.getElementById('footer-email').href = 'mailto:' + (p.email || '');
+  if (p.email) contacts.innerHTML += `<a href="mailto:${p.email}" class="contact-item glass-el" data-contact="email"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>${p.email}</a>`;
+  if (p.phone) contacts.innerHTML += `<span class="contact-item glass-el" data-contact="phone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 10.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${p.phone}</span>`;
+  // 頁尾：後台「個人資料 → 頁尾」可編輯，留白用預設文字；沒有 Email 時不顯示連結
+  document.getElementById('footer-name').textContent = (p.footer_text || '').trim() || '林艾奭・UI/UX Designer';
+  const footerEmail = document.getElementById('footer-email');
+  footerEmail.textContent = (p.footer_link_label || '').trim() || 'Email';
+  footerEmail.href = 'mailto:' + (p.email || '');
+  footerEmail.hidden = !p.email;
 }
 
 function renderSkills(data) {
