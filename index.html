@@ -2654,14 +2654,13 @@ let headPointerBounds = null, headReturn = null;
 let headViewBounds = null;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-// Desktop places the panels 10% further from the sculpture; panel size is unchanged
-// (each panel keeps its arc length). Phones keep the tighter ring.
-const WIDE_LAYOUT = matchMedia('(min-width: 761px)');
-const ringRadius = () => 3.95 * 1.1 * (WIDE_LAYOUT.matches ? 1.1 : 1);
+// Keep the panel ring close to the sculpture, as in the original portfolio cover.
+const ringRadius = () => 3.95;
 let RADIUS = ringRadius();
 // Enlarge each cover and its glass surface by 10%, keeping the orbit radius.
 const CARD_HEIGHT = (2.7 + .15) * 1.1;
 const SCENE_SCALE = 1.2;
+const FRONT_PANEL_ANGLE = Math.PI / 3;
 // Keep the original pointer range, with gentler tracking and a soft return.
 const HEAD_POINTER_RANGE = THREE.MathUtils.degToRad(30);
 const HEAD_RETURN_DURATION = 600;
@@ -2970,11 +2969,24 @@ function nearestProject() {
   });
   return nearest;
 }
+function frontSlotRotation(base, reference) {
+  let best = reference, bestDistance = Infinity;
+  // The source cover places projects 01 and 02 at the two front slots and 03 at the rear.
+  for (const slot of [FRONT_PANEL_ANGLE, -FRONT_PANEL_ANGLE]) {
+    const candidate = reference + Math.atan2(
+      Math.sin(slot - base - reference),
+      Math.cos(slot - base - reference)
+    );
+    const distance = Math.abs(candidate - reference);
+    if (distance < bestDistance) { best = candidate; bestDistance = distance; }
+  }
+  return best;
+}
 function goTo(index, announce=true) {
   if(!projects.length)return;
   hover=null;pendingPointer=lastPointer=null;returnHead();stage.classList.remove('is-hovering');
   const i=((index%projects.length)+projects.length)%projects.length;
-  const desired=-cards[i].base;
+  const desired=frontSlotRotation(cards[i].base,targetAngle);
   const total=targetAngle;
   const delta=Math.atan2(Math.sin(desired-total),Math.cos(desired-total));
   targetAngle+=delta;
@@ -3111,7 +3123,7 @@ async function buildProjects(data) {
   // loads. Data refreshes retain the selected work instead of resetting the ring.
   const preferred=projects.findIndex(p=>p.id===(selectedId ?? 1));
   const initial=preferred<0?0:preferred;
-  angle=targetAngle=renderedAngle=-cards[initial].base;
+  angle=targetAngle=renderedAngle=frontSlotRotation(cards[initial].base,targetAngle);
   ring.rotation.y=renderedAngle;
   updateActive(initial);invalidate();
 }
@@ -3246,13 +3258,6 @@ async function init() {
   } catch(error) { console.error('Orbit preview:',error);fail('作品展間暫時無法顯示，請使用下方作品列表。'); }
 }
 window.addEventListener('orbit-projects',e=>{if(ring)buildProjects(e.detail);});
-WIDE_LAYOUT.addEventListener('change',()=>{
-  RADIUS=ringRadius();
-  if(!ring || !cards.length)return;
-  // Rebuild the panels on the new ring, keeping the selected work in front.
-  sceneProjectsKey=null;
-  buildProjects(projects).then(resize);
-});
 
 // Page scrolling moves the whole hero normally; it never rotates the scene.
 window.addEventListener('scroll',()=>{
