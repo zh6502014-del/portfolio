@@ -2661,6 +2661,9 @@ let RADIUS = ringRadius();
 const CARD_HEIGHT = (2.7 + .15) * 1.1;
 const SCENE_SCALE = 1.2;
 const FRONT_PANEL_ANGLE = Math.PI / 3;
+// The selected project sits in the centre slot (ring angle 0), as in the original
+// cover: SinoPac first, centred. Do not move it to the ±FRONT_PANEL_ANGLE side slots.
+const ACTIVE_SLOT_ANGLE = 0;
 // Keep the original pointer range, with gentler tracking and a soft return.
 const HEAD_POINTER_RANGE = THREE.MathUtils.degToRad(30);
 const HEAD_RETURN_DURATION = 600;
@@ -2963,7 +2966,7 @@ function updateActive(index, announce=false) {
 function nearestProject() {
   let nearest=0,distance=Infinity;
   cards.forEach((card,index)=>{
-    const a=card.base+targetAngle;
+    const a=card.base+targetAngle-ACTIVE_SLOT_ANGLE;
     const d=Math.abs(Math.atan2(Math.sin(a),Math.cos(a)));
     if(d<distance){distance=d;nearest=index;}
   });
@@ -2971,8 +2974,8 @@ function nearestProject() {
 }
 function frontSlotRotation(base, reference) {
   let best = reference, bestDistance = Infinity;
-  // The source cover places projects 01 and 02 at the two front slots and 03 at the rear.
-  for (const slot of [FRONT_PANEL_ANGLE, -FRONT_PANEL_ANGLE]) {
+  // The selected project goes to the centre slot; the others flank it on both sides.
+  for (const slot of [ACTIVE_SLOT_ANGLE]) {
     const candidate = reference + Math.atan2(
       Math.sin(slot - base - reference),
       Math.cos(slot - base - reference)
